@@ -133,7 +133,7 @@ const MODULE_DETECT_RULES = [
   { module: 'M4', re: /(ethics|bias|fairness|privacy|gdpr|law|act|security|owasp|injection|logic|fallacy|contrapositive|de morgan|đạo đức|pháp lý|bảo mật|ngụy biện|luật|quyền riêng tư)/i },
 ];
 
-const GEMINI_TIMEOUT_MS = 5000;
+const GEMINI_TIMEOUT_MS = 8000;
 
 function hasVietnameseDiacritics(text) {
   return /[àáảãạăắằẳẵặâấầẩẫậđèéẻẽẹêếềểễệìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳýỷỹỵ]/i.test(
@@ -382,9 +382,9 @@ function findLocalExamMatches(term) {
   return { glossaryHit, flashcardHit };
 }
 
-async function requestGeminiExplain({ term, wikiSummary, context }) {
+async function requestGeminiExplain({ term, wikiSummary = '', context = '' }) {
   if (typeof fetch !== 'function' || typeof window === 'undefined') {
-    return null;
+    return { ok: false, reason: 'non_browser', message: '' };
   }
 
   const controller = new AbortController();
@@ -402,8 +402,15 @@ async function requestGeminiExplain({ term, wikiSummary, context }) {
       signal: controller.signal,
     });
 
-    if (!res.ok) return null;
-    const data = await res.json();
+    const data = await res.json().catch(() => null);
+    if (!res.ok) {
+      return {
+        ok: false,
+        reason: data?.reason || `http_${res.status}`,
+        message: data?.message || '',
+      };
+    }
+
     if (
       data?.ok &&
       typeof data.whatIsIt === 'string' &&
@@ -413,40 +420,44 @@ async function requestGeminiExplain({ term, wikiSummary, context }) {
       data.aiRole.trim() &&
       data.formulaPlain.trim()
     ) {
+      const flashcardAnswer =
+        typeof data.flashcardAnswer === 'string' && data.flashcardAnswer.trim()
+          ? data.flashcardAnswer.trim()
+          : `${data.whatIsIt.trim()} Vai trò trong AI: ${data.aiRole.trim()}`;
+
       return {
+        ok: true,
         model: data.model || 'gemini',
+        grounded: Boolean(data.grounded),
+        groundedSources: Array.isArray(data.groundedSources)
+          ? data.groundedSources
+          : [],
+        searchFallbackNote: data.searchFallbackNote || '',
+        flashcardAnswer,
         whatIsIt: data.whatIsIt.trim(),
         aiRole: data.aiRole.trim(),
         formulaPlain: data.formulaPlain.trim(),
       };
     }
-    return null;
-  } catch {
-    return null;
+    return { ok: false, reason: 'invalid_response', message: '' };
+  } catch (err) {
+    return {
+      ok: false,
+      reason: err?.name === 'AbortError' ? 'timeout' : 'network_error',
+      message:
+        err?.name === 'AbortError'
+          ? 'Gemini vượt quá thời gian chờ 8 giây — đã tự chuyển sang bản fallback.'
+          : 'Không gọi được /api/explain — đã tự chuyển sang bản fallback.',
+    };
   } finally {
     clearTimeout(timer);
   }
 }
 
-/**
- * Live online lookup for any user-highlighted term (Domain-filtered Wikipedia + Gemini 5s timeout fallback):
- * 1. Resolves on-topic AI/Math/Code/Law Wikipedia summary (preferring canonical map & EN->VI langlinks)
- *    and strictly discards off-topic Wikipedia pages (geography/history/entertainment)
- * 2. Sends clean wikiSummary + context to /api/explain (Gemini) with a 5-second timeout
- * 3. Returns "✨ AI + Wikipedia" (or "✨ AI" if no Wiki page matched), falling back safely to "🌐 Wikipedia" or context
- */
-export async function lookupTermOnline(rawTerm, contextSentence = '') {
-  const term = rawTerm
-    .trim()
-    .replace(/^[.,;:!?()[\]"'“”‘’]+|[.,;:!?()[\]"'“”‘’]+$/g, '');
-  const lower = term.toLowerCase();
-  const canonical = CANONICAL_WIKI_MAP[lower];
-  const { glossaryHit, flashcardHit } = findLocalExamMatches(term);
-
+async function resolveWikipediaInfo(term, canonical) {
   let viSummary = null;
   let enSummary = null;
 
-  // Step 1: Resolve Wikipedia with strict AI/Math/Code/Law domain filtering
   if (canonical) {
     const [viDirect, enDirect] = await Promise.all([
       canonical.vi ? fetchWikiSummary('vi', canonical.vi) : Promise.resolve(null),
@@ -467,7 +478,6 @@ export async function lookupTermOnline(rawTerm, contextSentence = '') {
   } else {
     const isViPhrase = hasVietnameseDiacritics(term);
 
-    // Search English Wikipedia first for ASCII technical terms; search both with strict domain query for Vietnamese terms
     const [enTitle, viTitle] = await Promise.all([
       isViPhrase ? Promise.resolve(null) : searchBestWikiTitle('en', term),
       searchBestWikiTitle('vi', term),
@@ -478,11 +488,9 @@ export async function lookupTermOnline(rawTerm, contextSentence = '') {
       viTitle ? fetchWikiSummary('vi', viTitle) : Promise.resolve(null),
     ]);
 
-    // Validate BOTH summaries strictly — discard any off-topic page (e.g. "Huế")!
     enSummary = isValidTechnicalWikiSummary(enRes, term, false) ? enRes : null;
     viSummary = isValidTechnicalWikiSummary(viRes, term, false) ? viRes : null;
 
-    // Prefer official Vietnamese langlink of a verified EN technical article
     if (enSummary) {
       const linkedVi = await fetchVietnameseLanglink(enSummary.title);
       if (linkedVi && (!viSummary || viSummary.title !== linkedVi)) {
@@ -494,9 +502,34 @@ export async function lookupTermOnline(rawTerm, contextSentence = '') {
     }
   }
 
-  // Only pass verified technical Wikipedia summary to Gemini (empty if no valid Wiki hit)
-  const wikiRawForGemini =
-    viSummary?.extract || enSummary?.extract || '';
+  return { viSummary, enSummary };
+}
+
+/**
+ * Live online lookup prioritizing Gemini + Google Search Grounding (/api/explain, 8s timeout):
+ * 1. Calls /api/explain IMMEDIATELY (in parallel with Wikipedia verification for link/fallback)
+ * 2. If Gemini succeeds -> returns all 4 non-tech fields (flashcardAnswer, whatIsIt, aiRole, formulaPlain)
+ *    with Google Search sources (or Wikipedia citation if available)
+ * 3. If /api/explain fails or GEMINI_API_KEY is missing -> falls back cleanly to verified Wikipedia
+ *    AND returns an explicit `apiWarning` banner so the user knows immediately if key setup is needed
+ */
+export async function lookupTermOnline(rawTerm, contextSentence = '') {
+  const term = rawTerm
+    .trim()
+    .replace(/^[.,;:!?()[\]"'“”‘’]+|[.,;:!?()[\]"'“”‘’]+$/g, '');
+  const lower = term.toLowerCase();
+  const canonical = CANONICAL_WIKI_MAP[lower];
+  const { glossaryHit, flashcardHit } = findLocalExamMatches(term);
+
+  // Run Gemini (/api/explain, 8s timeout) and domain-filtered Wikipedia in parallel for fastest response
+  const [geminiRes, wikiBundle] = await Promise.all([
+    !glossaryHit
+      ? requestGeminiExplain({ term, context: contextSentence })
+      : Promise.resolve({ ok: false, reason: 'built_in_glossary', message: '' }),
+    resolveWikipediaInfo(term, canonical),
+  ]);
+
+  const { viSummary, enSummary } = wikiBundle;
 
   let sourceUrl = '';
   let sourceTitle = '';
@@ -512,27 +545,68 @@ export async function lookupTermOnline(rawTerm, contextSentence = '') {
     wikiOriginLabel = `Wikipedia (${enSummary.title})`;
   }
 
-  // Step 2: Ask Gemini (/api/explain) with 5s timeout (works even when wikiRawForGemini is empty!)
-  const geminiResult = !glossaryHit
-    ? await requestGeminiExplain({
-        term,
-        wikiSummary: wikiRawForGemini,
-        context: contextSentence,
-      })
-    : null;
+  // Branch A: Gemini (/api/explain) succeeded within 8 seconds!
+  if (geminiRes?.ok) {
+    const primaryGroundedSource = geminiRes.groundedSources?.[0];
+    const finalSourceUrl = primaryGroundedSource?.url || sourceUrl;
+    const finalSourceTitle = primaryGroundedSource?.title || sourceTitle;
 
-  // Step 3: Build Vietnamese Wikipedia text if falling back without Gemini
+    const combinedText = `${term} ${geminiRes.whatIsIt} ${geminiRes.aiRole} ${contextSentence}`;
+    const detectedModule =
+      flashcardHit?.module || detectModule(term, combinedText, 'M3');
+
+    const displayTitle =
+      sourceTitle && sourceTitle.toLowerCase() !== lower
+        ? `${term} (${sourceTitle})`
+        : term;
+
+    const hasWiki = Boolean(viSummary || enSummary);
+    const badgeLabel = geminiRes.grounded
+      ? '✨ AI + Google Search'
+      : hasWiki
+        ? '✨ AI + Wikipedia'
+        : '✨ Gemini AI';
+
+    const sourceLabel = geminiRes.grounded
+      ? `Gemini + Google Search (${geminiRes.groundedSources.map((s) => s.title).join(', ')})`
+      : hasWiki
+        ? `Gemini AI (${geminiRes.model}) kết hợp ${wikiOriginLabel}`
+        : `Gemini AI (${geminiRes.model}) giải thích theo ngữ cảnh bài học`;
+
+    return {
+      foundOnline: true,
+      explainMode: 'ai',
+      badgeLabel,
+      apiWarning: '',
+      groundedSources: geminiRes.groundedSources || [],
+      hasLocalMatch: Boolean(flashcardHit),
+      term,
+      module: detectedModule,
+      tag:
+        flashcardHit?.tag ||
+        (geminiRes.grounded ? 'AI + Google Search' : 'Gemini AI · Tự thêm'),
+      question: `${displayTitle} là gì và dùng để giải quyết bài toán nào?`,
+      answer: geminiRes.flashcardAnswer,
+      whatIsIt: geminiRes.whatIsIt,
+      aiRole: geminiRes.aiRole,
+      formulaPlain: geminiRes.formulaPlain,
+      sourceUrl: finalSourceUrl,
+      sourceTitle: finalSourceTitle,
+      sourceLabel,
+      googleSearchUrl: `https://www.google.com/search?q=${encodeURIComponent(
+        `${term} là gì trong AI Machine Learning`
+      )}`,
+    };
+  }
+
+  // Branch B: Fallback to verified Wikipedia or local bank — WITH clear notice if API key is missing/failed
   let onlineViText = '';
   if (viSummary && viSummary.extract.length >= 50) {
     onlineViText = viSummary.extract;
   } else if (enSummary) {
-    if (geminiResult) {
-      onlineViText = enSummary.extract;
-    } else {
-      const enSentences = splitSentences(enSummary.extract).slice(0, 3).join(' ');
-      onlineViText = await translateEnToVi(enSentences);
-      wikiOriginLabel = `Wikipedia Tiếng Anh — dịch tự động (${enSummary.title})`;
-    }
+    const enSentences = splitSentences(enSummary.extract).slice(0, 3).join(' ');
+    onlineViText = await translateEnToVi(enSentences);
+    wikiOriginLabel = `Wikipedia Tiếng Anh — dịch tự động (${enSummary.title})`;
   }
 
   const combinedText = `${term} ${onlineViText} ${enSummary?.extract ?? ''} ${contextSentence}`;
@@ -548,37 +622,6 @@ export async function lookupTermOnline(rawTerm, contextSentence = '') {
 
   const question = `${displayTitle} là gì và dùng để giải quyết bài toán nào?`;
 
-  // Branch A: Gemini succeeded within 5 seconds
-  if (geminiResult) {
-    const hasWiki = Boolean(viSummary || enSummary);
-    const badgeLabel = hasWiki ? '✨ AI + Wikipedia' : '✨ AI';
-    const sourceLabel = hasWiki
-      ? `AI (Gemini) viết lại dễ hiểu từ ${wikiOriginLabel}`
-      : 'AI (Gemini) giải thích theo ngữ cảnh bài học';
-
-    return {
-      foundOnline: true,
-      explainMode: 'ai',
-      badgeLabel,
-      hasLocalMatch: Boolean(flashcardHit),
-      term,
-      module: detectedModule,
-      tag: flashcardHit?.tag || (hasWiki ? 'AI + Wikipedia' : 'AI · Tự thêm'),
-      question,
-      answer: `${geminiResult.whatIsIt} Vai trò trong AI: ${geminiResult.aiRole}`,
-      whatIsIt: geminiResult.whatIsIt,
-      aiRole: geminiResult.aiRole,
-      formulaPlain: geminiResult.formulaPlain,
-      sourceUrl,
-      sourceTitle,
-      sourceLabel,
-      googleSearchUrl: `https://www.google.com/search?q=${encodeURIComponent(
-        `${term} là gì trong AI Machine Learning`
-      )}`,
-    };
-  }
-
-  // Branch B: Fallback to verified Wikipedia or clean local/context fallback (NEVER off-topic Wiki junk!)
   const viSentences = splitSentences(onlineViText);
   const firstSentence = viSentences[0] || '';
   const secondSentence = viSentences.slice(1, 3).join(' ');
@@ -603,7 +646,7 @@ export async function lookupTermOnline(rawTerm, contextSentence = '') {
       ? `Ghi chú trọng tâm thi VinUni (${flashcardHit.id}): ${flashcardHit.answer}`
       : onlineViText
         ? `Tóm tắt nhanh: ${onlineViText.slice(0, 240)}${onlineViText.length > 240 ? '…' : ''}`
-        : `Chưa có bài Wikipedia chuyên ngành khớp chính xác — bạn có thể bấm nút Google ở trên hoặc nhập ngắn gọn cách hiểu của bạn để lưu Flashcard.`);
+        : `Chưa có bài Wikipedia khớp chính xác — bạn hãy thêm GEMINI_API_KEY trên Vercel hoặc bấm nút Google ở trên để tra thêm.`);
 
   const answerParts = [];
   if (firstSentence) answerParts.push(firstSentence);
@@ -617,15 +660,37 @@ export async function lookupTermOnline(rawTerm, contextSentence = '') {
     ? `${glossaryHit.whatIsIt} Ứng dụng AI: ${glossaryHit.aiRole}`
     : answerParts.join(' ') ||
       (contextSentence
-        ? `Thuật ngữ xuất hiện trong ngữ cảnh: "${contextSentence.slice(0, 200)}". (Bấm Google phía trên để tra thêm hoặc tự ghi chú ngắn gọn).`
-        : `Chưa tìm thấy mục Wikipedia đúng chuyên ngành cho "${term}" — bấm Google phía trên hoặc tự nhập định nghĩa ngắn gọn để lưu Flashcard.`);
+        ? `Thuật ngữ xuất hiện trong ngữ cảnh: "${contextSentence.slice(0, 200)}".`
+        : `Chưa tìm thấy mục Wikipedia khớp trực tiếp cho "${term}".`);
+
+  // Explicit, helpful warning if Gemini didn't run because of missing/invalid key or server error
+  let apiWarning = '';
+  if (!glossaryHit && geminiRes && !geminiRes.ok) {
+    if (geminiRes.reason === 'missing_api_key') {
+      apiWarning =
+        'Server chưa có GEMINI_API_KEY (trên Vercel: vào Settings → Environment Variables → thêm GEMINI_API_KEY rồi Redeploy) — đang tạm dùng bản fallback Wikipedia.';
+    } else if (geminiRes.reason === 'invalid_api_key') {
+      apiWarning =
+        'GEMINI_API_KEY bị từ chối hoặc không hợp lệ — hãy kiểm tra lại key trong biến môi trường, hiện đang dùng fallback Wikipedia.';
+    } else if (geminiRes.reason === 'rate_limited') {
+      apiWarning =
+        'Gemini API tạm chạm giới hạn hạn mức (HTTP 429) — chờ ít giây rồi bấm "Tra cứu lại", hiện đang dùng fallback Wikipedia.';
+    } else if (geminiRes.reason === 'http_404') {
+      apiWarning =
+        'Không tìm thấy endpoint /api/explain trên máy chủ tĩnh — hãy mở đúng URL Vite (localhost:5173) hoặc Vercel deploy.';
+    } else if (geminiRes.message) {
+      apiWarning = geminiRes.message;
+    }
+  }
 
   const hasWiki = Boolean(onlineViText);
 
   return {
     foundOnline: hasWiki,
     explainMode: hasWiki ? 'wiki' : 'local',
-    badgeLabel: hasWiki ? '🌐 Wikipedia' : '📚 Ngữ cảnh bài học',
+    badgeLabel: hasWiki ? '🌐 Wikipedia' : '⚠️ Chưa có AI / Wiki',
+    apiWarning,
+    groundedSources: [],
     hasLocalMatch: Boolean(glossaryHit || flashcardHit),
     term,
     module: detectedModule,
@@ -643,7 +708,7 @@ export async function lookupTermOnline(rawTerm, contextSentence = '') {
         ? 'Từ điển có sẵn trong app'
         : flashcardHit
           ? `Kho Flashcard VinUni (${flashcardHit.id})`
-          : 'Không dùng bài Wikipedia lạc đề — giữ nguyên ngữ cảnh học'),
+          : 'Không có bài Wikipedia phù hợp'),
     googleSearchUrl: `https://www.google.com/search?q=${encodeURIComponent(
       `${term} là gì trong AI Machine Learning`
     )}`,

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
+  AlertTriangle,
   BookMarked,
   BookOpen,
   Calculator,
@@ -107,6 +108,8 @@ export default function SelectionLookupAssistant({
       foundOnline: result.foundOnline,
       explainMode: result.explainMode,
       badgeLabel: result.badgeLabel,
+      apiWarning: result.apiWarning || '',
+      groundedSources: result.groundedSources || [],
       hasLocalMatch: result.hasLocalMatch,
       sourceLabel: result.sourceLabel,
       sourceUrl: result.sourceUrl,
@@ -474,62 +477,85 @@ export default function SelectionLookupAssistant({
                     <Loader2 className="h-5 w-5 shrink-0 animate-spin text-blue-600" />
                     <div>
                       <p className="font-semibold">
-                        Đang tra cứu Wikipedia &amp; nhờ AI viết lại dễ hiểu cho &ldquo;{form.term}&rdquo;...
+                        Đang gọi Gemini &amp; Google Search tra cứu cho &ldquo;{form.term}&rdquo;...
                       </p>
                       <p className="mt-0.5 text-xs text-blue-700">
-                        Tự động lấy kiến thức chuẩn từ Wikipedia, nhờ Gemini diễn giải bình dân (timeout tối đa 5 giây — nếu chậm sẽ tự dùng ngay bản Wikipedia).
+                        Tự động tạo Mặt sau Flashcard cùng 3 phần giải thích bình dân cho người non-tech (tối đa 8 giây — tự fallback Wikipedia nếu thiếu key).
                       </p>
                     </div>
                   </div>
                 ) : (
                   lookupMeta && (
-                    <div
-                      className={`flex flex-wrap items-center justify-between gap-2 rounded-xl border px-3.5 py-2.5 text-xs ${
-                        lookupMeta.explainMode === 'ai'
-                          ? 'border-indigo-200 bg-indigo-50/70 text-indigo-950'
-                          : lookupMeta.foundOnline
-                            ? 'border-teal-200 bg-teal-50/70 text-teal-900'
-                            : 'border-amber-200 bg-amber-50/70 text-amber-900'
-                      }`}
-                    >
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span
-                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 font-semibold ${
-                            lookupMeta.explainMode === 'ai'
-                              ? 'bg-indigo-600 text-white'
-                              : lookupMeta.foundOnline
-                                ? 'bg-teal-600 text-white'
-                                : 'bg-amber-600 text-white'
-                          }`}
-                        >
-                          {lookupMeta.badgeLabel || '🌐 Wikipedia'}
-                        </span>
-                        <span className="text-slate-700">
-                          {lookupMeta.sourceLabel}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {lookupMeta.sourceUrl && (
+                    <div className="space-y-2">
+                      <div
+                        className={`flex flex-wrap items-center justify-between gap-2 rounded-xl border px-3.5 py-2.5 text-xs ${
+                          lookupMeta.explainMode === 'ai'
+                            ? 'border-indigo-200 bg-indigo-50/70 text-indigo-950'
+                            : lookupMeta.foundOnline
+                              ? 'border-teal-200 bg-teal-50/70 text-teal-900'
+                              : 'border-amber-200 bg-amber-50/70 text-amber-900'
+                        }`}
+                      >
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span
+                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 font-semibold ${
+                              lookupMeta.explainMode === 'ai'
+                                ? 'bg-indigo-600 text-white'
+                                : lookupMeta.foundOnline
+                                  ? 'bg-teal-600 text-white'
+                                  : 'bg-amber-600 text-white'
+                            }`}
+                          >
+                            {lookupMeta.badgeLabel || '🌐 Wikipedia'}
+                          </span>
+                          <span className="text-slate-700">
+                            {lookupMeta.sourceLabel}
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {(lookupMeta.groundedSources ?? []).map((src, idx) => (
+                            <a
+                              key={idx}
+                              href={src.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 rounded-lg border border-indigo-200 bg-white px-2 py-1 font-semibold text-indigo-700 hover:bg-indigo-50"
+                            >
+                              <span className="max-w-[120px] truncate">{src.title}</span>
+                              <ExternalLink className="h-3 w-3 shrink-0" />
+                            </a>
+                          ))}
+                          {lookupMeta.sourceUrl &&
+                            (!lookupMeta.groundedSources ||
+                              lookupMeta.groundedSources.length === 0) && (
+                              <a
+                                href={lookupMeta.sourceUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 font-semibold text-slate-700 hover:bg-slate-50"
+                              >
+                                <span>Nguồn</span>
+                                <ExternalLink className="h-3 w-3" />
+                              </a>
+                            )}
                           <a
-                            href={lookupMeta.sourceUrl}
+                            href={lookupMeta.googleSearchUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 font-semibold text-slate-700 hover:bg-slate-50"
+                            className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 font-medium text-slate-700 hover:bg-slate-50"
                           >
-                            <span>Wikipedia</span>
+                            <span>Google</span>
                             <ExternalLink className="h-3 w-3" />
                           </a>
-                        )}
-                        <a
-                          href={lookupMeta.googleSearchUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 font-medium text-slate-700 hover:bg-slate-50"
-                        >
-                          <span>Google</span>
-                          <ExternalLink className="h-3 w-3" />
-                        </a>
+                        </div>
                       </div>
+
+                      {lookupMeta.apiWarning && (
+                        <div className="flex items-start gap-2 rounded-xl border border-amber-300 bg-amber-50 px-3.5 py-2.5 text-xs leading-relaxed text-amber-950">
+                          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+                          <span>{lookupMeta.apiWarning}</span>
+                        </div>
+                      )}
                     </div>
                   )
                 )}

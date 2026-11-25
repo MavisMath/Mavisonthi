@@ -32,7 +32,13 @@ function createExplainMiddleware(env) {
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       if (!result.ok) {
         res.statusCode = result.status || 503;
-        res.end(JSON.stringify({ ok: false, reason: result.reason || 'failed' }));
+        res.end(
+          JSON.stringify({
+            ok: false,
+            reason: result.reason || 'failed',
+            message: result.message || '',
+          })
+        );
         return;
       }
 
@@ -41,6 +47,10 @@ function createExplainMiddleware(env) {
         JSON.stringify({
           ok: true,
           model: result.model,
+          grounded: Boolean(result.grounded),
+          groundedSources: result.groundedSources || [],
+          searchFallbackNote: result.searchFallbackNote || '',
+          flashcardAnswer: result.flashcardAnswer,
           whatIsIt: result.whatIsIt,
           aiRole: result.aiRole,
           formulaPlain: result.formulaPlain,
