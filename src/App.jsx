@@ -6,20 +6,42 @@ import Navbar from './components/Navbar';
 import OverviewPage from './components/OverviewPage';
 import PythonTab from './components/PythonTab';
 import QuizTab from './components/QuizTab';
+import SelectionLookupAssistant from './components/SelectionLookupAssistant';
 import TopicsTab from './components/TopicsTab';
 import TrapsTab from './components/TrapsTab';
 import { computeExamStats } from './utils/stats';
+import { useCustomFlashcards } from './utils/userStudyStore.js';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('topics');
   const [selectedFlashcardDay, setSelectedFlashcardDay] = useState('ALL');
   const [selectedQuizModule, setSelectedQuizModule] = useState('M1');
   const [quizNavNonce, setQuizNavNonce] = useState(0);
+  const [manualLookupTerm, setManualLookupTerm] = useState(null);
 
-  const stats = useMemo(() => computeExamStats(examData), []);
+  const customFlashcards = useCustomFlashcards();
+  const allFlashcards = useMemo(
+    () => [...customFlashcards, ...(examData?.flashcards ?? [])],
+    [customFlashcards]
+  );
+
+  const mergedData = useMemo(
+    () => ({
+      ...examData,
+      flashcards: allFlashcards,
+    }),
+    [allFlashcards]
+  );
+
+  const stats = useMemo(() => computeExamStats(mergedData), [mergedData]);
 
   const handleOpenStudyDay = (dayNumber) => {
     setSelectedFlashcardDay(dayNumber);
+    setActiveTab('flashcards');
+  };
+
+  const handleOpenCustomFlashcards = () => {
+    setSelectedFlashcardDay('CUSTOM');
     setActiveTab('flashcards');
   };
 
@@ -36,10 +58,11 @@ export default function App() {
     if (activeTab === 'flashcards') {
       return (
         <FlashcardTab
-          flashcards={examData?.flashcards ?? []}
+          flashcards={allFlashcards}
           initialDay={selectedFlashcardDay}
           onDayChange={setSelectedFlashcardDay}
           onBackToOverview={() => setActiveTab('overview')}
+          onOpenTermLookup={(term) => setManualLookupTerm(term)}
         />
       );
     }
@@ -75,7 +98,7 @@ export default function App() {
     return (
       <OverviewPage
         stats={stats}
-        flashcards={examData?.flashcards ?? []}
+        flashcards={allFlashcards}
         onSelectTab={setActiveTab}
         onSelectStudyDay={handleOpenStudyDay}
       />
@@ -90,13 +113,19 @@ export default function App() {
         {renderContent()}
       </main>
 
+      <SelectionLookupAssistant
+        onOpenCustomFlashcards={handleOpenCustomFlashcards}
+        manualTriggerTerm={manualLookupTerm}
+        onClearManualTrigger={() => setManualLookupTerm(null)}
+      />
+
       <footer className="border-t border-slate-200/80 bg-white/70">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-4 py-4 text-xs text-slate-500 sm:flex-row sm:px-6">
           <span>
-            Ôn thi AI Thực chiến VinUni · 12 Chuyên đề ({examData.flashcards.length} thuật ngữ · {examData.quizzes.length} trắc nghiệm)
+            Ôn thi AI Thực chiến VinUni · 12 Chuyên đề ({allFlashcards.length} thuật ngữ · {examData.quizzes.length} trắc nghiệm)
           </span>
           <span className="font-mono text-[11px] text-slate-400">
-            React + Vite + Tailwind CSS
+            Bôi đen bất kỳ từ nào để tra mạng &amp; thêm vào Flashcard
           </span>
         </div>
       </footer>

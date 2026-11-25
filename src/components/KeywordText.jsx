@@ -4,62 +4,20 @@ import {
   BookOpen,
   Calculator,
   Cpu,
+  ExternalLink,
+  Globe,
   HelpCircle,
+  Trash2,
   X,
 } from 'lucide-react';
 import { MODULES } from '../constants/modules.js';
-import { GLOSSARY_DATA } from '../data/glossaryData.js';
+import {
+  removeCustomGlossaryEntry,
+  useGlossaryMatcher,
+} from '../utils/userStudyStore.js';
 import RichInlineText from './RichInlineText.jsx';
 
 const MODULE_MAP = Object.fromEntries(MODULES.map((m) => [m.code, m]));
-
-function escapeRegex(str) {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-function buildAliasPattern(alias) {
-  // Allow flexible whitespace around + for expressions like Var(aX+b) / Var(aX + b)
-  const escaped = escapeRegex(alias).replace(/\\\+/g, '\\s*\\+\\s*');
-  const startsWithWord = /^[\p{L}\p{N}_]/u.test(alias);
-  const endsWithWord = /[\p{L}\p{N}_]$/u.test(alias);
-  const prefix = startsWithWord ? '(?<![\\p{L}\\p{N}_])' : '';
-  const suffix = endsWithWord ? '(?![\\p{L}\\p{N}_])' : '';
-  return `${prefix}${escaped}${suffix}`;
-}
-
-// Precompute longest-first matcher once at module load
-const ALIAS_RECORDS = (() => {
-  const list = [];
-  const seen = new Set();
-
-  for (const entry of GLOSSARY_DATA) {
-    const candidates = [entry.term, ...(entry.aliases ?? [])];
-    for (const raw of candidates) {
-      const normalized = raw.trim().toLowerCase();
-      if (!normalized || seen.has(normalized)) continue;
-      seen.add(normalized);
-      list.push({ alias: raw.trim(), normalized, entry });
-    }
-  }
-
-  // Match longest multi-word phrases before shorter substrings
-  list.sort((a, b) => b.alias.length - a.alias.length);
-  return list;
-})();
-
-const ALIAS_LOOKUP = new Map(
-  ALIAS_RECORDS.map((rec) => [rec.normalized.replace(/\s*\+\s*/g, '+'), rec.entry])
-);
-
-const KEYWORD_REGEX = new RegExp(
-  `(${ALIAS_RECORDS.map((r) => buildAliasPattern(r.alias)).join('|')})`,
-  'giu'
-);
-
-function findEntryForMatch(matchedText) {
-  const key = matchedText.trim().toLowerCase().replace(/\s*\+\s*/g, '+');
-  return ALIAS_LOOKUP.get(key) ?? null;
-}
 
 function KeywordModal({ entry, onClose }) {
   useEffect(() => {
@@ -119,10 +77,17 @@ function KeywordModal({ entry, onClose }) {
               >
                 {entry.module}
               </span>
-              <span className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-blue-700">
-                <BookOpen className="h-3 w-3" />
-                <span>Giải thích nhanh cho Non-tech</span>
-              </span>
+              {entry.isCustom ? (
+                <span className="inline-flex items-center gap-1 rounded-full border border-teal-200 bg-teal-50 px-2 py-0.5 text-[11px] font-semibold text-teal-800">
+                  <Globe className="h-3 w-3" />
+                  <span>Tự thêm · Tra mạng</span>
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-blue-700">
+                  <BookOpen className="h-3 w-3" />
+                  <span>Giải thích nhanh cho Non-tech</span>
+                </span>
+              )}
             </div>
             <h3
               id="keyword-modal-title"
@@ -179,17 +144,53 @@ function KeywordModal({ entry, onClose }) {
               <RichInlineText text={entry.formulaPlain} />
             </p>
           </div>
+
+          {/* External Source Link for Custom Online-Fetched Entries */}
+          {entry.sourceUrl && (
+            <div className="flex items-center justify-between gap-2 rounded-xl border border-slate-200/80 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-600">
+              <span className="truncate">
+                Nguồn trực tuyến: <strong>{entry.sourceTitle || 'Wikipedia'}</strong>
+              </span>
+              <a
+                href={entry.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex shrink-0 items-center gap-1 font-semibold text-blue-700 hover:underline"
+              >
+                <span>Mở bài viết</span>
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+          )}
         </div>
 
         {/* Footer */}
         <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/60 px-5 py-3 text-xs text-slate-500">
-          <span>
-            Nhấn{' '}
-            <kbd className="rounded border border-slate-200 bg-white px-1.5 py-0.5 font-mono text-[11px] font-medium text-slate-700">
-              Esc
-            </kbd>{' '}
-            hoặc bấm ra ngoài để đóng
-          </span>
+          <div className="flex items-center gap-2">
+            {entry.isCustom ? (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeCustomGlossaryEntry(entry.id);
+                  onClose();
+                }}
+                className="inline-flex items-center gap-1 rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-1.5 text-xs font-semibold text-rose-700 transition-colors hover:bg-rose-100"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                <span>Xóa từ tự thêm</span>
+              </button>
+            ) : (
+              <span>
+                Nhấn{' '}
+                <kbd className="rounded border border-slate-200 bg-white px-1.5 py-0.5 font-mono text-[11px] font-medium text-slate-700">
+                  Esc
+                </kbd>{' '}
+                hoặc bấm ra ngoài để đóng
+              </span>
+            )}
+          </div>
           <button
             type="button"
             onClick={(e) => {
@@ -207,13 +208,14 @@ function KeywordModal({ entry, onClose }) {
   );
 }
 
-function renderWithKeywords(segment, keyPrefix, onPickEntry) {
-  if (!segment) return null;
-  const parts = segment.split(KEYWORD_REGEX);
+function renderWithKeywords(segment, keyPrefix, matcher, onPickEntry) {
+  if (!segment || !matcher?.regex) return segment || null;
+  const parts = segment.split(matcher.regex);
 
   return parts.map((part, idx) => {
     if (!part) return null;
-    const entry = findEntryForMatch(part);
+    const key = part.trim().toLowerCase().replace(/\s*\+\s*/g, '+');
+    const entry = matcher.lookup.get(key);
     if (!entry) {
       return <span key={`${keyPrefix}-p-${idx}`}>{part}</span>;
     }
@@ -236,7 +238,11 @@ function renderWithKeywords(segment, keyPrefix, onPickEntry) {
             onPickEntry(entry);
           }
         }}
-        className="border-b border-dashed border-blue-500 cursor-pointer rounded-[2px] font-medium text-inherit transition-colors hover:bg-blue-50/90 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400/60"
+        className={`border-b border-dashed cursor-pointer rounded-[2px] font-medium text-inherit transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400/60 ${
+          entry.isCustom
+            ? 'border-teal-500 hover:bg-teal-50/90 hover:text-teal-700'
+            : 'border-blue-500 hover:bg-blue-50/90 hover:text-blue-700'
+        }`}
       >
         {part}
       </span>
@@ -244,7 +250,7 @@ function renderWithKeywords(segment, keyPrefix, onPickEntry) {
   });
 }
 
-function renderInlineFormatted(segment, keyPrefix, onPickEntry) {
+function renderInlineFormatted(segment, keyPrefix, matcher, onPickEntry) {
   const codeParts = segment.split(/(`[^`]+`)/g);
   return codeParts.map((part, idx) => {
     if (part.startsWith('`') && part.endsWith('`') && part.length > 2) {
@@ -254,15 +260,16 @@ function renderInlineFormatted(segment, keyPrefix, onPickEntry) {
           key={`${keyPrefix}-code-${idx}`}
           className="mx-0.5 rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[0.86em] font-medium text-slate-800"
         >
-          {renderWithKeywords(inner, `${keyPrefix}-code-${idx}`, onPickEntry)}
+          {renderWithKeywords(inner, `${keyPrefix}-code-${idx}`, matcher, onPickEntry)}
         </code>
       );
     }
-    return renderWithKeywords(part, `${keyPrefix}-txt-${idx}`, onPickEntry);
+    return renderWithKeywords(part, `${keyPrefix}-txt-${idx}`, matcher, onPickEntry);
   });
 }
 
 export default function KeywordText({ text, className = '' }) {
+  const matcher = useGlossaryMatcher();
   const [activeEntry, setActiveEntry] = useState(null);
 
   if (!text || typeof text !== 'string') return null;
@@ -280,20 +287,25 @@ export default function KeywordText({ text, className = '' }) {
                 key={`c-${idx}`}
                 className="mx-0.5 rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[0.86em] font-medium text-slate-800"
               >
-                {renderWithKeywords(inner, `c-${idx}`, setActiveEntry)}
+                {renderWithKeywords(inner, `c-${idx}`, matcher, setActiveEntry)}
               </code>
             );
           }
           if (token.startsWith('**') && token.endsWith('**') && token.length > 4) {
             return (
               <strong key={`b-${idx}`} className="font-semibold text-slate-900">
-                {renderInlineFormatted(token.slice(2, -2), `b-${idx}`, setActiveEntry)}
+                {renderInlineFormatted(
+                  token.slice(2, -2),
+                  `b-${idx}`,
+                  matcher,
+                  setActiveEntry
+                )}
               </strong>
             );
           }
           return (
             <span key={`t-${idx}`}>
-              {renderWithKeywords(token, `t-${idx}`, setActiveEntry)}
+              {renderWithKeywords(token, `t-${idx}`, matcher, setActiveEntry)}
             </span>
           );
         })}

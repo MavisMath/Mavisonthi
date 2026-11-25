@@ -4,6 +4,8 @@ export const STORAGE_KEYS = {
   PYTHON_PROGRESS: 'vinuni_ai_python_progress_v1',
   CASE_STUDY_DRAFTS: 'vinuni_ai_case_study_drafts_v1',
   TOPICS_PROGRESS: 'vinuni_ai_topics_progress_v1',
+  CUSTOM_FLASHCARDS: 'vinuni_ai_custom_flashcards_v1',
+  CUSTOM_GLOSSARY: 'vinuni_ai_custom_glossary_v1',
 };
 
 const VALID_FLASHCARD_STATUSES = new Set(['unlearned', 'unsure', 'mastered']);
@@ -194,6 +196,102 @@ export function saveTopicsProgress(progress) {
     window.localStorage.setItem(
       STORAGE_KEYS.TOPICS_PROGRESS,
       JSON.stringify(progress)
+    );
+  } catch {
+    // Ignore storage quota or private mode errors gracefully
+  }
+}
+
+const VALID_MODULES = new Set(['M1', 'M2', 'M3', 'M4']);
+
+export function loadCustomFlashcards() {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEYS.CUSTOM_FLASHCARDS);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter(
+        (item) =>
+          item &&
+          typeof item === 'object' &&
+          typeof item.id === 'string' &&
+          typeof item.question === 'string' &&
+          typeof item.answer === 'string' &&
+          item.question.trim() &&
+          item.answer.trim()
+      )
+      .map((item) => ({
+        id: item.id,
+        module: VALID_MODULES.has(item.module) ? item.module : 'M3',
+        tag: typeof item.tag === 'string' && item.tag.trim() ? item.tag.trim() : 'Tự thêm',
+        question: item.question.trim(),
+        answer: item.answer.trim(),
+        sourceUrl: typeof item.sourceUrl === 'string' ? item.sourceUrl : '',
+        sourceTitle: typeof item.sourceTitle === 'string' ? item.sourceTitle : '',
+        isCustom: true,
+        createdAt: typeof item.createdAt === 'number' ? item.createdAt : Date.now(),
+      }));
+  } catch {
+    return [];
+  }
+}
+
+export function saveCustomFlashcards(cards) {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(
+      STORAGE_KEYS.CUSTOM_FLASHCARDS,
+      JSON.stringify(cards ?? [])
+    );
+  } catch {
+    // Ignore storage quota or private mode errors gracefully
+  }
+}
+
+export function loadCustomGlossary() {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEYS.CUSTOM_GLOSSARY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter(
+        (item) =>
+          item &&
+          typeof item === 'object' &&
+          typeof item.id === 'string' &&
+          typeof item.term === 'string' &&
+          item.term.trim()
+      )
+      .map((item) => ({
+        id: item.id,
+        module: VALID_MODULES.has(item.module) ? item.module : 'M3',
+        term: item.term.trim(),
+        aliases: Array.isArray(item.aliases)
+          ? item.aliases.filter((a) => typeof a === 'string' && a.trim())
+          : [item.term.trim()],
+        whatIsIt: typeof item.whatIsIt === 'string' ? item.whatIsIt.trim() : '',
+        aiRole: typeof item.aiRole === 'string' ? item.aiRole.trim() : '',
+        formulaPlain:
+          typeof item.formulaPlain === 'string' ? item.formulaPlain.trim() : '',
+        sourceUrl: typeof item.sourceUrl === 'string' ? item.sourceUrl : '',
+        sourceTitle: typeof item.sourceTitle === 'string' ? item.sourceTitle : '',
+        isCustom: true,
+      }));
+  } catch {
+    return [];
+  }
+}
+
+export function saveCustomGlossary(entries) {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(
+      STORAGE_KEYS.CUSTOM_GLOSSARY,
+      JSON.stringify(entries ?? [])
     );
   } catch {
     // Ignore storage quota or private mode errors gracefully

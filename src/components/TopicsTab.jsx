@@ -226,7 +226,11 @@ export default function TopicsTab({ onPracticeModule }) {
             <span className="border-b border-dashed border-blue-500 font-medium text-blue-700">
               từ khóa gạch chân xanh
             </span>{' '}
-            nào để mở giải thích đời thường &amp; cách tính.
+            nào để xem giải thích, hoặc{' '}
+            <strong className="font-semibold text-slate-700">
+              bôi đen bất kỳ từ nào khác
+            </strong>{' '}
+            để tự tra mạng &amp; thêm vào Flashcard.
           </p>
 
           {/* 4-Step Interactive Stepper */}

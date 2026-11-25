@@ -6,10 +6,14 @@ import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
+  ExternalLink,
+  Globe,
   HelpCircle,
+  Plus,
   RotateCcw,
   Shuffle,
   Sparkles,
+  Trash2,
   XCircle,
 } from 'lucide-react';
 import { MODULES } from '../constants/modules.js';
@@ -18,6 +22,7 @@ import {
   loadFlashcardProgress,
   saveFlashcardProgress,
 } from '../utils/storage.js';
+import { removeCustomFlashcard } from '../utils/userStudyStore.js';
 import KeywordText from './KeywordText.jsx';
 
 const MODULE_MAP = Object.fromEntries(MODULES.map((m) => [m.code, m]));
@@ -87,6 +92,7 @@ export default function FlashcardTab({
   initialDay = 'ALL',
   onDayChange,
   onBackToOverview,
+  onOpenTermLookup,
 }) {
   const [progress, setProgress] = useState(() => loadFlashcardProgress());
   const [selectedDay, setSelectedDay] = useState(initialDay);
@@ -136,11 +142,17 @@ export default function FlashcardTab({
     return ordered;
   }, [flashcards, shuffleOrder]);
 
-  // Scope by Day first (ALL or 1..7)
+  // Scope by Day first (ALL, CUSTOM, or 1..8)
   const dayScopedCards = useMemo(() => {
     if (selectedDay === 'ALL') return orderedCards;
+    if (selectedDay === 'CUSTOM') return orderedCards.filter((card) => card.isCustom);
     return orderedCards.filter((card) => card.day === selectedDay);
   }, [orderedCards, selectedDay]);
+
+  const customCardCount = useMemo(
+    () => flashcards.filter((c) => c.isCustom).length,
+    [flashcards]
+  );
 
   // Scope by Module within selected Day
   const moduleScopedCards = useMemo(() => {
@@ -216,9 +228,11 @@ export default function FlashcardTab({
   const currentModuleMeta = currentCard ? MODULE_MAP[currentCard.module] : null;
   const currentRatingMeta = currentStatus ? RATING_MAP[currentStatus] : null;
   const selectedDayMeta =
-    selectedDay !== 'ALL' ? STUDY_DAY_MAP[selectedDay] : null;
+    selectedDay !== 'ALL' && selectedDay !== 'CUSTOM'
+      ? STUDY_DAY_MAP[selectedDay]
+      : null;
   const selectedDayStat =
-    selectedDay !== 'ALL'
+    selectedDay !== 'ALL' && selectedDay !== 'CUSTOM'
       ? dayProgressStats.find((d) => d.day === selectedDay)
       : null;
 
@@ -264,6 +278,9 @@ export default function FlashcardTab({
 
   const handleFlip = useCallback(() => {
     if (!currentCard) return;
+    // Allow users to drag-select a word on the flashcard without accidentally flipping it
+    const selectedText = window.getSelection?.()?.toString().trim();
+    if (selectedText) return;
     setIsFlipped((prev) => !prev);
   }, [currentCard]);
 
@@ -372,8 +389,21 @@ export default function FlashcardTab({
           </p>
         </div>
 
-        {/* Reset Progress Action */}
-        <div className="flex items-center gap-2 self-start sm:self-end">
+        {/* Quick Add Custom Term + Reset Progress Actions */}
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-end">
+          {onOpenTermLookup && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.currentTarget.blur();
+                onOpenTermLookup('');
+              }}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-blue-700"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              <span>Tra mạng &amp; Thêm thẻ</span>
+            </button>
+          )}
           {confirmReset ? (
             <div className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs">
               <span className="font-medium text-rose-800">Xóa toàn bộ tiến độ?</span>
@@ -521,6 +551,29 @@ export default function FlashcardTab({
               }`}
             >
               {flashcards.length}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={(e) => {
+              e.currentTarget.blur();
+              handleSelectDay('CUSTOM');
+            }}
+            className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold transition-all ${
+              selectedDay === 'CUSTOM'
+                ? 'border-teal-700 bg-teal-700 text-white shadow-2xs'
+                : 'border-teal-200 bg-teal-50/70 text-teal-800 hover:border-teal-300 hover:bg-teal-100/70'
+            }`}
+          >
+            <Globe className="h-3.5 w-3.5" />
+            <span>Tự thêm</span>
+            <span
+              className={`font-mono text-[11px] tabular-nums ${
+                selectedDay === 'CUSTOM' ? 'text-teal-200' : 'text-teal-700'
+              }`}
+            >
+              {customCardCount}
             </span>
           </button>
 
@@ -745,7 +798,7 @@ export default function FlashcardTab({
                   handleFlip();
                 }
               }}
-              className={`flip-card grid cursor-pointer select-none focus:outline-none ${
+              className={`flip-card grid cursor-pointer focus:outline-none ${
                 isFlipped ? 'is-flipped' : ''
               }`}
             >
@@ -753,6 +806,12 @@ export default function FlashcardTab({
               <div className="flip-face col-start-1 row-start-1 flex min-h-[300px] flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-6 shadow-xs transition-colors hover:border-slate-300 sm:min-h-[340px] sm:p-8">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex flex-wrap items-center gap-2">
+                    {currentCard.isCustom && (
+                      <span className="inline-flex items-center gap-1 rounded-md bg-teal-600 px-2 py-0.5 font-mono text-[11px] font-semibold text-white">
+                        <Globe className="h-3 w-3" />
+                        <span>Tự thêm</span>
+                      </span>
+                    )}
                     {currentCard.day && (
                       <span className="rounded-md bg-slate-900 px-2 py-0.5 font-mono text-[11px] font-semibold text-white">
                         Ngày {currentCard.day}
@@ -845,13 +904,43 @@ export default function FlashcardTab({
                   )}
                 </div>
 
-                <div className="my-6 flex flex-col items-center justify-center text-center">
+                <div className="my-6 flex flex-col items-center justify-center text-center select-text">
                   <p className="mb-3 max-w-lg text-xs font-medium text-slate-500">
                     <KeywordText text={currentCard.question} />
                   </p>
                   <p className="max-w-xl text-base font-medium leading-relaxed text-slate-900 sm:text-lg">
                     <KeywordText text={currentCard.answer} />
                   </p>
+                  {currentCard.isCustom && (
+                    <div
+                      className="mt-4 flex flex-wrap items-center justify-center gap-2"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {currentCard.sourceUrl && (
+                        <a
+                          href={currentCard.sourceUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 rounded-lg border border-blue-200 bg-white px-2.5 py-1 text-xs font-medium text-blue-700 hover:bg-blue-50"
+                        >
+                          <Globe className="h-3 w-3" />
+                          <span>Nguồn: {currentCard.sourceTitle || 'Wikipedia'}</span>
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          removeCustomFlashcard(currentCard.id);
+                          setIsFlipped(false);
+                        }}
+                        className="inline-flex items-center gap-1 rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700 hover:bg-rose-100"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                        <span>Xóa thẻ tự thêm</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-center justify-center gap-2 border-t border-blue-100/80 pt-4 text-xs text-slate-400">
@@ -912,17 +1001,31 @@ export default function FlashcardTab({
             <Sparkles className="h-6 w-6" />
           </div>
           <h2 className="mt-4 text-lg font-bold text-slate-900">
-            {onlyUnmastered
-              ? 'Bạn đã chắc toàn bộ thẻ trong bộ lọc này!'
-              : 'Không có flashcard nào trong bộ lọc hiện tại'}
+            {selectedDay === 'CUSTOM' && customCardCount === 0
+              ? 'Chưa có thẻ Flashcard tự thêm nào'
+              : onlyUnmastered
+                ? 'Bạn đã chắc toàn bộ thẻ trong bộ lọc này!'
+                : 'Không có flashcard nào trong bộ lọc hiện tại'}
           </h2>
           <p className="mx-auto mt-1.5 max-w-md text-sm text-slate-600">
-            {onlyUnmastered
-              ? 'Tuyệt vời! Mọi thẻ thuộc phạm vi đang chọn đều đã đạt trạng thái "Đã chắc". Hãy sang ngày tiếp theo hoặc tắt bộ lọc để ôn lại.'
-              : 'Hãy thử chuyển sang bộ lọc "Tất cả" để xem toàn bộ ngân hàng thẻ.'}
+            {selectedDay === 'CUSTOM' && customCardCount === 0
+              ? 'Bạn có thể bôi đen bất kỳ thuật ngữ nào ở Tab 12 Chuyên đề hoặc các tab khác để hệ thống tự lên mạng tra cứu và lưu vào đây.'
+              : onlyUnmastered
+                ? 'Tuyệt vời! Mọi thẻ thuộc phạm vi đang chọn đều đã đạt trạng thái "Đã chắc". Hãy sang ngày tiếp theo hoặc tắt bộ lọc để ôn lại.'
+                : 'Hãy thử chuyển sang bộ lọc "Tất cả" để xem toàn bộ ngân hàng thẻ.'}
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-2.5">
-            {selectedDay !== 'ALL' && selectedDay < STUDY_DAYS.length && (
+            {selectedDay === 'CUSTOM' && onOpenTermLookup && (
+              <button
+                type="button"
+                onClick={() => onOpenTermLookup('')}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-blue-700 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-blue-800"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                <span>Tra mạng &amp; Thêm thẻ đầu tiên</span>
+              </button>
+            )}
+            {selectedDay !== 'ALL' && selectedDay !== 'CUSTOM' && selectedDay < STUDY_DAYS.length && (
               <button
                 type="button"
                 onClick={() => handleSelectDay(selectedDay + 1)}
