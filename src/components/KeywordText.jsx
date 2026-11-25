@@ -19,7 +19,7 @@ import RichInlineText from './RichInlineText.jsx';
 
 const MODULE_MAP = Object.fromEntries(MODULES.map((m) => [m.code, m]));
 
-function KeywordModal({ entry, onClose }) {
+export function KeywordModal({ entry, onClose }) {
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {

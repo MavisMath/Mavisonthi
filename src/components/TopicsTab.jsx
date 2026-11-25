@@ -25,7 +25,8 @@ import {
 } from 'lucide-react';
 import { TOPIC_GROUPS, TOPICS } from '../data/topicsData.js';
 import { loadTopicsProgress, saveTopicsProgress } from '../utils/storage.js';
-import KeywordText from './KeywordText.jsx';
+import { useGlossaryMatcher } from '../utils/userStudyStore.js';
+import KeywordText, { KeywordModal } from './KeywordText.jsx';
 
 const GROUP_MAP = Object.fromEntries(TOPIC_GROUPS.map((g) => [g.id, g]));
 const OPTION_LETTERS = ['A', 'B', 'C', 'D'];
@@ -45,6 +46,23 @@ export default function TopicsTab({ onPracticeModule }) {
   const [quizAnswers, setQuizAnswers] = useState({});
   const [copiedQuery, setCopiedQuery] = useState(null);
   const [confirmReset, setConfirmReset] = useState(false);
+  const [selectedGlossaryEntry, setSelectedGlossaryEntry] = useState(null);
+  const glossaryMatcher = useGlossaryMatcher();
+
+  const resolveGlossaryEntry = (termText) => {
+    if (!termText || !glossaryMatcher) return null;
+    const normalized = termText.trim().toLowerCase().replace(/\s*\+\s*/g, '+');
+    const direct = glossaryMatcher.lookup.get(normalized);
+    if (direct) return direct;
+    if (glossaryMatcher.regex) {
+      const m = termText.match(glossaryMatcher.regex);
+      if (m && m[0]) {
+        const subKey = m[0].trim().toLowerCase().replace(/\s*\+\s*/g, '+');
+        return glossaryMatcher.lookup.get(subKey) ?? null;
+      }
+    }
+    return null;
+  };
 
   // Sync passed progress to localStorage
   useEffect(() => {
@@ -408,20 +426,58 @@ export default function TopicsTab({ onPracticeModule }) {
               <span>Bước 2 / 4 · Keyword tiếng Anh &amp; Mẹo nhớ nhanh</span>
             </div>
 
-            {/* English Keywords */}
+            {/* Bilingual English - Vietnamese Keywords Grid (100% Clickable Glossary) */}
             <div>
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                Từ khóa tiếng Anh cốt lõi hay gặp trong đề
-              </h2>
-              <div className="mt-2.5 flex flex-wrap gap-2">
-                {activeTopic.step2.keywords.map((kw) => (
-                  <span
-                    key={kw}
-                    className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 font-mono text-xs font-semibold text-slate-800"
-                  >
-                    <KeywordText text={kw} />
-                  </span>
-                ))}
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  Từ khóa tiếng Anh cốt lõi hay gặp trong đề (Anh – Việt)
+                </h2>
+                <span className="text-[11px] font-medium text-blue-700">
+                  Bấm bất kỳ thẻ nào để xem giải thích 3 phần &amp; cách tính
+                </span>
+              </div>
+              <div className="mt-2.5 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                {activeTopic.step2.keywords.map((kw) => {
+                  const isObj = typeof kw === 'object' && kw !== null;
+                  const en = isObj ? kw.en : kw;
+                  const vi = isObj ? kw.vi : '';
+                  const short = isObj ? kw.short : '';
+                  const matchedEntry = resolveGlossaryEntry(en);
+
+                  return (
+                    <button
+                      key={en}
+                      type="button"
+                      onClick={() => {
+                        if (matchedEntry) setSelectedGlossaryEntry(matchedEntry);
+                      }}
+                      className="group flex flex-col items-start rounded-xl border border-slate-200/90 bg-slate-50/70 p-3.5 text-left transition-all hover:border-blue-300 hover:bg-blue-50/40 hover:shadow-2xs focus:outline-none focus:ring-2 focus:ring-blue-400/50"
+                    >
+                      <div className="flex w-full flex-wrap items-baseline justify-between gap-1.5">
+                        <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+                          <span className="border-b border-dashed border-blue-500 font-mono text-xs font-bold text-slate-900 transition-colors group-hover:text-blue-700 sm:text-[13px]">
+                            {en}
+                          </span>
+                          {vi && (
+                            <span className="text-xs font-semibold text-slate-700">
+                              — {vi}
+                            </span>
+                          )}
+                        </div>
+                        {matchedEntry && (
+                          <span className="shrink-0 rounded-md bg-white px-1.5 py-0.5 text-[10px] font-semibold text-blue-600 ring-1 ring-inset ring-blue-200/80 transition-colors group-hover:bg-blue-600 group-hover:text-white group-hover:ring-blue-600">
+                            Chi tiết
+                          </span>
+                        )}
+                      </div>
+                      {short && (
+                        <p className="mt-1.5 text-xs leading-relaxed text-slate-600">
+                          {short}
+                        </p>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -759,6 +815,13 @@ export default function TopicsTab({ onPracticeModule }) {
             </button>
           )}
         </div>
+
+        {selectedGlossaryEntry && (
+          <KeywordModal
+            entry={selectedGlossaryEntry}
+            onClose={() => setSelectedGlossaryEntry(null)}
+          />
+        )}
       </div>
     );
   }

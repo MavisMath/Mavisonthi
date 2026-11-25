@@ -116,13 +116,41 @@ export const TOPICS = [
     },
     step2: {
       keywords: [
-        'Dot Product',
-        'Cosine Similarity',
-        'Determinant',
-        'Invertible Matrix',
-        'Eigenvalues',
-        'Truncated SVD',
-        'CSR Sparse Matrix',
+        {
+          en: 'Dot Product',
+          vi: 'Tích vô hướng',
+          short: 'Nhân từng cặp số cùng vị trí rồi cộng dồn để đo độ cùng hướng (= 0 là vuông góc).',
+        },
+        {
+          en: 'Cosine Similarity',
+          vi: 'Độ tương đồng Cosine',
+          short: 'Đo góc giống nhau giữa 2 vector từ −1 đến +1, không phụ thuộc độ dài văn bản.',
+        },
+        {
+          en: 'Determinant',
+          vi: 'Định thức ma trận',
+          short: 'Con số kiểm tra ma trận có bị suy biến không; chỉ khi det ≠ 0 mới đảo ngược được.',
+        },
+        {
+          en: 'Invertible Matrix',
+          vi: 'Ma trận khả nghịch',
+          short: 'Ma trận có "nút hoàn tác" (A^-1) giúp giải ngược hệ phương trình ra đúng 1 nghiệm duy nhất.',
+        },
+        {
+          en: 'Eigenvalues',
+          vi: 'Trị riêng',
+          short: 'Hệ số co giãn trên các trục chính — nền tảng của PCA để chọn trục giữ nhiều thông tin nhất.',
+        },
+        {
+          en: 'Truncated SVD',
+          vi: 'Phân rã SVD rút gọn',
+          short: 'Nén chiều ma trận thưa mà không trừ trung bình, tránh tràn RAM (OOM) như Standard PCA.',
+        },
+        {
+          en: 'CSR Sparse Matrix',
+          vi: 'Ma trận thưa dạng CSR',
+          short: 'Định dạng chỉ lưu các ô khác 0 cùng vị trí cột, tiết kiệm RAM gấp hàng trăm lần.',
+        },
       ],
       memoryTip:
         'Nhớ 3 phản xạ: Tính Trace(AB) chỉ nhân đúng đường chéo chính; Khả nghịch ⇔ det ≠ 0; Ma trận User-Item thưa lớn ⇒ luôn chọn CSR + Truncated SVD (cấm Standard PCA).',
@@ -251,13 +279,41 @@ export const TOPICS = [
     },
     step2: {
       keywords: [
-        'Chain Rule',
-        'Backpropagation',
-        'Gradient Descent',
-        'Learning Rate Decay',
-        'AdamW',
-        'Vanishing Gradient',
-        'Softmax',
+        {
+          en: 'Chain Rule',
+          vi: 'Quy tắc chuỗi đạo hàm',
+          short: 'Nhân nối tiếp đạo hàm từng chặng từ cuối về đầu để tính tác động của lớp đầu tiên lên lỗi.',
+        },
+        {
+          en: 'Backpropagation',
+          vi: 'Lan truyền ngược',
+          short: 'Thuật toán dùng Chain Rule truyền sai số ngược qua mạng nơ-ron để cập nhật mọi trọng số.',
+        },
+        {
+          en: 'Gradient Descent',
+          vi: 'Hạ gradient (xuống dốc)',
+          short: 'Đi ngược chiều độ dốc (−∇L) từng bước nhỏ để trượt dần về đáy sai số nhỏ nhất.',
+        },
+        {
+          en: 'Learning Rate Decay',
+          vi: 'Giảm dần tốc độ học',
+          short: 'Thu nhỏ bước nhảy dần về cuối quá trình train để tránh nhảy lố qua đáy làm Loss dao động.',
+        },
+        {
+          en: 'AdamW',
+          vi: 'Bộ tối ưu AdamW',
+          short: 'Kết hợp quán tính Momentum + tự chỉnh bước nhảy từng biến + tách riêng phạt trọng số.',
+        },
+        {
+          en: 'Vanishing Gradient',
+          vi: 'Tiêu biến đạo hàm',
+          short: 'Gradient nhỏ dần về 0 ở mạng sâu dùng Sigmoid làm Loss đứng yên; trị bằng ReLU + Skip Connection.',
+        },
+        {
+          en: 'Softmax',
+          vi: 'Hàm chuẩn hóa xác suất Softmax',
+          short: 'Biến điểm thô bất kỳ thành phân phối xác suất từ 0% đến 100% có tổng đúng bằng 1.',
+        },
       ],
       memoryTip:
         'Loss giảm chậm đều ⇒ LR quá nhỏ. Loss giảm đầu rồi nhảy loạn không hội tụ ⇒ LR quá lớn (dùng Cosine/Step Decay). Loss đứng im từ đầu trên mạng sâu dùng Sigmoid ⇒ Vanishing Gradient (đổi sang ReLU/GELU + Skip Connection).',
@@ -391,12 +447,36 @@ export const TOPICS = [
     },
     step2: {
       keywords: [
-        "Bayes' Theorem",
-        'Base Rate Fallacy',
-        'Conditional Probability',
-        'Expected Value & Variance',
-        'Binomial vs Poisson',
-        'Gaussian 68-95-99.7',
+        {
+          en: "Bayes' Theorem",
+          vi: 'Định lý Bayes',
+          short: 'Cập nhật xác suất thật khi có bằng chứng mới bằng cách tính cả tỷ lệ nền ban đầu.',
+        },
+        {
+          en: 'Base Rate Fallacy',
+          vi: 'Ngụy biện tỷ lệ nền',
+          short: 'Sai lầm tin mù quáng độ nhạy 99% mà quên bệnh/gian lận vốn rất hiếm ngoài đời.',
+        },
+        {
+          en: 'Conditional Probability',
+          vi: 'Xác suất có điều kiện',
+          short: 'Xác suất A xảy ra khi đã biết chắc B xảy ra: P(A|B) = P(A∩B) ÷ P(B).',
+        },
+        {
+          en: 'Expected Value & Variance',
+          vi: 'Kỳ vọng & Phương sai',
+          short: 'Đo trung bình dài hạn và độ phân tán; nhớ Var(aX+b) = a²·Var(X) (bỏ hằng số +b).',
+        },
+        {
+          en: 'Binomial vs Poisson',
+          vi: 'Phân phối Nhị thức vs Poisson',
+          short: 'Binomial đếm số lần trúng trong n lượt cố định; Poisson đếm sự kiện mỗi giây/giờ.',
+        },
+        {
+          en: 'Gaussian 68-95-99.7',
+          vi: 'Quy tắc chuẩn 68–95–99.7',
+          short: 'Tỷ lệ dữ liệu nằm trong ±1σ (68%), ±2σ (95%) và ±3σ (99.7%) quanh trung bình.',
+        },
       ],
       memoryTip:
         'Bí kíp Var(aX + b) = a²·Var(X): cộng hằng số (+b) chỉ tịnh tiến đồ thị nên KHÔNG đổi phương sai, còn nhân hệ số a phải BÌNH PHƯƠNG lên! Đếm sự kiện trên mỗi phút/giờ (request/s) → nghĩ ngay Poisson.',
@@ -521,12 +601,36 @@ export const TOPICS = [
     },
     step2: {
       keywords: [
-        'Standard Error & Confidence Interval',
-        'p-value Type I Type II Error',
-        'Bonferroni Correction',
-        'Sample Ratio Mismatch (SRM)',
-        'Peeking Problem',
-        "Simpson's Paradox",
+        {
+          en: 'Standard Error & Confidence Interval',
+          vi: 'Sai số chuẩn & Khoảng tin cậy',
+          short: 'SE = σ/√n đo độ lệch ước lượng mẫu (giảm 2 lần cần tăng mẫu 4 lần); CI 95% = x̄ ± 1.96·SE.',
+        },
+        {
+          en: 'p-value Type I Type II Error',
+          vi: 'p-value & Sai lầm Loại I–II',
+          short: 'Type I (α) là báo thắng giả, Type II (β) là bỏ sót hiệu ứng thật; Power = 1 − β ≥ 80%.',
+        },
+        {
+          en: 'Bonferroni Correction',
+          vi: 'Hiệu chỉnh Bonferroni',
+          short: 'Chia nhỏ ngưỡng α cho số phép thử m (α/m) để không ăn may thắng giả khi test nhiều chỉ số.',
+        },
+        {
+          en: 'Sample Ratio Mismatch (SRM)',
+          vi: 'Lệch tỷ lệ phân nhóm SRM',
+          short: 'Tỷ lệ traffic thực lệch thiết kế (50/50 thành 54/46) ⇒ lỗi kỹ thuật, kết quả A/B vô hiệu.',
+        },
+        {
+          en: 'Peeking Problem',
+          vi: 'Lỗi nhìn trộm dừng sớm',
+          short: 'Chốt A/B test sớm ngay khi vừa thấy p < 0.05 làm tỷ lệ báo thắng giả vọt lên 25–30%.',
+        },
+        {
+          en: "Simpson's Paradox",
+          vi: 'Nghịch lý Simpson',
+          short: 'Thắng ở từng phân khúc riêng nhưng gộp tổng lại thua do phân bổ mẫu giữa các nhóm lệch.',
+        },
       ],
       memoryTip:
         'Checklist A/B test sạch: (1) Không nhìn sớm dừng sớm (No Peeking); (2) Kiểm tra SRM trước khi đọc kết quả; (3) Nhiều metric phải dùng Bonferroni; (4) Luôn soi theo phân khúc tránh Simpson’s Paradox.',
@@ -648,12 +752,36 @@ export const TOPICS = [
     },
     step2: {
       keywords: [
-        'Mutable vs Immutable',
-        'Shallow vs Deep Copy',
-        'Mutable Default Argument',
-        'List Comprehension & Generator',
-        'Context Manager',
-        'Python Dataclass',
+        {
+          en: 'Mutable vs Immutable',
+          vi: 'Khả biến vs Bất biến',
+          short: 'list/dict/set sửa tại chỗ được (Mutable); chỉ kiểu bất biến (str, tuple, int) làm được key dict.',
+        },
+        {
+          en: 'Shallow vs Deep Copy',
+          vi: 'Sao chép nông vs Sao chép sâu',
+          short: 'Copy nông chỉ nhân bản lớp ngoài; mảng/dict lồng nhau phải dùng deepcopy để tách rời hoàn toàn.',
+        },
+        {
+          en: 'Mutable Default Argument',
+          vi: 'Bẫy tham số mặc định mutable',
+          short: 'Viết def f(buf=[]) làm dữ liệu lần gọi trước dính sang lần sau; luôn đổi sang buf=None.',
+        },
+        {
+          en: 'List Comprehension & Generator',
+          vi: 'Biểu thức rút gọn & Bộ sinh dòng',
+          short: 'List [...] nạp hết vào RAM O(N); Generator (...) hoặc yield duyệt từng dòng chỉ tốn RAM O(1).',
+        },
+        {
+          en: 'Context Manager',
+          vi: 'Quản lý ngữ cảnh (with)',
+          short: 'Khối with open(...) tự động đóng file và giải phóng tài nguyên an toàn kể cả khi gặp lỗi.',
+        },
+        {
+          en: 'Python Dataclass',
+          vi: 'Lớp dữ liệu @dataclass',
+          short: 'Tự sinh __init__/__repr__/__eq__ cực gọn; thuộc tính list bắt buộc dùng field(default_factory=list).',
+        },
       ],
       memoryTip:
         '4 quy tắc Clean Python ăn trọn điểm: (1) So sánh None luôn dùng `is not None`; (2) Không dùng `[]`/`{}` làm tham số mặc định; (3) Không bọc `except Exception: pass` che bug; (4) Nối nhiều chuỗi dùng `"".join(parts)` thay vì `+=`.',
@@ -777,12 +905,36 @@ export const TOPICS = [
     },
     step2: {
       keywords: [
-        'loc vs iloc',
-        'groupby agg vs transform',
-        'pd.merge vs pd.concat',
-        'SettingWithCopyWarning',
-        'Forward Fill (ffill)',
-        'pd.to_datetime & rolling',
+        {
+          en: 'loc vs iloc',
+          vi: 'Lọc theo nhãn vs theo chỉ số',
+          short: 'loc cắt theo tên nhãn (GỒM điểm cuối); iloc cắt theo vị trí số nguyên (BỎ điểm cuối).',
+        },
+        {
+          en: 'groupby agg vs transform',
+          vi: 'Gom gọn nhóm vs Giữ nguyên dòng',
+          short: 'agg rút gọn mỗi nhóm thành 1 dòng; transform điền giá trị nhóm về đúng số dòng bảng gốc.',
+        },
+        {
+          en: 'pd.merge vs pd.concat',
+          vi: 'Ghép theo khóa vs Nối trục',
+          short: 'merge ghép ngang theo cột ID giống SQL JOIN; concat xếp chồng nhiều bảng cùng cột.',
+        },
+        {
+          en: 'SettingWithCopyWarning',
+          vi: 'Cảnh báo gán trên bảng cắt',
+          short: 'Xảy ra khi sửa trực tiếp trên slice đã lọc; sửa dứt điểm bằng .copy() hoặc gán qua .loc.',
+        },
+        {
+          en: 'Forward Fill (ffill)',
+          vi: 'Điền xuôi từ quá khứ',
+          short: 'Lấy giá trị hợp lệ trước đó kéo tới để điền NaN chuỗi thời gian, tuyệt đối tránh bfill().',
+        },
+        {
+          en: 'pd.to_datetime & rolling',
+          vi: 'Chuẩn hóa ngày & Trung bình trượt',
+          short: 'Chuyển chuỗi ngày an toàn bằng errors="coerce" và tính trung bình trượt theo cửa sổ K ngày.',
+        },
       ],
       memoryTip:
         'Mẹo phân biệt nhanh: `merge` = ghép ngang theo KEY (như SQL JOIN), `concat` = xếp chồng nhiều file cùng cột; `agg` = thu gọn mỗi nhóm 1 dòng, `transform` = giữ nguyên số dòng gốc!',
@@ -916,12 +1068,36 @@ export const TOPICS = [
     },
     step2: {
       keywords: [
-        'NumPy Broadcasting Rules',
-        'NumPy View vs Copy',
-        'Axis 0 vs Axis 1',
-        'Vectorization',
-        'Hash Table O(1) vs List O(n)',
-        'Deque Sliding Window & Heap Top-K',
+        {
+          en: 'NumPy Broadcasting Rules',
+          vi: 'Quy tắc nhân bản chiều NumPy',
+          short: 'So kích thước từ phải sang trái (= nhau hoặc = 1); cẩn thận cột (3,1) trừ hàng (3,) phình thành (3,3).',
+        },
+        {
+          en: 'NumPy View vs Copy',
+          vi: 'Nhìn chung bộ nhớ vs Bản sao độc lập',
+          short: 'Slicing NumPy tạo View (sửa bản cắt làm đổi mảng gốc); muốn tách riêng phải gọi .copy().',
+        },
+        {
+          en: 'Axis 0 vs Axis 1',
+          vi: 'Trục dọc theo cột vs ngang theo hàng',
+          short: 'axis=0 ép dọc tính ra kết quả từng CỘT; axis=1 ép ngang tính ra kết quả từng HÀNG.',
+        },
+        {
+          en: 'Vectorization',
+          vi: 'Vector hóa phép toán',
+          short: 'Giao cả mảng số cho lõi C của NumPy tính song song thay vì dùng vòng for Python chậm chạp.',
+        },
+        {
+          en: 'Hash Table O(1) vs List O(n)',
+          vi: 'Tra cứu bảng băm O(1) vs Danh sách O(n)',
+          short: 'Kiểm tra x in set/dict tốn đúng 1 bước O(1), nhanh gấp hàng nghìn lần quét list O(n).',
+        },
+        {
+          en: 'Deque Sliding Window & Heap Top-K',
+          vi: 'Cửa sổ trượt Deque & Đống tìm Top-K',
+          short: 'deque + running_sum tính Moving Average O(1); Min-Heap (heapq) lấy Top-K trong O(n log k).',
+        },
       ],
       memoryTip:
         'Nhớ 3 cặp đối lập: (1) `axis=0` tính từng CỘT, `axis=1` tính từng HÀNG; (2) `a * b` nhân từng ô, `a @ b` nhân ma trận; (3) `set/dict` tìm `O(1)`, `deque` cửa sổ trượt `O(1)`, `heapq` lấy Top-K `O(n log k)`.',
@@ -1051,12 +1227,36 @@ export const TOPICS = [
     },
     step2: {
       keywords: [
-        'SQL Execution Order',
-        'WHERE vs HAVING',
-        'LEFT JOIN Anti-Join',
-        'Window Functions ROW_NUMBER LAG',
-        'CTE WITH Clause',
-        'PostgreSQL Partitioning & B-Tree Index',
+        {
+          en: 'SQL Execution Order',
+          vi: 'Thứ tự thực thi câu lệnh SQL',
+          short: 'FROM/JOIN → WHERE → GROUP BY → HAVING → SELECT (Window) → ORDER BY → LIMIT.',
+        },
+        {
+          en: 'WHERE vs HAVING',
+          vi: 'Lọc từng dòng vs Lọc sau gom nhóm',
+          short: 'WHERE lọc dữ liệu thô trước GROUP BY; HAVING lọc kết quả hàm tổng hợp (SUM/COUNT) sau GROUP BY.',
+        },
+        {
+          en: 'LEFT JOIN Anti-Join',
+          vi: 'Tìm bản ghi không khớp (Anti-Join)',
+          short: 'Dùng LEFT JOIN rồi lọc WHERE b.id IS NULL để tìm khách chưa từng đặt đơn nào.',
+        },
+        {
+          en: 'Window Functions ROW_NUMBER LAG',
+          vi: 'Hàm cửa sổ xếp hạng & nhìn dòng trước',
+          short: 'Tính xếp hạng/lũy kế theo phân vùng mà giữ nguyên số dòng gốc; dòng đầu của LAG luôn NULL.',
+        },
+        {
+          en: 'CTE WITH Clause',
+          vi: 'Bảng tạm CTE (WITH)',
+          short: 'Bọc truy vấn có Window Function vào WITH ... AS (...) để lọc WHERE rn = 1 ở bên ngoài.',
+        },
+        {
+          en: 'PostgreSQL Partitioning & B-Tree Index',
+          vi: 'Phân vùng bảng & Chỉ mục B-Tree',
+          short: 'Chia bảng log trăm triệu dòng theo ngày (Partition Pruning) + Composite Index đạt tốc độ < 200ms.',
+        },
       ],
       memoryTip:
         'Nhớ 3 quy tắc vàng SQL: (1) Lọc từng dòng dùng `WHERE`, lọc tổng hợp `SUM/COUNT` dùng `HAVING`; (2) Bảng log 500M dòng chậm → `Partitioning theo created_at + B-Tree Index`; (3) Lấy Top-1 mỗi nhóm → `CTE + ROW_NUMBER() OVER (PARTITION BY ...) = 1`.',
@@ -1193,13 +1393,41 @@ export const TOPICS = [
     },
     step2: {
       keywords: [
-        'Data Leakage',
-        'Bias-Variance Tradeoff',
-        'Bagging vs Boosting',
-        'Stratified K-Fold',
-        'PR-AUC vs ROC-AUC',
-        'SMOTE & Focal Loss',
-        'SHAP & LIME',
+        {
+          en: 'Data Leakage',
+          vi: 'Rò rỉ dữ liệu',
+          short: 'Thông tin tập Test hoặc tương lai lọt vào lúc train (scale/SMOTE trước split, shuffle time-series).',
+        },
+        {
+          en: 'Bias-Variance Tradeoff',
+          vi: 'Đánh đổi Độ chệch – Phương sai',
+          short: 'High Bias là học sơ sài (Underfit); High Variance là học vẹt tập Train (Overfit: Train 99%, Val 60%).',
+        },
+        {
+          en: 'Bagging vs Boosting',
+          vi: 'Học song song vs Học nối tiếp sửa sai',
+          short: 'Bagging (Random Forest) giảm Variance; Boosting (XGBoost/LightGBM) giảm Bias mạnh nhất dữ liệu bảng.',
+        },
+        {
+          en: 'Stratified K-Fold',
+          vi: 'Kiểm tra chéo phân tầng K-Fold',
+          short: 'Chia K phần kiểm tra nhưng giữ nguyên tỷ lệ lớp hiếm ở mọi fold (không dùng cho chuỗi thời gian).',
+        },
+        {
+          en: 'PR-AUC vs ROC-AUC',
+          vi: 'Diện tích PR-AUC vs ROC-AUC',
+          short: 'Trên tập cực lệch lớp (0.1% gian lận), PR-AUC không dùng TN nên phản ánh báo giả trung thực hơn ROC-AUC.',
+        },
+        {
+          en: 'SMOTE & Focal Loss',
+          vi: 'Sinh mẫu thiểu số & Hàm phạt ca khó',
+          short: 'SMOTE tạo thêm điểm lớp hiếm CHỈ trong tập Train; Focal Loss phạt nặng ca khó và giảm trọng số ca dễ.',
+        },
+        {
+          en: 'SHAP & LIME',
+          vi: 'Công cụ giải thích hộp đen AI',
+          short: 'Định lượng từng đặc trưng kéo tăng hay giảm điểm dự đoán để giải trình minh bạch cho con người duyệt.',
+        },
       ],
       memoryTip:
         '3 câu hỏi cửa miệng của CĐ-09: (1) Dữ liệu có bị Leakage không (đặc biệt scale/SMOTE/time-series)? (2) Model có Overfit không (Train 99% – Val 60%)? (3) Metric có khớp dữ liệu lệch không (PR-AUC, Precision vs Recall)?',
@@ -1324,13 +1552,41 @@ export const TOPICS = [
     },
     step2: {
       keywords: [
-        'Self-Attention Q-K-V O(N²)',
-        'Temperature Top-K Top-P',
-        'Hybrid Search BM25 RRF',
-        'Cross-Encoder Rerank',
-        'Recall@k vs Faithfulness',
-        'LoRA & QLoRA NF4',
-        'ReAct Agent & Guardrails',
+        {
+          en: 'Self-Attention Q-K-V O(N²)',
+          vi: 'Cơ chế Tự chú ý bậc bình phương',
+          short: 'Mọi token đều so khớp với tất cả token khác giúp hiểu ngữ cảnh, nhưng độ dài ×2 tốn tính toán ×4.',
+        },
+        {
+          en: 'Temperature Top-K Top-P',
+          vi: 'Tham số lấy mẫu sinh chữ',
+          short: 'Hạ Temperature về 0–0.2 để câu trả lời RAG/JSON chính xác, ổn định; tăng cao khi cần sáng tạo.',
+        },
+        {
+          en: 'Hybrid Search BM25 RRF',
+          vi: 'Tìm kiếm lai Từ khóa + Vector & trộn hạng RRF',
+          short: 'Kết hợp BM25 (bắt trúng mã lỗi/SKU) + Vector (hiểu đồng nghĩa), gộp hạng bằng Σ 1/(60 + rank).',
+        },
+        {
+          en: 'Cross-Encoder Rerank',
+          vi: 'Chấm xếp hạng lại vòng tinh',
+          short: 'Đọc kỹ từng cặp (Câu hỏi + Đoạn văn) để lọc tinh Top-50 ứng viên xuống Top-5 sát nghĩa nhất.',
+        },
+        {
+          en: 'Recall@k vs Faithfulness',
+          vi: 'Tìm trúng tài liệu vs Trung thực ngữ cảnh',
+          short: 'Tách bạch lỗi RAG: Recall@k thấp là lỗi tìm kiếm; Recall cao mà Faithfulness thấp là lỗi LLM bịa.',
+        },
+        {
+          en: 'LoRA & QLoRA NF4',
+          vi: 'Tinh chỉnh adapter hạng thấp siêu nhẹ',
+          short: 'Đóng băng trọng số gốc và chỉ train thêm ma trận nhỏ (kết hợp lượng tử hóa 4-bit NF4 giảm mạnh VRAM).',
+        },
+        {
+          en: 'ReAct Agent & Guardrails',
+          vi: 'Tác tử suy luận–hành động & Hàng rào an toàn',
+          short: 'Vòng Thought → Action → Observation có max_steps, lọc đầu vào/ra và bắt buộc HITL cho lệnh ghi/gửi.',
+        },
       ],
       memoryTip:
         'Quy tắc CĐ-10: Luôn TÁCH lỗi Truy xuất (`Recall@k`) khỏi lỗi Sinh (`Faithfulness`); luôn hỏi Agent đang cầm quyền gì và AI duyệt lệnh ghi (HITL); dữ liệu thay đổi hàng ngày → RAG, học văn phong/JSON → LoRA.',
@@ -1470,13 +1726,41 @@ export const TOPICS = [
     },
     step2: {
       keywords: [
-        'p95 Tail Latency & TTFT',
-        'Continuous Batching & KV Cache',
-        'Quantization INT8/INT4',
-        'Eval Gate Golden Set',
-        'Data Drift vs Concept Drift',
-        'Canary Shadow Rollback',
-        'GPU Utilization & ROI',
+        {
+          en: 'p95 Tail Latency & TTFT',
+          vi: 'Độ trễ đuôi p95 & Thời gian ra chữ đầu',
+          short: 'p95 bắt sống 5% lượt chậm nhất bị trung bình che giấu; TTFT đo độ mượt cảm nhận khi chat streaming.',
+        },
+        {
+          en: 'Continuous Batching & KV Cache',
+          vi: 'Gom lô liên tục & Đệm khóa-giá trị',
+          short: 'Đưa request mới vào GPU ngay khi có slot trống và tái sử dụng phần System Prompt lặp để giảm TTFT.',
+        },
+        {
+          en: 'Quantization INT8/INT4',
+          vi: 'Lượng tử hóa nén mô hình 8/4-bit',
+          short: 'Giảm trọng số từ 16-bit xuống 8/4-bit cắt 2–4 lần VRAM (bắt buộc chạy Eval kiểm tra trước/sau nén).',
+        },
+        {
+          en: 'Eval Gate Golden Set',
+          vi: 'Cổng chấm điểm tự động trước Deploy',
+          short: 'Chạy bộ đề chuẩn cố định mỗi khi sửa Model/Prompt/Chunking; tụt chất lượng là chặn phát hành ngay.',
+        },
+        {
+          en: 'Data Drift vs Concept Drift',
+          vi: 'Trôi dữ liệu đầu vào vs Trôi quy luật',
+          short: 'Data Drift là P(X) đổi, Concept Drift là P(Y|X) đổi; theo dõi bằng PSI/KS-test để kích hoạt fine-tune.',
+        },
+        {
+          en: 'Canary Shadow Rollback',
+          vi: 'Chạy ngầm · Thả thử 5% · Quay xe tự động',
+          short: 'Shadow 0% khách → Canary mở dần 5%→25%→100% → Auto Rollback lập tức khi lỗi hoặc p95 vượt ngưỡng.',
+        },
+        {
+          en: 'GPU Utilization & ROI',
+          vi: 'Hiệu suất dùng GPU thật & Tỷ suất hoàn vốn',
+          short: 'Luôn chia chi phí cho tải GPU thực (30–50%) để ra Cost/1K req thật và cộng đủ phí vận hành khi tính ROI.',
+        },
       ],
       memoryTip:
         'Câu thần chú CĐ-11: "Không có Eval Gate, Canary và Rollback thì chưa phải vận hành; luôn soi p95 & TTFT; luôn chia chi phí cho GPU Utilization thật!"',
@@ -1603,13 +1887,41 @@ export const TOPICS = [
     },
     step2: {
       keywords: [
-        'Contrapositive vs Converse',
-        "De Morgan's Laws",
-        'Survivorship Bias',
-        'PII Memorization & Redaction',
-        'EU AI Act 4 Risk Levels',
-        'OWASP LLM Top 10 RBAC',
-        'Representation & Automation Bias',
+        {
+          en: 'Contrapositive vs Converse',
+          vi: 'Mệnh đề Phản đảo vs Mệnh đề Đảo',
+          short: 'Từ P → Q chỉ suy ra Phản đảo (¬Q → ¬P); suy ngược sang Đảo (Q → P) là ngụy biện sai logic.',
+        },
+        {
+          en: "De Morgan's Laws",
+          vi: 'Định luật De Morgan',
+          short: 'Phủ định trong ngoặc phải lật VÀ ↔ HOẶC: ¬(A ∧ B) = ¬A ∨ ¬B (sống còn khi viết luật chặn truy cập).',
+        },
+        {
+          en: 'Survivorship Bias',
+          vi: 'Thiên kiến kẻ sống sót',
+          short: 'Chỉ phân tích nhóm còn tồn tại/được duyệt mà bỏ quên nhóm đã rơi rụng làm sai lệch toàn bộ kết luận.',
+        },
+        {
+          en: 'PII Memorization & Redaction',
+          vi: 'Ghi nhớ & Ẩn danh dữ liệu cá nhân',
+          short: 'LLM học thuộc CCCD/SĐT vào trọng số khi train; phải chạy NER ẩn danh trước train (nén ZIP vô dụng).',
+        },
+        {
+          en: 'EU AI Act 4 Risk Levels',
+          vi: '4 mức rủi ro của Đạo luật AI châu Âu',
+          short: 'Cấm (Social Scoring) · Cao (Tuyển dụng/Tín dụng) · Hạn chế (Chatbot báo là AI) · Tối thiểu.',
+        },
+        {
+          en: 'OWASP LLM Top 10 RBAC',
+          vi: 'Top 10 lỗ hổng LLM & Phân quyền RBAC',
+          short: 'Chống Prompt Injection & lộ dữ liệu bằng kiểm tra quyền RBAC ở tầng Middleware trước khi truy xuất RAG.',
+        },
+        {
+          en: 'Representation & Automation Bias',
+          vi: 'Thiên kiến đại diện & Ỷ lại tự động hóa',
+          short: 'Dữ liệu thiếu nhóm thiểu số gây lệch mô hình; HITL chỉ hiệu quả khi người duyệt không bấm đồng ý máy móc.',
+        },
       ],
       memoryTip:
         'Mẹo CĐ-12: (1) Thấy `A ⇒ B, B đúng` → chọn ngay "Không suy ra A"; (2) Phủ định "VÀ" đổi thành "HOẶC"; (3) Loại ngay các đáp án "chữa cháy bề mặt" (nén ZIP chống PII, ép JSON chống Prompt Injection, đổi model để chữa Bias dữ liệu).',
