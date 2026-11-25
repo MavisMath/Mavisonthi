@@ -178,10 +178,26 @@ export function loadTopicsProgress() {
     const sanitized = {};
     for (const [topicId, entry] of Object.entries(parsed)) {
       if (!entry || typeof entry !== 'object' || Array.isArray(entry)) continue;
+      const bestScore = Number.isInteger(entry.bestScore) ? entry.bestScore : 0;
+      const bestTotal =
+        Number.isInteger(entry.bestTotal) && entry.bestTotal > 0
+          ? entry.bestTotal
+          : 3;
+      const bestPercent =
+        Number.isInteger(entry.bestPercent) && entry.bestPercent >= 0
+          ? entry.bestPercent
+          : Math.round((bestScore / bestTotal) * 100);
       sanitized[topicId] = {
         passed: Boolean(entry.passed),
-        bestScore: Number.isInteger(entry.bestScore) ? entry.bestScore : 0,
+        bestScore,
+        bestTotal,
+        bestPercent,
         lastScore: Number.isInteger(entry.lastScore) ? entry.lastScore : 0,
+        lastTotal:
+          Number.isInteger(entry.lastTotal) && entry.lastTotal > 0
+            ? entry.lastTotal
+            : bestTotal,
+        xp: Number.isInteger(entry.xp) && entry.xp >= 0 ? entry.xp : entry.passed ? 100 : 0,
       };
     }
     return sanitized;

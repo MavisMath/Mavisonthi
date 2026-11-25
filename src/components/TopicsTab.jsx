@@ -15,13 +15,16 @@ import {
   Copy,
   Cpu,
   ExternalLink,
+  Layers,
   Lightbulb,
+  RefreshCw,
   RotateCcw,
   Sparkles,
   Target,
   Trophy,
   Video,
   XCircle,
+  Zap,
 } from 'lucide-react';
 import { TOPIC_GROUPS, TOPICS } from '../data/topicsData.js';
 import { loadTopicsProgress, saveTopicsProgress } from '../utils/storage.js';
@@ -31,11 +34,14 @@ import KeywordText, { KeywordModal } from './KeywordText.jsx';
 const GROUP_MAP = Object.fromEntries(TOPIC_GROUPS.map((g) => [g.id, g]));
 const OPTION_LETTERS = ['A', 'B', 'C', 'D'];
 
+const BATCH_SIZE = 5;
+const PASS_THRESHOLD_PERCENT = 70;
+
 const STUDY_STEPS = [
   { num: 1, short: 'Bản chất & Công thức', icon: BookOpen },
   { num: 2, short: 'Keyword & Mẹo nhớ', icon: Lightbulb },
   { num: 3, short: 'Bẫy kinh điển', icon: AlertTriangle },
-  { num: 4, short: 'Mini-Quiz (3 câu)', icon: Trophy },
+  { num: 4, short: 'Luyện tập (10 câu)', icon: Trophy },
 ];
 
 export default function TopicsTab({ onPracticeModule }) {
@@ -44,6 +50,9 @@ export default function TopicsTab({ onPracticeModule }) {
   const [activeTopicId, setActiveTopicId] = useState(null);
   const [currentStep, setCurrentStep] = useState(1);
   const [quizAnswers, setQuizAnswers] = useState({});
+  const [quizMode, setQuizMode] = useState('batch5'); // 'batch5' | 'all'
+  const [batchIndex, setBatchIndex] = useState(0);
+  const [lastEarnedXp, setLastEarnedXp] = useState(null);
   const [copiedQuery, setCopiedQuery] = useState(null);
   const [confirmReset, setConfirmReset] = useState(false);
   const [selectedGlossaryEntry, setSelectedGlossaryEntry] = useState(null);
@@ -86,6 +95,15 @@ export default function TopicsTab({ onPracticeModule }) {
     [progress]
   );
 
+  const totalXp = useMemo(
+    () =>
+      Object.values(progress).reduce(
+        (sum, entry) => sum + (Number.isInteger(entry?.xp) ? entry.xp : 0),
+        0
+      ),
+    [progress]
+  );
+
   const passedPercent = Math.round((passedCount / TOPICS.length) * 100);
 
   const visibleGroups = useMemo(() => {
@@ -97,6 +115,9 @@ export default function TopicsTab({ onPracticeModule }) {
     setActiveTopicId(topicId);
     setCurrentStep(1);
     setQuizAnswers({});
+    setQuizMode('batch5');
+    setBatchIndex(0);
+    setLastEarnedXp(null);
     setCopiedQuery(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -105,6 +126,9 @@ export default function TopicsTab({ onPracticeModule }) {
     setActiveTopicId(null);
     setCurrentStep(1);
     setQuizAnswers({});
+    setQuizMode('batch5');
+    setBatchIndex(0);
+    setLastEarnedXp(null);
   };
 
   const handleCopyYoutubeQuery = async (query) => {
@@ -116,7 +140,23 @@ export default function TopicsTab({ onPracticeModule }) {
     }
   };
 
-  const handleAnswerMiniQuiz = (topic, questionId, optionIdx) => {
+  const handleSwitchQuizMode = (nextMode) => {
+    setQuizMode(nextMode);
+    setQuizAnswers({});
+    setLastEarnedXp(null);
+    if (nextMode === 'batch5') {
+      setBatchIndex(0);
+    }
+  };
+
+  const handleNextBatch = (totalBatches) => {
+    setQuizMode('batch5');
+    setBatchIndex((prev) => (prev + 1) % Math.max(1, totalBatches));
+    setQuizAnswers({});
+    setLastEarnedXp(null);
+  };
+
+  const handleAnswerMiniQuiz = (topic, roundQuestions, questionId, optionIdx) => {
     if (typeof quizAnswers[questionId] === 'number') return;
 
     const nextAnswers = {
@@ -125,30 +165,46 @@ export default function TopicsTab({ onPracticeModule }) {
     };
     setQuizAnswers(nextAnswers);
 
-    const questions = topic.step4.miniQuiz;
-    const allAnswered = questions.every(
+    const allAnswered = roundQuestions.every(
       (q) => typeof nextAnswers[q.id] === 'number'
     );
 
-    if (allAnswered) {
-      const score = questions.reduce(
+    if (allAnswered && roundQuestions.length > 0) {
+      const score = roundQuestions.reduce(
         (sum, q) => sum + (nextAnswers[q.id] === q.correctIndex ? 1 : 0),
         0
       );
-      const passedNow = score >= 2;
+      const total = roundQuestions.length;
+      const percent = Math.round((score / total) * 100);
+      const passedNow = percent >= PASS_THRESHOLD_PERCENT;
+      const earnedXp = score * 20 + (passedNow ? 50 : 0);
+      setLastEarnedXp(earnedXp);
 
       setProgress((prev) => {
         const existing = prev[topic.id] ?? {
           passed: false,
           bestScore: 0,
+          bestTotal: total,
+          bestPercent: 0,
           lastScore: 0,
+          lastTotal: total,
+          xp: 0,
         };
+        const isBetter =
+          percent > (existing.bestPercent ?? 0) ||
+          (percent === (existing.bestPercent ?? 0) &&
+            score > (existing.bestScore ?? 0));
+
         return {
           ...prev,
           [topic.id]: {
             passed: existing.passed || passedNow,
-            bestScore: Math.max(existing.bestScore, score),
+            bestScore: isBetter ? score : existing.bestScore,
+            bestTotal: isBetter ? total : existing.bestTotal,
+            bestPercent: Math.max(existing.bestPercent ?? 0, percent),
             lastScore: score,
+            lastTotal: total,
+            xp: (existing.xp ?? 0) + earnedXp,
           },
         };
       });
@@ -157,11 +213,13 @@ export default function TopicsTab({ onPracticeModule }) {
 
   const handleRetryMiniQuiz = () => {
     setQuizAnswers({});
+    setLastEarnedXp(null);
   };
 
   const handleResetAllTopics = () => {
     setProgress({});
     setConfirmReset(false);
+    setLastEarnedXp(null);
   };
 
   // =====================================================================
@@ -171,15 +229,29 @@ export default function TopicsTab({ onPracticeModule }) {
     const groupMeta = GROUP_MAP[activeTopic.groupId];
     const topicProgress = progress[activeTopic.id];
     const isPassed = Boolean(topicProgress?.passed);
-    const questions = activeTopic.step4.miniQuiz;
+    const allQuestions = activeTopic.step4.miniQuiz;
+    const totalBatches = Math.max(1, Math.ceil(allQuestions.length / BATCH_SIZE));
+    const safeBatchIdx = batchIndex % totalBatches;
+    const batchStart = safeBatchIdx * BATCH_SIZE;
+    const questions =
+      quizMode === 'all'
+        ? allQuestions
+        : allQuestions.slice(batchStart, batchStart + BATCH_SIZE);
+    const minToPass = Math.ceil(
+      (questions.length * PASS_THRESHOLD_PERCENT) / 100
+    );
     const answeredCount = questions.filter(
       (q) => typeof quizAnswers[q.id] === 'number'
     ).length;
-    const allAnswered = answeredCount === questions.length;
+    const allAnswered =
+      questions.length > 0 && answeredCount === questions.length;
     const quizScore = questions.reduce(
       (sum, q) => sum + (quizAnswers[q.id] === q.correctIndex ? 1 : 0),
       0
     );
+    const quizPercent =
+      questions.length > 0 ? Math.round((quizScore / questions.length) * 100) : 0;
+    const passedRound = quizPercent >= PASS_THRESHOLD_PERCENT;
     const activeIdx = TOPICS.findIndex((t) => t.id === activeTopic.id);
     const nextTopic =
       activeIdx >= 0 && activeIdx < TOPICS.length - 1
@@ -200,6 +272,10 @@ export default function TopicsTab({ onPracticeModule }) {
           </button>
 
           <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 font-mono text-xs font-bold text-amber-800 tabular-nums">
+              <Zap className="h-3.5 w-3.5 text-amber-600" />
+              <span>{totalXp} XP</span>
+            </span>
             <span
               className={`rounded-md border px-2 py-0.5 font-mono text-xs font-semibold ${groupMeta.accentBg} ${groupMeta.accentText} ${groupMeta.accentBorder}`}
             >
@@ -208,11 +284,11 @@ export default function TopicsTab({ onPracticeModule }) {
             {isPassed ? (
               <span className="inline-flex items-center gap-1 rounded-full border border-teal-200 bg-teal-50 px-2.5 py-0.5 text-xs font-semibold text-teal-800">
                 <CheckCircle2 className="h-3.5 w-3.5 text-teal-600" />
-                <span>Đã qua ({topicProgress.bestScore}/3)</span>
+                <span>Đã qua ({topicProgress.bestPercent}%)</span>
               </span>
             ) : (
               <span className="rounded-full border border-slate-200 bg-white px-2.5 py-0.5 text-xs font-medium text-slate-500">
-                Chưa qua · Đúng ≥ 2/3 câu ở Bước 4
+                Chưa qua · Đạt ≥ 70% ở Bước 4
               </span>
             )}
           </div>
@@ -309,7 +385,7 @@ export default function TopicsTab({ onPracticeModule }) {
                 <div className="space-y-3.5">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                      Hiểu qua bài toán AI thực tế ({activeTopic.step1.problemBlocks.length} công cụ cốt lõi)
+                      Hiểu qua bài toán AI thực tế ({activeTopic.step1.problemBlocks.length} khối · Phủ đủ {activeTopic.subtopics.length}/{activeTopic.subtopics.length} mục con)
                     </h2>
                     <span className="font-mono text-[11px] text-slate-400">
                       Không cần học vẹt ký hiệu
@@ -323,13 +399,18 @@ export default function TopicsTab({ onPracticeModule }) {
                         className="overflow-hidden rounded-xl border border-slate-200/90 bg-white shadow-2xs"
                       >
                         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 bg-slate-50/80 px-4 py-3">
-                          <div className="flex items-center gap-2.5">
+                          <div className="flex flex-wrap items-center gap-2">
                             <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-slate-900 font-mono text-xs font-bold text-white">
                               {idx + 1}
                             </span>
                             <h3 className="text-sm font-bold text-slate-900">
                               <KeywordText text={block.title} />
                             </h3>
+                            {block.subtopic && (
+                              <span className="rounded-full border border-blue-200/80 bg-blue-50 px-2 py-0.5 font-mono text-[10px] font-semibold text-blue-700">
+                                {block.subtopic}
+                              </span>
+                            )}
                           </div>
                           {block.formulaShort && (
                             <code className="rounded-md border border-slate-200 bg-white px-2 py-0.5 font-mono text-[11px] font-medium text-slate-700">
@@ -593,17 +674,60 @@ export default function TopicsTab({ onPracticeModule }) {
           </section>
         )}
 
-        {/* STEP 4: Mini-Quiz 3 câu (đúng >= 2/3 tự đánh dấu "Đã qua") */}
+        {/* STEP 4: Luyện tập 10 câu (mặc định 5 câu/lượt + chế độ toàn bộ, đạt >= 70% mở khóa Đã qua & cộng XP) */}
         {currentStep === 4 && (
           <section className="space-y-5 rounded-2xl border border-slate-200/90 bg-white p-6 shadow-2xs">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-teal-700">
-                <Trophy className="h-4 w-4" />
-                <span>Bước 4 / 4 · Mini-Quiz kiểm tra qua ải (3 câu)</span>
+            <div className="flex flex-col gap-3 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-teal-700">
+                  <Trophy className="h-4 w-4" />
+                  <span>
+                    Bước 4 / 4 · Luyện tập chuyên sâu ({allQuestions.length} câu · Đạt ≥ {PASS_THRESHOLD_PERCENT}%)
+                  </span>
+                </div>
+                <p className="mt-1 font-mono text-xs text-slate-500 tabular-nums">
+                  {quizMode === 'batch5'
+                    ? `Đang làm Bộ ${safeBatchIdx + 1}/${totalBatches} (Câu ${batchStart + 1}–${batchStart + questions.length})`
+                    : `Đang làm toàn bộ ${allQuestions.length} câu`}{' '}
+                  · Đã chọn {answeredCount}/{questions.length} · Cần đúng ≥{' '}
+                  {minToPass}/{questions.length} câu
+                </p>
               </div>
-              <span className="font-mono text-xs text-slate-500 tabular-nums">
-                Đã chọn {answeredCount} / {questions.length} · Cần đúng ≥ 2/3
-              </span>
+
+              {/* Batch 5 / Next Batch / Full 10 Mode Controls */}
+              <div className="flex flex-wrap items-center gap-2">
+                {quizMode === 'batch5' ? (
+                  <>
+                    {totalBatches > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleNextBatch(totalBatches)}
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition-colors hover:bg-blue-100"
+                      >
+                        <RefreshCw className="h-3.5 w-3.5" />
+                        <span>Làm bộ 5 câu tiếp theo</span>
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleSwitchQuizMode('all')}
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+                    >
+                      <Layers className="h-3.5 w-3.5" />
+                      <span>Làm toàn bộ {allQuestions.length} câu</span>
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleSwitchQuizMode('batch5')}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
+                  >
+                    <Layers className="h-3.5 w-3.5" />
+                    <span>Quay về 5 câu / lượt</span>
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="space-y-5">
@@ -611,6 +735,8 @@ export default function TopicsTab({ onPracticeModule }) {
                 const picked = quizAnswers[q.id];
                 const isAnswered = typeof picked === 'number';
                 const isCorrect = isAnswered && picked === q.correctIndex;
+                const displayNumber =
+                  quizMode === 'batch5' ? batchStart + qIdx + 1 : qIdx + 1;
 
                 return (
                   <div
@@ -619,7 +745,7 @@ export default function TopicsTab({ onPracticeModule }) {
                   >
                     <div className="flex items-center justify-between gap-2">
                       <span className="font-mono text-xs font-bold text-slate-500">
-                        Câu {qIdx + 1} / 3
+                        Câu {displayNumber} / {allQuestions.length}
                       </span>
                       {isAnswered && (
                         <span
@@ -630,7 +756,7 @@ export default function TopicsTab({ onPracticeModule }) {
                           {isCorrect ? (
                             <>
                               <CheckCircle2 className="h-3.5 w-3.5" />
-                              <span>Đúng</span>
+                              <span>Đúng (+20 XP)</span>
                             </>
                           ) : (
                             <>
@@ -682,7 +808,12 @@ export default function TopicsTab({ onPracticeModule }) {
                             type="button"
                             disabled={isAnswered}
                             onClick={() =>
-                              handleAnswerMiniQuiz(activeTopic, q.id, optIdx)
+                              handleAnswerMiniQuiz(
+                                activeTopic,
+                                questions,
+                                q.id,
+                                optIdx
+                              )
                             }
                             className={`flex w-full items-start gap-2.5 rounded-xl border px-3.5 py-2.5 text-left text-xs leading-relaxed transition-all disabled:cursor-default sm:text-sm ${optClass}`}
                           >
@@ -712,44 +843,61 @@ export default function TopicsTab({ onPracticeModule }) {
               })}
             </div>
 
-            {/* Result Banner when all 3 answered */}
+            {/* Result Banner when current round is completed */}
             {allAnswered && (
               <div
                 className={`rounded-2xl border p-5 ${
-                  quizScore >= 2
+                  passedRound
                     ? 'border-teal-300 bg-teal-50/80'
                     : 'border-amber-300 bg-amber-50/80'
                 }`}
               >
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <div className="flex items-center gap-2">
-                      {quizScore >= 2 ? (
+                    <div className="flex flex-wrap items-center gap-2">
+                      {passedRound ? (
                         <Sparkles className="h-5 w-5 text-teal-700" />
                       ) : (
                         <AlertTriangle className="h-5 w-5 text-amber-700" />
                       )}
                       <h3 className="text-base font-bold text-slate-900">
-                        {quizScore >= 2
-                          ? `Xuất sắc! Đạt ${quizScore}/3 câu — Đã qua ${activeTopic.code}`
-                          : `Đạt ${quizScore}/3 câu — Chưa đạt ngưỡng qua (cần ≥ 2/3)`}
+                        {passedRound
+                          ? `Xuất sắc! Đạt ${quizScore}/${questions.length} câu (${quizPercent}%) — Đã qua ${activeTopic.code}`
+                          : `Đạt ${quizScore}/${questions.length} câu (${quizPercent}%) — Cần đạt ≥ ${PASS_THRESHOLD_PERCENT}% (${minToPass}/${questions.length})`}
                       </h3>
+                      {lastEarnedXp !== null && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-500 px-2.5 py-0.5 font-mono text-xs font-bold text-white shadow-2xs">
+                          <Zap className="h-3 w-3" />
+                          <span>+{lastEarnedXp} XP</span>
+                        </span>
+                      )}
                     </div>
                     <p className="mt-1 text-xs text-slate-700">
-                      {quizScore >= 2
-                        ? `Tiến độ đã được tự động lưu vào localStorage (${passedCount}/12 chuyên đề Đã qua).`
-                        : 'Hãy xem nhanh lại Bước 1–3 rồi bấm làm lại Mini-Quiz để mở khóa trạng thái "Đã qua".'}
+                      {passedRound
+                        ? `Tiến độ & XP đã tự động lưu (${passedCount}/12 chuyên đề Đã qua · Tổng ${totalXp} XP). Bạn có thể làm tiếp bộ 5 câu còn lại để phủ trọn 10 câu!`
+                        : `Đã cộng +${lastEarnedXp ?? 0} XP luyện tập. Hãy xem lại phần Giải thích rồi bấm làm lại hoặc chuyển sang bộ 5 câu tiếp theo!`}
                     </p>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2">
+                    {quizMode === 'batch5' && totalBatches > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleNextBatch(totalBatches)}
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-blue-700"
+                      >
+                        <RefreshCw className="h-3.5 w-3.5" />
+                        <span>Làm bộ 5 câu tiếp theo</span>
+                      </button>
+                    )}
+
                     <button
                       type="button"
                       onClick={handleRetryMiniQuiz}
                       className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
                     >
                       <RotateCcw className="h-3.5 w-3.5" />
-                      <span>Làm lại</span>
+                      <span>Làm lại lượt này</span>
                     </button>
 
                     {onPracticeModule && (
@@ -763,7 +911,7 @@ export default function TopicsTab({ onPracticeModule }) {
                       </button>
                     )}
 
-                    {quizScore >= 2 && nextTopic && (
+                    {passedRound && nextTopic && (
                       <button
                         type="button"
                         onClick={() => openQuickStudy(nextTopic.id)}
@@ -843,11 +991,22 @@ export default function TopicsTab({ onPracticeModule }) {
               12 Chuyên đề thực chiến
             </h1>
             <p className="max-w-2xl text-sm text-slate-600">
-              Chinh phục từng chuyên đề theo chế độ <strong className="font-semibold text-slate-900">Học nhanh 4 bước</strong> (Bản chất → Keyword &amp; Mẹo → Bẫy kinh điển → Mini-Quiz 3 câu). Đúng từ <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-slate-800">2/3</code> câu sẽ tự mở khóa trạng thái <strong className="font-semibold text-teal-700">Đã qua</strong>.
+              Chinh phục từng chuyên đề theo chế độ <strong className="font-semibold text-slate-900">Học nhanh 4 bước</strong> (Bản chất đủ 100% mục con → Keyword Anh–Việt → Bẫy kinh điển → Luyện tập 10 câu chia bộ 5 câu/lượt). Đạt từ <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-slate-800">70%</code> sẽ nhận XP và mở khóa trạng thái <strong className="font-semibold text-teal-700">Đã qua</strong>.
             </p>
           </div>
 
-          <div className="flex items-center gap-3 self-start">
+          <div className="flex flex-wrap items-center gap-3 self-start">
+            <div className="rounded-xl border border-amber-200 bg-amber-50/70 px-4 py-2.5 text-right">
+              <p className="flex items-center justify-end gap-1 text-[11px] font-semibold text-amber-800">
+                <Zap className="h-3.5 w-3.5 text-amber-600" />
+                <span>Điểm tích lũy</span>
+              </p>
+              <p className="font-mono text-xl font-bold text-amber-700 tabular-nums">
+                {totalXp}{' '}
+                <span className="text-xs font-semibold text-amber-600">XP</span>
+              </p>
+            </div>
+
             <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-2.5 text-right">
               <p className="text-[11px] font-medium text-slate-500">
                 Tiến độ chinh phục
@@ -881,7 +1040,7 @@ export default function TopicsTab({ onPracticeModule }) {
               <button
                 type="button"
                 onClick={() => setConfirmReset(true)}
-                disabled={passedCount === 0}
+                disabled={passedCount === 0 && totalXp === 0}
                 title="Đặt lại tiến độ 12 chuyên đề"
                 className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-40"
               >
@@ -1035,7 +1194,9 @@ export default function TopicsTab({ onPracticeModule }) {
                             {isPassed ? (
                               <span className="inline-flex items-center gap-1 rounded-full border border-teal-200 bg-teal-50 px-2.5 py-0.5 text-xs font-semibold text-teal-800">
                                 <CheckCircle2 className="h-3.5 w-3.5 text-teal-600" />
-                                <span>Đã qua · {stat.bestScore}/3</span>
+                                <span>
+                                  Đã qua · {stat.bestPercent ?? Math.round((stat.bestScore / (stat.bestTotal || 3)) * 100)}%
+                                </span>
                               </span>
                             ) : (
                               <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-xs font-medium text-slate-500">
