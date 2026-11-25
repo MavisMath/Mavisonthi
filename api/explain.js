@@ -1,23 +1,35 @@
 const MODEL_CANDIDATES = [
-  'gemini-2.5-flash',
   'gemini-3.5-flash',
+  'gemini-2.5-flash',
   'gemini-3.6-flash',
 ];
 
 let cachedWorkingModel = null;
 
+const SYSTEM_INSTRUCTION = [
+  'Bạn là gia sư AI chuyên giảng giải cho người không chuyên IT (non-tech) đang ôn thi AI Thực chiến VinUni (SFIA Level 3).',
+  'QUY TẮC BẮT BUỘC:',
+  '1. Chỉ sử dụng `wikiSummary` nếu nội dung đó thực sự đúng chủ đề AI, Toán học, Thống kê, Lập trình, Dữ liệu, Logic hoặc Đạo đức/Pháp lý AI.',
+  '2. Nếu `wikiSummary` bị lạc đề (như địa lý, thành phố, lịch sử, phim ảnh, thể thao...) hoặc trống, HÃY BỎ QUA HOÀN TOÀN `wikiSummary` và tự giải thích chính xác theo `term` cùng `context` đoạn văn người dùng đang đọc.',
+  '3. Viết tiếng Việt bình dân, trực quan, tuyệt đối không sao chép văn phong hàn lâm khó hiểu.',
+  '4. Trả về DUY NHẤT 1 JSON object hợp lệ gồm đúng 3 trường: "whatIsIt", "aiRole", "formulaPlain".',
+].join('\n');
+
 function buildPrompt({ term, wikiSummary, context }) {
   const snippet = wikiSummary ? wikiSummary.slice(0, 750) : '';
-  const ctx = context ? context.slice(0, 180) : '';
+  const ctx = context ? context.slice(0, 220) : '';
 
   return [
-    `Giải thích thuật ngữ AI "${term}" thật dễ hiểu cho người non-tech bằng tiếng Việt.`,
-    snippet ? `Tóm tắt Wikipedia: "${snippet}"` : '',
-    ctx ? `Ngữ cảnh câu: "${ctx}"` : '',
-    'Trả về DUY NHẤT 1 JSON hợp lệ gồm đúng 3 trường ngắn gọn (mỗi trường 1–2 câu):',
-    '- "whatIsIt": Nó là gì kiểu đời thường (ví von như Excel, hình học, cuộc sống).',
-    '- "aiRole": Đóng vai trò gì trong bài toán lớn của AI / Machine Learning.',
-    '- "formulaPlain": Cách tính bằng lời ("lấy cái gì + / − / × / ÷ cái gì") kèm 1 ví dụ số siêu nhỏ (hoặc quy tắc 2 bước nếu là khái niệm).',
+    `Thuật ngữ cần giải thích: "${term}".`,
+    ctx ? `Ngữ cảnh đoạn văn người dùng đang đọc: "${ctx}"` : '',
+    snippet
+      ? `Tóm tắt Wikipedia tham khảo (chỉ dùng nếu đúng chủ đề AI/Toán/Kỹ thuật): "${snippet}"`
+      : 'wikiSummary: (trống — hãy tự giải thích chính xác theo thuật ngữ và ngữ cảnh trên).',
+    '',
+    'Hãy trả về JSON gồm đúng 3 trường ngắn gọn (mỗi trường 1–2 câu dễ hiểu):',
+    '- "whatIsIt": Nó là cái gì theo kiểu đời thường (ví von như Excel, hình học, đời sống).',
+    '- "aiRole": Đóng vai trò gì trong bài toán lớn của AI / Machine Learning / Dữ liệu.',
+    '- "formulaPlain": Cách tính bằng lời ("lấy cái gì + / − / × / ÷ cái gì") kèm 1 ví dụ số siêu nhỏ (hoặc quy tắc 2 bước dễ nhớ nếu là khái niệm).',
   ]
     .filter(Boolean)
     .join('\n');
@@ -80,6 +92,9 @@ async function callGeminiModel({ model, apiKey, prompt, timeoutMs = 4700 }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          systemInstruction: {
+            parts: [{ text: SYSTEM_INSTRUCTION }],
+          },
           contents: [{ role: 'user', parts: [{ text: prompt }] }],
           generationConfig: {
             responseMimeType: 'application/json',

@@ -1,9 +1,11 @@
 import examData from '../data/index.js';
 import { GLOSSARY_DATA } from '../data/glossaryData.js';
 
-// Canonical mapping for ambiguous AI / Math / Data acronyms so Wikipedia hits the exact technical article
+// Canonical mapping for ambiguous AI / Math / Data acronyms and common Vietnamese AI phrases
 const CANONICAL_WIKI_MAP = {
+  // Math & Linear Algebra (M1)
   pca: { en: 'Principal component analysis', vi: 'Phép phân tích thành phần chính', module: 'M1' },
+  'phân tích thành phần chính': { en: 'Principal component analysis', vi: 'Phép phân tích thành phần chính', module: 'M1' },
   svd: { en: 'Singular value decomposition', vi: 'Phân tích giá trị suy biến', module: 'M1' },
   nmf: { en: 'Non-negative matrix factorization', module: 'M1' },
   eigenvalue: { en: 'Eigenvalues and eigenvectors', vi: 'Trị riêng và vectơ riêng', module: 'M1' },
@@ -11,18 +13,25 @@ const CANONICAL_WIKI_MAP = {
   eigenvector: { en: 'Eigenvalues and eigenvectors', vi: 'Trị riêng và vectơ riêng', module: 'M1' },
   eigenvectors: { en: 'Eigenvalues and eigenvectors', vi: 'Trị riêng và vectơ riêng', module: 'M1' },
   'trị riêng': { en: 'Eigenvalues and eigenvectors', vi: 'Trị riêng và vectơ riêng', module: 'M1' },
-  hessian: { en: 'Hessian matrix', module: 'M1' },
+  'vector riêng': { en: 'Eigenvalues and eigenvectors', vi: 'Trị riêng và vectơ riêng', module: 'M1' },
+  'nhân ma trận': { en: 'Matrix multiplication', vi: 'Phép nhân ma trận', module: 'M1' },
+  'ma trận nghịch đảo': { en: 'Invertible matrix', vi: 'Ma trận khả nghịch', module: 'M1' },
+  'chuyển vị': { en: 'Transpose', vi: 'Ma trận chuyển vị', module: 'M1' },
+  'đường chéo chính': { en: 'Main diagonal', module: 'M1' },
+  hessian: { en: 'Hessian matrix', vi: 'Ma trận Hesse', module: 'M1' },
   jacobian: { en: 'Jacobian matrix and determinant', module: 'M1' },
-  embedding: { en: 'Word embedding', module: 'M3' },
-  embeddings: { en: 'Word embedding', module: 'M3' },
+  'đạo hàm riêng': { en: 'Partial derivative', vi: 'Đạo hàm riêng', module: 'M1' },
   softmax: { en: 'Softmax function', module: 'M1' },
   sigmoid: { en: 'Sigmoid function', module: 'M1' },
   relu: { en: 'Rectifier (neural networks)', module: 'M1' },
   adam: { en: 'Stochastic gradient descent', module: 'M1' },
   sgd: { en: 'Stochastic gradient descent', module: 'M1' },
-  mse: { en: 'Mean squared error', module: 'M3' },
-  rmse: { en: 'Root mean square deviation', module: 'M3' },
-  mae: { en: 'Mean absolute error', module: 'M3' },
+  'hàm mất mát': { en: 'Loss function', module: 'M1' },
+  'hàm kích hoạt': { en: 'Activation function', module: 'M1' },
+  'lan truyền ngược': { en: 'Backpropagation', vi: 'Lan truyền ngược', module: 'M1' },
+  'phương sai': { en: 'Variance', vi: 'Phương sai', module: 'M1' },
+  'độ lệch chuẩn': { en: 'Standard deviation', vi: 'Độ lệch chuẩn', module: 'M1' },
+  'kỳ vọng': { en: 'Expected value', vi: 'Giá trị kỳ vọng', module: 'M1' },
   iqr: { en: 'Interquartile range', module: 'M1' },
   ci: { en: 'Confidence interval', vi: 'Khoảng tin cậy', module: 'M1' },
   se: { en: 'Standard error', module: 'M1' },
@@ -30,7 +39,37 @@ const CANONICAL_WIKI_MAP = {
   bernoulli: { en: 'Bernoulli distribution', vi: 'Phân phối Bernoulli', module: 'M1' },
   binomial: { en: 'Binomial distribution', vi: 'Phân phối nhị thức', module: 'M1' },
   gaussian: { en: 'Normal distribution', vi: 'Phân phối chuẩn', module: 'M1' },
+  'phân phối chuẩn': { en: 'Normal distribution', vi: 'Phân phối chuẩn', module: 'M1' },
   bonferroni: { en: 'Bonferroni correction', module: 'M1' },
+
+  // Code & Data (M2)
+  'b-tree': { en: 'B-tree', module: 'M2' },
+  cte: { en: 'Hierarchical and recursive queries in SQL', module: 'M2' },
+  pandas: { en: 'Pandas (software)', module: 'M2' },
+  numpy: { en: 'NumPy', module: 'M2' },
+  ndarray: { en: 'NumPy', module: 'M2' },
+  regex: { en: 'Regular expression', vi: 'Biểu thức chính quy', module: 'M2' },
+  heap: { en: 'Heap (data structure)', module: 'M2' },
+  'min-heap': { en: 'Heap (data structure)', module: 'M2' },
+  'hash table': { en: 'Hash table', vi: 'Bảng băm', module: 'M2' },
+  'cửa sổ trượt': { en: 'Sliding window protocol', module: 'M2' },
+  memoization: { en: 'Memoization', module: 'M2' },
+
+  // AI, Neural Networks, ML, LLM, MLOps (M3)
+  'tầng mạng nơ-ron': { en: 'Layer (deep learning)', module: 'M3' },
+  'lớp mạng nơ-ron': { en: 'Layer (deep learning)', module: 'M3' },
+  'mạng nơ-ron': { en: 'Neural network (machine learning)', vi: 'Mạng nơ-ron nhân tạo', module: 'M3' },
+  'mạng nơ-ron sâu': { en: 'Deep learning', vi: 'Học sâu', module: 'M3' },
+  'trọng số mạng nơ-ron': { en: 'Neural network (machine learning)', vi: 'Mạng nơ-ron nhân tạo', module: 'M3' },
+  'trọng số': { en: 'Neural network (machine learning)', vi: 'Mạng nơ-ron nhân tạo', module: 'M3' },
+  'học sâu': { en: 'Deep learning', vi: 'Học sâu', module: 'M3' },
+  'học máy': { en: 'Machine learning', vi: 'Học máy', module: 'M3' },
+  embedding: { en: 'Word embedding', vi: 'Vectơ từ', module: 'M3' },
+  embeddings: { en: 'Word embedding', vi: 'Vectơ từ', module: 'M3' },
+  'embedding văn bản': { en: 'Word embedding', vi: 'Vectơ từ', module: 'M3' },
+  mse: { en: 'Mean squared error', module: 'M3' },
+  rmse: { en: 'Root mean square deviation', module: 'M3' },
+  mae: { en: 'Mean absolute error', module: 'M3' },
   knn: { en: 'K-nearest neighbors algorithm', module: 'M3' },
   svm: { en: 'Support vector machine', vi: 'Máy vectơ hỗ trợ', module: 'M3' },
   'k-means': { en: 'K-means clustering', module: 'M3' },
@@ -64,29 +103,29 @@ const CANONICAL_WIKI_MAP = {
   distillation: { en: 'Knowledge distillation', module: 'M3' },
   'knowledge distillation': { en: 'Knowledge distillation', module: 'M3' },
   hallucination: { en: 'Hallucination (artificial intelligence)', module: 'M3' },
+  'ảo giác': { en: 'Hallucination (artificial intelligence)', module: 'M3' },
   ner: { en: 'Named-entity recognition', module: 'M3' },
   docker: { en: 'Docker (software)', module: 'M3' },
   mlops: { en: 'MLOps', module: 'M3' },
   'ks-test': { en: 'Kolmogorov–Smirnov test', module: 'M3' },
-  'b-tree': { en: 'B-tree', module: 'M2' },
-  cte: { en: 'Hierarchical and recursive queries in SQL', module: 'M2' },
-  pandas: { en: 'Pandas (software)', module: 'M2' },
-  numpy: { en: 'NumPy', module: 'M2' },
-  ndarray: { en: 'NumPy', module: 'M2' },
-  regex: { en: 'Regular expression', vi: 'Biểu thức chính quy', module: 'M2' },
-  heap: { en: 'Heap (data structure)', module: 'M2' },
-  'min-heap': { en: 'Heap (data structure)', module: 'M2' },
-  'hash table': { en: 'Hash table', vi: 'Bảng băm', module: 'M2' },
-  memoization: { en: 'Memoization', module: 'M2' },
+  'giảm chiều dữ liệu': { en: 'Dimensionality reduction', module: 'M3' },
+
+  // Logic, Ethics & Law (M4)
   gdpr: { en: 'General Data Protection Regulation', module: 'M4' },
   'eu ai act': { en: 'Artificial Intelligence Act', module: 'M4' },
   owasp: { en: 'OWASP', module: 'M4' },
   'survivorship bias': { en: 'Survivorship bias', module: 'M4' },
   'automation bias': { en: 'Automation bias', module: 'M4' },
+  'ngụy biện': { en: 'Fallacy', vi: 'Ngụy biện', module: 'M4' },
 };
 
-const DOMAIN_SCORING_REGEX =
-  /(machine learning|artificial intelligence|deep learning|neural|statistics|statistical|probability|linear algebra|matrix|vector|algorithm|data structure|database|sql|python|software|computer science|mathematics|mathematical|optimization|regression|classification|clustering|học máy|trí tuệ nhân tạo|thống kê|xác suất|đại số|ma trận|thuật toán|cơ sở dữ liệu|dữ liệu|toán học|mạng nơ-ron)/i;
+// Domain relevance validator: summary MUST relate to tech, AI, math, data, code, logic, or law/ethics
+const DOMAIN_RELEVANCE_REGEX =
+  /(machine learning|artificial intelligence|deep learning|neural network|language model|transformer|algorithm|data structure|computer science|computing|software|programming|database|sql|python|mathematics|mathematical|linear algebra|calculus|statistics|statistical|probability|matrix|vector|tensor|optimization|regression|classification|clustering|gradient|derivative|eigenvalue|variance|distribution|hypothesis|inference|latency|cache|encryption|security|privacy|regulation|law|logic|fallacy|boolean|set theory|information retrieval|natural language|trí tuệ nhân tạo|học máy|học sâu|mạng nơ-ron|nơ-ron|thuật toán|cấu trúc dữ liệu|khoa học máy tính|phần mềm|lập trình|cơ sở dữ liệu|dữ liệu|toán học|đại số|giải tích|thống kê|xác suất|ma trận|vectơ|vector|tối ưu|hồi quy|phân loại|phân cụm|đạo hàm|phương sai|phân phối|giả thuyết|kiểm định|độ trễ|bộ nhớ đệm|mã hóa|bảo mật|quyền riêng tư|pháp lý|luật|mệnh đề|ngụy biện|biểu thức chính quy|ngôn ngữ tự nhiên|mô hình ngôn ngữ|truy xuất thông tin)/i;
+
+// Hard blocklist for obviously off-topic Wikipedia summaries (geography, biography, sports, history, biology)
+const OFF_TOPIC_WIKI_REGEX =
+  /(thành phố trực thuộc|tỉnh của việt nam|huyện thuộc tỉnh|xã thuộc huyện|phường thuộc|thủ đô của|quốc gia tại|sông tại|dãy núi|di sản thế giới|triều đại|hoàng đế|vị vua|cầu thủ bóng đá|ca sĩ người|diễn viên người|bộ phim điện ảnh|album phòng thu|loài thực vật|loài chim|loài cá|city in vietnam|capital of|province of|municipality in|commune in|district of|footballer|association football|singer-songwriter|studio album|television series|species of|genus of|dynasty)/i;
 
 const MODULE_DETECT_RULES = [
   { module: 'M1', re: /(matrix|vector|algebra|eigen|svd|pca|calculus|gradient|derivative|probability|bayes|variance|statistic|distribution|p-value|confidence|test|ma trận|vectơ|xác suất|thống kê|đạo hàm|tích phân|phương sai)/i },
@@ -94,7 +133,73 @@ const MODULE_DETECT_RULES = [
   { module: 'M4', re: /(ethics|bias|fairness|privacy|gdpr|law|act|security|owasp|injection|logic|fallacy|contrapositive|de morgan|đạo đức|pháp lý|bảo mật|ngụy biện|luật|quyền riêng tư)/i },
 ];
 
-async function fetchJsonSafe(url, timeoutMs = 8000) {
+const GEMINI_TIMEOUT_MS = 5000;
+
+function hasVietnameseDiacritics(text) {
+  return /[àáảãạăắằẳẵặâấầẩẫậđèéẻẽẹêếềểễệìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳýỷỹỵ]/i.test(
+    text
+  );
+}
+
+function normalizeForOverlap(str) {
+  return (str || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function computeTokenOverlap(term, targetText) {
+  const stopWords = new Set(['la', 'gi', 'cua', 'trong', 'va', 'cac', 'mot', 'the', 'of', 'in', 'and', 'for', 'a', 'an']);
+  const termTokens = normalizeForOverlap(term)
+    .split(' ')
+    .filter((t) => t.length >= 2 && !stopWords.has(t));
+  if (termTokens.length === 0) return 0;
+
+  const targetNorm = normalizeForOverlap(targetText);
+  let matched = 0;
+  for (const tok of termTokens) {
+    if (targetNorm.includes(tok)) matched += 1;
+  }
+  return matched / termTokens.length;
+}
+
+/**
+ * Validates whether a fetched Wikipedia summary is genuinely on-topic
+ * (AI, Math, Data, Code, Logic, or Law/Ethics) and not a junk/off-topic page like "Huế".
+ */
+export function isValidTechnicalWikiSummary(summary, searchedTerm, fromCanonicalMap = false) {
+  if (!summary || !summary.extract || summary.extract.length < 35) return false;
+
+  const combined = `${summary.title || ''} ${summary.description || ''} ${summary.extract || ''}`;
+
+  // Reject geography, biographies, movies, sports, biology unconditionally
+  if (OFF_TOPIC_WIKI_REGEX.test(combined)) {
+    return false;
+  }
+
+  // Must actually belong to AI / Math / Data / Code / Logic / Law domain
+  if (!DOMAIN_RELEVANCE_REGEX.test(combined)) {
+    return false;
+  }
+
+  // If discovered via free-text search (not canonical map), ensure the article relates to the searched term
+  if (!fromCanonicalMap) {
+    const titleOverlap = computeTokenOverlap(searchedTerm, summary.title || '');
+    const fullOverlap = computeTokenOverlap(searchedTerm, combined);
+    // Reject if neither title nor text meaningfully shares tokens with searchedTerm
+    if (titleOverlap < 0.34 && fullOverlap < 0.6) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+async function fetchJsonSafe(url, timeoutMs = 6000) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -140,26 +245,31 @@ async function fetchVietnameseLanglink(enTitle) {
 
 async function searchBestWikiTitle(lang, query) {
   const clean = query.trim();
-  const domainBoost =
-    lang === 'vi'
-      ? `${clean} học máy OR AI OR toán học OR thống kê OR lập trình`
-      : `${clean} (machine learning OR statistics OR linear algebra OR computer science)`;
+  const quoted = `"${clean.replace(/"/g, '')}"`;
 
-  const [exactRes, domainRes] = await Promise.all([
+  // Proper parentheses + phrase quoting so MediaWiki does NOT match unrelated articles containing only "toán học" or "AI"
+  const domainQuery =
+    lang === 'vi'
+      ? `${quoted} (AI OR "học máy" OR "toán học" OR "lập trình" OR "thống kê" OR "dữ liệu" OR "nơ-ron")`
+      : `${quoted} ("machine learning" OR "artificial intelligence" OR "deep learning" OR statistics OR "linear algebra" OR "computer science" OR algorithm)`;
+
+  const titleQuery = `intitle:${quoted}`;
+
+  const [titleRes, domainRes] = await Promise.all([
     fetchJsonSafe(
       `https://${lang}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(
-        clean
+        titleQuery
       )}&srlimit=5&format=json&origin=*`
     ),
     fetchJsonSafe(
       `https://${lang}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(
-        domainBoost
+        domainQuery
       )}&srlimit=5&format=json&origin=*`
     ),
   ]);
 
   const candidates = [
-    ...(exactRes?.query?.search ?? []),
+    ...(titleRes?.query?.search ?? []),
     ...(domainRes?.query?.search ?? []),
   ];
   if (candidates.length === 0) return null;
@@ -167,24 +277,33 @@ async function searchBestWikiTitle(lang, query) {
   const lowerTerm = clean.toLowerCase();
   const seen = new Set();
   let best = null;
-  let bestScore = -1;
+  let bestScore = 0; // Require strictly positive relevance score
 
   for (const item of candidates) {
     if (!item?.title || seen.has(item.title)) continue;
     seen.add(item.title);
+
     const titleLower = item.title.toLowerCase();
     const snippetClean = (item.snippet || '').replace(/<[^>]+>/g, '');
     const combined = `${item.title} ${snippetClean}`;
 
     if (/disambiguation|định hướng/i.test(titleLower)) continue;
+    if (OFF_TOPIC_WIKI_REGEX.test(combined)) continue;
+
+    const isDomainHit = DOMAIN_RELEVANCE_REGEX.test(combined);
+    const titleOverlap = computeTokenOverlap(clean, item.title);
+    const fullOverlap = computeTokenOverlap(clean, combined);
+
+    // Must match our technical domain OR be an exact title match
+    if (!isDomainHit && titleLower !== lowerTerm) continue;
+    if (titleOverlap < 0.34 && fullOverlap < 0.5) continue;
 
     let score = 0;
-    if (titleLower === lowerTerm) score += 100;
-    else if (titleLower.includes(lowerTerm)) score += 60;
-    else if (snippetClean.toLowerCase().includes(lowerTerm)) score += 25;
-
-    if (DOMAIN_SCORING_REGEX.test(combined)) score += 45;
-    if (titleLower.length < 45) score += 5;
+    if (titleLower === lowerTerm) score += 120;
+    else if (titleLower.includes(lowerTerm)) score += 70;
+    score += Math.round(titleOverlap * 50);
+    score += Math.round(fullOverlap * 20);
+    if (isDomainHit) score += 45;
 
     if (score > bestScore) {
       bestScore = score;
@@ -192,13 +311,13 @@ async function searchBestWikiTitle(lang, query) {
     }
   }
 
-  return best;
+  // Minimum quality bar to prevent garbage fallback titles
+  return bestScore >= 65 ? best : null;
 }
 
 async function translateEnToVi(text) {
   const trimmed = (text || '').trim();
   if (!trimmed) return '';
-  // Keep within MyMemory 500-char safe chunk limit
   const shortened =
     trimmed.length > 460
       ? `${trimmed.slice(0, 455).replace(/\s+\S*$/, '')}.`
@@ -208,7 +327,7 @@ async function translateEnToVi(text) {
     `https://api.mymemory.translated.net/get?q=${encodeURIComponent(
       shortened
     )}&langpair=en|vi`,
-    7000
+    6000
   );
   const translated = data?.responseData?.translatedText;
   if (
@@ -263,10 +382,7 @@ function findLocalExamMatches(term) {
   return { glossaryHit, flashcardHit };
 }
 
-const GEMINI_TIMEOUT_MS = 5000;
-
 async function requestGeminiExplain({ term, wikiSummary, context }) {
-  // Skip relative API call outside browser (e.g. SSR) unless explicitly running with origin
   if (typeof fetch !== 'function' || typeof window === 'undefined') {
     return null;
   }
@@ -306,7 +422,6 @@ async function requestGeminiExplain({ term, wikiSummary, context }) {
     }
     return null;
   } catch {
-    // Timeout (>5s), offline, or unavailable -> safe fallback to Wikipedia
     return null;
   } finally {
     clearTimeout(timer);
@@ -314,14 +429,16 @@ async function requestGeminiExplain({ term, wikiSummary, context }) {
 }
 
 /**
- * Live online lookup for any user-highlighted term (Wikipedia + Gemini 5s timeout fallback):
- * 1. Fetches authoritative summary from Wikipedia (VI + EN via langlinks + EN->VI fallback)
- * 2. Sends wikiSummary to /api/explain (Gemini) with a strict 5-second AbortController timeout
- * 3. If Gemini responds in time -> returns plain-language Vietnamese explanation ("✨ AI + Wikipedia")
- *    Otherwise -> falls back seamlessly to Wikipedia result ("🌐 Wikipedia") without error or delay
+ * Live online lookup for any user-highlighted term (Domain-filtered Wikipedia + Gemini 5s timeout fallback):
+ * 1. Resolves on-topic AI/Math/Code/Law Wikipedia summary (preferring canonical map & EN->VI langlinks)
+ *    and strictly discards off-topic Wikipedia pages (geography/history/entertainment)
+ * 2. Sends clean wikiSummary + context to /api/explain (Gemini) with a 5-second timeout
+ * 3. Returns "✨ AI + Wikipedia" (or "✨ AI" if no Wiki page matched), falling back safely to "🌐 Wikipedia" or context
  */
 export async function lookupTermOnline(rawTerm, contextSentence = '') {
-  const term = rawTerm.trim().replace(/^[.,;:!?()[\]"'“”‘’]+|[.,;:!?()[\]"'“”‘’]+$/g, '');
+  const term = rawTerm
+    .trim()
+    .replace(/^[.,;:!?()[\]"'“”‘’]+|[.,;:!?()[\]"'“”‘’]+$/g, '');
   const lower = term.toLowerCase();
   const canonical = CANONICAL_WIKI_MAP[lower];
   const { glossaryHit, flashcardHit } = findLocalExamMatches(term);
@@ -329,55 +446,63 @@ export async function lookupTermOnline(rawTerm, contextSentence = '') {
   let viSummary = null;
   let enSummary = null;
 
-  // Step 1: Canonical fast-path or live search on Wikipedia (EN + VI)
+  // Step 1: Resolve Wikipedia with strict AI/Math/Code/Law domain filtering
   if (canonical) {
     const [viDirect, enDirect] = await Promise.all([
       canonical.vi ? fetchWikiSummary('vi', canonical.vi) : Promise.resolve(null),
       canonical.en ? fetchWikiSummary('en', canonical.en) : Promise.resolve(null),
     ]);
-    viSummary = viDirect;
-    enSummary = enDirect;
+    viSummary = isValidTechnicalWikiSummary(viDirect, term, true) ? viDirect : null;
+    enSummary = isValidTechnicalWikiSummary(enDirect, term, true) ? enDirect : null;
 
-    // Resolve official Vietnamese Wikipedia article via langlinks if we only had EN canonical title
     if (!viSummary && enSummary) {
       const viLinkedTitle = await fetchVietnameseLanglink(enSummary.title);
       if (viLinkedTitle) {
-        viSummary = await fetchWikiSummary('vi', viLinkedTitle);
+        const linked = await fetchWikiSummary('vi', viLinkedTitle);
+        if (isValidTechnicalWikiSummary(linked, term, true)) {
+          viSummary = linked;
+        }
       }
     }
   } else {
-    const [viTitle, enTitle] = await Promise.all([
+    const isViPhrase = hasVietnameseDiacritics(term);
+
+    // Search English Wikipedia first for ASCII technical terms; search both with strict domain query for Vietnamese terms
+    const [enTitle, viTitle] = await Promise.all([
+      isViPhrase ? Promise.resolve(null) : searchBestWikiTitle('en', term),
       searchBestWikiTitle('vi', term),
-      searchBestWikiTitle('en', term),
     ]);
 
-    const [viRes, enRes] = await Promise.all([
-      viTitle ? fetchWikiSummary('vi', viTitle) : Promise.resolve(null),
+    const [enRes, viRes] = await Promise.all([
       enTitle ? fetchWikiSummary('en', enTitle) : Promise.resolve(null),
+      viTitle ? fetchWikiSummary('vi', viTitle) : Promise.resolve(null),
     ]);
 
-    viSummary = viRes;
-    enSummary = enRes;
+    // Validate BOTH summaries strictly — discard any off-topic page (e.g. "Huế")!
+    enSummary = isValidTechnicalWikiSummary(enRes, term, false) ? enRes : null;
+    viSummary = isValidTechnicalWikiSummary(viRes, term, false) ? viRes : null;
 
-    // Prefer exact Vietnamese langlink of the winning EN AI article over unrelated VI search
+    // Prefer official Vietnamese langlink of a verified EN technical article
     if (enSummary) {
       const linkedVi = await fetchVietnameseLanglink(enSummary.title);
       if (linkedVi && (!viSummary || viSummary.title !== linkedVi)) {
         const linkedSummary = await fetchWikiSummary('vi', linkedVi);
-        if (linkedSummary) viSummary = linkedSummary;
+        if (isValidTechnicalWikiSummary(linkedSummary, term, true)) {
+          viSummary = linkedSummary;
+        }
       }
     }
   }
 
-  // Raw Wikipedia context prepared for both fallback AND Gemini prompt
+  // Only pass verified technical Wikipedia summary to Gemini (empty if no valid Wiki hit)
   const wikiRawForGemini =
-    viSummary?.extract || enSummary?.extract || flashcardHit?.answer || '';
+    viSummary?.extract || enSummary?.extract || '';
 
   let sourceUrl = '';
   let sourceTitle = '';
   let wikiOriginLabel = '';
 
-  if (viSummary && viSummary.extract.length >= 60) {
+  if (viSummary && viSummary.extract.length >= 50) {
     sourceUrl = viSummary.url;
     sourceTitle = viSummary.title;
     wikiOriginLabel = `Wikipedia Tiếng Việt (${viSummary.title})`;
@@ -387,8 +512,7 @@ export async function lookupTermOnline(rawTerm, contextSentence = '') {
     wikiOriginLabel = `Wikipedia (${enSummary.title})`;
   }
 
-  // Step 2: Try Gemini (/api/explain) with 5s timeout.
-  // Only translate EN->VI via MyMemory if we don't have VI wiki AND Gemini isn't used (or run fallback cleanly).
+  // Step 2: Ask Gemini (/api/explain) with 5s timeout (works even when wikiRawForGemini is empty!)
   const geminiResult = !glossaryHit
     ? await requestGeminiExplain({
         term,
@@ -397,9 +521,9 @@ export async function lookupTermOnline(rawTerm, contextSentence = '') {
       })
     : null;
 
-  // Step 3: Build Wikipedia fallback text only if needed (or already in Vietnamese)
+  // Step 3: Build Vietnamese Wikipedia text if falling back without Gemini
   let onlineViText = '';
-  if (viSummary && viSummary.extract.length >= 60) {
+  if (viSummary && viSummary.extract.length >= 50) {
     onlineViText = viSummary.extract;
   } else if (enSummary) {
     if (geminiResult) {
@@ -424,13 +548,13 @@ export async function lookupTermOnline(rawTerm, contextSentence = '') {
 
   const question = `${displayTitle} là gì và dùng để giải quyết bài toán nào?`;
 
-  // Branch A: Gemini succeeded within 5 seconds -> "✨ AI + Wikipedia"
+  // Branch A: Gemini succeeded within 5 seconds
   if (geminiResult) {
     const hasWiki = Boolean(viSummary || enSummary);
     const badgeLabel = hasWiki ? '✨ AI + Wikipedia' : '✨ AI';
     const sourceLabel = hasWiki
       ? `AI (Gemini) viết lại dễ hiểu từ ${wikiOriginLabel}`
-      : 'AI (Gemini) giải thích cho Non-tech';
+      : 'AI (Gemini) giải thích theo ngữ cảnh bài học';
 
     return {
       foundOnline: true,
@@ -439,7 +563,7 @@ export async function lookupTermOnline(rawTerm, contextSentence = '') {
       hasLocalMatch: Boolean(flashcardHit),
       term,
       module: detectedModule,
-      tag: flashcardHit?.tag || 'AI + Wikipedia',
+      tag: flashcardHit?.tag || (hasWiki ? 'AI + Wikipedia' : 'AI · Tự thêm'),
       question,
       answer: `${geminiResult.whatIsIt} Vai trò trong AI: ${geminiResult.aiRole}`,
       whatIsIt: geminiResult.whatIsIt,
@@ -454,7 +578,7 @@ export async function lookupTermOnline(rawTerm, contextSentence = '') {
     };
   }
 
-  // Branch B: Fallback to Wikipedia (or local built-in glossary/flashcard if offline) -> "🌐 Wikipedia"
+  // Branch B: Fallback to verified Wikipedia or clean local/context fallback (NEVER off-topic Wiki junk!)
   const viSentences = splitSentences(onlineViText);
   const firstSentence = viSentences[0] || '';
   const secondSentence = viSentences.slice(1, 3).join(' ');
@@ -464,22 +588,22 @@ export async function lookupTermOnline(rawTerm, contextSentence = '') {
     firstSentence ||
     (flashcardHit
       ? flashcardHit.answer
-      : `${term} là một thuật ngữ chuyên ngành quan trọng trong ôn thi AI Thực chiến VinUni.`);
+      : `${term} là thuật ngữ kỹ thuật trong bài học ôn thi AI Thực chiến VinUni.`);
 
   const aiRole =
     glossaryHit?.aiRole ||
     secondSentence ||
     (contextSentence
-      ? `Trong ngữ cảnh bài học hiện tại: "${contextSentence.slice(0, 220)}${contextSentence.length > 220 ? '…' : ''}".`
-      : `Được ứng dụng trực tiếp trong các bài toán xây dựng, tối ưu hoặc đánh giá hệ thống AI (${detectedModule}).`);
+      ? `Ngữ cảnh xuất hiện trong bài: "${contextSentence.slice(0, 220)}${contextSentence.length > 220 ? '…' : ''}".`
+      : `Được ứng dụng trong các bài toán xây dựng, tối ưu hoặc đánh giá hệ thống AI (${detectedModule}).`);
 
   const formulaPlain =
     glossaryHit?.formulaPlain ||
     (flashcardHit
       ? `Ghi chú trọng tâm thi VinUni (${flashcardHit.id}): ${flashcardHit.answer}`
-      : enSummary?.description
-        ? `Tóm tắt nhanh: ${term} (${enSummary.title}) — ${onlineViText.slice(0, 240)}${onlineViText.length > 240 ? '…' : ''}`
-        : `Mẹo ghi nhớ: Gắn "${term}" với 1 ví dụ số nhỏ hoặc câu hỏi thực tế trong bài học rồi tự nhẩm lại bằng lời của bạn.`);
+      : onlineViText
+        ? `Tóm tắt nhanh: ${onlineViText.slice(0, 240)}${onlineViText.length > 240 ? '…' : ''}`
+        : `Chưa có bài Wikipedia chuyên ngành khớp chính xác — bạn có thể bấm nút Google ở trên hoặc nhập ngắn gọn cách hiểu của bạn để lưu Flashcard.`);
 
   const answerParts = [];
   if (firstSentence) answerParts.push(firstSentence);
@@ -492,18 +616,20 @@ export async function lookupTermOnline(rawTerm, contextSentence = '') {
   const answer = glossaryHit
     ? `${glossaryHit.whatIsIt} Ứng dụng AI: ${glossaryHit.aiRole}`
     : answerParts.join(' ') ||
-      `Chưa tìm thấy mục Wikipedia khớp trực tiếp cho "${term}" — bạn có thể bấm nút Google phía dưới hoặc tự nhập định nghĩa ngắn gọn để lưu Flashcard.`;
+      (contextSentence
+        ? `Thuật ngữ xuất hiện trong ngữ cảnh: "${contextSentence.slice(0, 200)}". (Bấm Google phía trên để tra thêm hoặc tự ghi chú ngắn gọn).`
+        : `Chưa tìm thấy mục Wikipedia đúng chuyên ngành cho "${term}" — bấm Google phía trên hoặc tự nhập định nghĩa ngắn gọn để lưu Flashcard.`);
 
   const hasWiki = Boolean(onlineViText);
 
   return {
     foundOnline: hasWiki,
     explainMode: hasWiki ? 'wiki' : 'local',
-    badgeLabel: hasWiki ? '🌐 Wikipedia' : '📚 Nội bộ',
+    badgeLabel: hasWiki ? '🌐 Wikipedia' : '📚 Ngữ cảnh bài học',
     hasLocalMatch: Boolean(glossaryHit || flashcardHit),
     term,
     module: detectedModule,
-    tag: flashcardHit?.tag || 'Wikipedia · Tự thêm',
+    tag: flashcardHit?.tag || (hasWiki ? 'Wikipedia · Tự thêm' : 'Tự thêm'),
     question,
     answer,
     whatIsIt,
@@ -517,7 +643,7 @@ export async function lookupTermOnline(rawTerm, contextSentence = '') {
         ? 'Từ điển có sẵn trong app'
         : flashcardHit
           ? `Kho Flashcard VinUni (${flashcardHit.id})`
-          : 'Không tìm thấy bài viết tự động'),
+          : 'Không dùng bài Wikipedia lạc đề — giữ nguyên ngữ cảnh học'),
     googleSearchUrl: `https://www.google.com/search?q=${encodeURIComponent(
       `${term} là gì trong AI Machine Learning`
     )}`,
