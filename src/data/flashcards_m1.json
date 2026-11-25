@@ -1,0 +1,802 @@
+[
+  {
+    "id": "fc-10",
+    "day": 1,
+    "module": "M1",
+    "tag": "Optimization",
+    "question": "Learning Rate quá nhỏ?",
+    "answer": "Hội tụ rất chậm, tốn nhiều epoch và dễ mắc kẹt ở vùng phẳng (plateau) hoặc cực tiểu cục bộ."
+  },
+  {
+    "id": "fc-11",
+    "day": 1,
+    "module": "M1",
+    "tag": "Optimization",
+    "question": "Learning Rate quá lớn?",
+    "answer": "Loss dao động mạnh (oscillate), vượt qua cực tiểu (overshoot) hoặc phân kỳ (Diverge / NaN)."
+  },
+  {
+    "id": "fc-30",
+    "day": 1,
+    "module": "M1",
+    "tag": "Activation",
+    "question": "Softmax?",
+    "answer": "Biến vector logits thành phân phối xác suất cho nhiều Class: exp(z_i) / Σ exp(z_j), tổng bằng 1."
+  },
+  {
+    "id": "fc-31",
+    "day": 1,
+    "module": "M1",
+    "tag": "Activation",
+    "question": "Sigmoid?",
+    "answer": "σ(x) = 1 / (1 + e^-x), ép đầu ra vào khoảng (0, 1) — dùng cho phân loại nhị phân, dễ gây Vanishing Gradient ở 2 đuôi."
+  },
+  {
+    "id": "fc-32",
+    "day": 1,
+    "module": "M1",
+    "tag": "Activation",
+    "question": "ReLU(-3) và ReLU(7)?",
+    "answer": "ReLU(-3) = 0, ReLU(7) = 7 vì ReLU(x) = max(0, x). Đạo hàm bằng 1 khi x > 0 và 0 khi x < 0."
+  },
+  {
+    "id": "fc-41",
+    "day": 1,
+    "module": "M1",
+    "tag": "Calculus",
+    "question": "Gradient (∇f)?",
+    "answer": "Vector chứa các đạo hàm riêng [∂f/∂x, ∂f/∂y, ...], luôn chỉ hướng hàm số tăng nhanh nhất."
+  },
+  {
+    "id": "fc-42",
+    "day": 1,
+    "module": "M1",
+    "tag": "Calculus",
+    "question": "Gradient Descent?",
+    "answer": "Cập nhật tham số ngược hướng Gradient để giảm Loss: θ_new = θ_old - η·∇L."
+  },
+  {
+    "id": "fc-43",
+    "day": 1,
+    "module": "M1",
+    "tag": "Calculus",
+    "question": "Tìm điểm cực trị hàm một biến f(x)?",
+    "answer": "Giải phương trình đạo hàm bậc 1 bằng 0: f'(x) = 0 để tìm điểm dừng (critical points)."
+  },
+  {
+    "id": "fc-44",
+    "day": 1,
+    "module": "M1",
+    "tag": "Calculus",
+    "question": "Điều kiện Local Minimum (cực tiểu)?",
+    "answer": "f'(x) = 0 và đạo hàm bậc 2 f''(x) > 0 (đồ thị lõm lên)."
+  },
+  {
+    "id": "fc-45",
+    "day": 1,
+    "module": "M1",
+    "tag": "Calculus",
+    "question": "Điều kiện Local Maximum (cực đại)?",
+    "answer": "f'(x) = 0 và đạo hàm bậc 2 f''(x) < 0 (đồ thị lồi lên)."
+  },
+  {
+    "id": "fc-051",
+    "day": 1,
+    "module": "M1",
+    "tag": "Linear Algebra",
+    "question": "Điều kiện và kích thước tích hai ma trận A · B?",
+    "answer": "A cỡ (m × n) nhân được B cỡ (n × p) khi số cột A = số hàng B; kết quả AB có kích thước (m × p)."
+  },
+  {
+    "id": "fc-052",
+    "day": 1,
+    "module": "M1",
+    "tag": "Linear Algebra",
+    "question": "Phép nhân ma trận có giao hoán (AB = BA) không?",
+    "answer": "Không! Nói chung AB ≠ BA. Khi chuyển vị tích, thứ tự bị đảo ngược: (AB)^T = B^T · A^T."
+  },
+  {
+    "id": "fc-053",
+    "day": 1,
+    "module": "M1",
+    "tag": "Linear Algebra",
+    "question": "Trace(A) là gì? Mẹo tính nhanh Trace(AB)?",
+    "answer": "Trace là tổng các phần tử trên đường chéo chính. Để tính Trace(AB), chỉ cần nhân các cặp (hàng i của A · cột i của B) rồi cộng lại."
+  },
+  {
+    "id": "fc-054",
+    "day": 1,
+    "module": "M1",
+    "tag": "Linear Algebra",
+    "question": "Định thức (Determinant) ma trận 2×2 [[a, b], [c, d]]?",
+    "answer": "det(A) = a·d - b·c. Nhớ dấu trừ ở đường chéo phụ!"
+  },
+  {
+    "id": "fc-055",
+    "day": 1,
+    "module": "M1",
+    "tag": "Linear Algebra",
+    "question": "Quy tắc Sarrus tính định thức ma trận 3×3?",
+    "answer": "det(A) = aei + bfg + cdh - ceg - bdi - afh (tổng 3 tích chéo xuôi trừ tổng 3 tích chéo ngược)."
+  },
+  {
+    "id": "fc-056",
+    "day": 1,
+    "module": "M1",
+    "tag": "Linear Algebra",
+    "question": "Điều kiện để ma trận vuông A có nghịch đảo A^-1?",
+    "answer": "det(A) ≠ 0 (ma trận không suy biến / full rank). Nếu det(A) = 0 thì ma trận suy biến (singular), không khả nghịch."
+  },
+  {
+    "id": "fc-057",
+    "day": 1,
+    "module": "M1",
+    "tag": "Linear Algebra",
+    "question": "Công thức ma trận nghịch đảo cấp 2 [[a, b], [c, d]]^-1?",
+    "answer": "[1 / (ad - bc)] · [[d, -b], [-c, a]] (đổi chỗ đường chéo chính, đổi dấu đường chéo phụ, chia cho det)."
+  },
+  {
+    "id": "fc-058",
+    "day": 1,
+    "module": "M1",
+    "tag": "Linear Algebra",
+    "question": "Ma trận đơn vị (Identity Matrix I) có tính chất gì?",
+    "answer": "Đường chéo chính toàn số 1, ngoài đường chéo toàn số 0; thỏa A·I = I·A = A và A·A^-1 = I."
+  },
+  {
+    "id": "fc-059",
+    "day": 1,
+    "module": "M1",
+    "tag": "Linear Algebra",
+    "question": "Dot Product (tích vô hướng) của u và v?",
+    "answer": "u · v = Σ u_i·v_i = ||u||·||v||·cos(θ). Nếu u · v = 0 thì hai vector trực giao (vuông góc)."
+  },
+  {
+    "id": "fc-060",
+    "day": 1,
+    "module": "M1",
+    "tag": "Linear Algebra",
+    "question": "Cosine Similarity công thức và miền giá trị?",
+    "answer": "cos(θ) = (u · v) / (||u||·||v||), nằm trong [-1, 1]. Chỉ đo góc/hướng, bất biến với độ dài vector (chuẩn trong Embedding/RAG)."
+  },
+  {
+    "id": "fc-061",
+    "day": 1,
+    "module": "M1",
+    "tag": "Linear Algebra",
+    "question": "Chuẩn L1 (Manhattan) vs Chuẩn L2 (Euclidean)?",
+    "answer": "L1 = Σ |x_i| (nhạy ít hơn với outlier, tạo nghiệm thưa trong Lasso). L2 = sqrt(Σ x_i²) (khoảng cách hình học, mượt và khả vi tại mọi điểm khác 0)."
+  },
+  {
+    "id": "fc-062",
+    "day": 1,
+    "module": "M1",
+    "tag": "Linear Algebra",
+    "question": "Hạng ma trận (Matrix Rank) là gì?",
+    "answer": "Số hàng (hoặc cột) độc lập tuyến tính tối đa của ma trận. Rank nhỏ hơn kích thước n ⇒ det(A) = 0 (đa cộng tuyến)."
+  },
+  {
+    "id": "fc-063",
+    "day": 1,
+    "module": "M1",
+    "tag": "Linear Algebra",
+    "question": "Giá trị riêng (Eigenvalue λ) & Vector riêng (Eigenvector v)?",
+    "answer": "Thỏa phương trình A·v = λ·v (v ≠ 0): phép biến đổi A chỉ co giãn vector v theo hệ số λ mà không làm đổi phương."
+  },
+  {
+    "id": "fc-064",
+    "day": 1,
+    "module": "M1",
+    "tag": "Linear Algebra",
+    "question": "SVD (Singular Value Decomposition) phân rã ma trận A thành gì?",
+    "answer": "A = U · Σ · V^T, áp dụng được cho mọi ma trận chữ nhật m×n; các giá trị kỳ dị trên Σ phản ánh mức độ quan trọng của từng chiều."
+  },
+  {
+    "id": "fc-065",
+    "day": 1,
+    "module": "M1",
+    "tag": "Linear Algebra",
+    "question": "Tại sao ma trận thưa (sparse) phải dùng Truncated SVD + CSR thay vì Standard PCA?",
+    "answer": "Standard PCA trừ mean (centering) làm biến các phần tử 0 thành khác 0 (dense), gây tràn RAM O(N×M). Truncated SVD không center nên giữ nguyên tính thưa."
+  },
+  {
+    "id": "fc-066",
+    "day": 1,
+    "module": "M1",
+    "tag": "Linear Algebra",
+    "question": "Định dạng CSR (Compressed Sparse Row) lưu ma trận thưa thế nào?",
+    "answer": "Chỉ lưu 3 mảng: giá trị khác 0 (data), chỉ số cột (indices) và con trỏ đầu hàng (indptr), giúp tiết kiệm RAM và nhân ma trận-vector cực nhanh."
+  },
+  {
+    "id": "fc-067",
+    "day": 1,
+    "module": "M1",
+    "tag": "Linear Algebra",
+    "question": "PCA (Principal Component Analysis) tối ưu mục tiêu gì?",
+    "answer": "Tìm các trục trực giao (Principal Components) sao cho phương sai (variance) dữ liệu chiếu lên các trục đó là lớn nhất (giảm chiều, giữ thông tin)."
+  },
+  {
+    "id": "fc-068",
+    "day": 1,
+    "module": "M1",
+    "tag": "Linear Algebra",
+    "question": "Explained Variance Ratio trong PCA/SVD nghĩa là gì?",
+    "answer": "Tỷ lệ phần trăm tổng phương sai của dữ liệu gốc được giữ lại bởi k thành phần chính đầu tiên (thường chọn ngưỡng 80–95% tùy ràng buộc RAM)."
+  },
+  {
+    "id": "fc-069",
+    "day": 1,
+    "module": "M1",
+    "tag": "Linear Algebra",
+    "question": "NMF (Non-negative Matrix Factorization) khác SVD ở điểm nào?",
+    "answer": "Ép toàn bộ phần tử ma trận phân rã W, H ≥ 0, dễ diễn giải cộng tính (chủ đề văn bản, hệ gợi ý), nhưng tính nặng hơn và không bảo toàn cấu trúc thưa như CSR+SVD."
+  },
+  {
+    "id": "fc-070",
+    "day": 1,
+    "module": "M1",
+    "tag": "Linear Algebra",
+    "question": "Chiều của lớp Dense Neural Network: đầu vào X (B × D_in), trọng số W (D_in × D_out)?",
+    "answer": "Y = X·W + b có kích thước (B × D_out), trong đó B là Batch Size, b là vector bias cỡ (D_out,) được broadcast theo từng hàng."
+  },
+  {
+    "id": "fc-071",
+    "day": 1,
+    "module": "M1",
+    "tag": "Calculus",
+    "question": "Bảng 5 đạo hàm cơ bản bắt buộc thuộc?",
+    "answer": "(x^n)' = n·x^(n-1); (e^x)' = e^x; (ln x)' = 1/x; (sin x)' = cos x; (cos x)' = -sin x."
+  },
+  {
+    "id": "fc-072",
+    "day": 1,
+    "module": "M1",
+    "tag": "Calculus",
+    "question": "Quy tắc đạo hàm hàm hợp (Chain Rule) & vai trò trong Deep Learning?",
+    "answer": "d/dx f(g(x)) = f'(g(x)) · g'(x). Đây là nền tảng toán học của thuật toán Backpropagation để truyền gradient ngược qua các lớp mạng."
+  },
+  {
+    "id": "fc-073",
+    "day": 1,
+    "module": "M1",
+    "tag": "Calculus",
+    "question": "Đạo hàm riêng (Partial Derivative) ∂f/∂x tính như thế nào?",
+    "answer": "Lấy đạo hàm theo biến x trong khi xem tất cả các biến khác (y, z...) là hằng số cố định."
+  },
+  {
+    "id": "fc-074",
+    "day": 1,
+    "module": "M1",
+    "tag": "Calculus",
+    "question": "Điểm yên ngựa (Saddle Point) là gì?",
+    "answer": "Điểm có Gradient ∇f = 0 nhưng không phải cực tiểu hay cực đại (tăng theo một phương, giảm theo phương khác) — rất phổ biến trong mạng nơ-ron nhiều chiều."
+  },
+  {
+    "id": "fc-075",
+    "day": 1,
+    "module": "M1",
+    "tag": "Calculus",
+    "question": "Hàm lồi (Convex Function) có lợi thế gì khi tối ưu?",
+    "answer": "Mọi cực tiểu cục bộ (Local Minimum) đều là cực tiểu toàn cục (Global Minimum), ví dụ MSE của Linear Regression hay Cross-Entropy của Logistic Regression."
+  },
+  {
+    "id": "fc-076",
+    "day": 1,
+    "module": "M1",
+    "tag": "Calculus",
+    "question": "Ma trận Jacobian và Hessian là gì?",
+    "answer": "Jacobian là ma trận đạo hàm bậc 1 của hàm vector; Hessian là ma trận đạo hàm bậc 2 phản ánh độ cong bề mặt Loss."
+  },
+  {
+    "id": "fc-077",
+    "day": 1,
+    "module": "M1",
+    "tag": "Calculus",
+    "question": "Đạo hàm của Sigmoid σ(x) viết gọn thế nào?",
+    "answer": "σ'(x) = σ(x)·(1 - σ(x)). Giá trị cực đại chỉ là 0.25 tại x = 0 ⇒ nhân nhiều lớp sẽ nhanh chóng triệt tiêu (Vanishing Gradient)."
+  },
+  {
+    "id": "fc-078",
+    "day": 1,
+    "module": "M1",
+    "tag": "Activation",
+    "question": "Dying ReLU là gì và khắc phục bằng activation nào?",
+    "answer": "Khi neuron luôn nhận input âm, ReLU cho gradient = 0 khiến trọng số ngừng cập nhật vĩnh viễn. Khắc phục bằng Leaky ReLU, ELU hoặc GELU."
+  },
+  {
+    "id": "fc-079",
+    "day": 1,
+    "module": "M1",
+    "tag": "Activation",
+    "question": "GELU (Gaussian Error Linear Unit) thường dùng ở đâu?",
+    "answer": "Hàm kích hoạt chuẩn trong các mô hình Transformer / LLM hiện đại (BERT, GPT, Llama) vì mượt quanh 0 và cho gradient tốt hơn ReLU."
+  },
+  {
+    "id": "fc-080",
+    "day": 1,
+    "module": "M1",
+    "tag": "Activation",
+    "question": "Tanh(x) khác Sigmoid(x) ở điểm nào?",
+    "answer": "Tanh cho đầu ra trong (-1, 1) — đối xứng quanh 0 (zero-centered), giúp hội tụ nhanh hơn Sigmoid ở lớp ẩn nhưng vẫn có thể bị bão hòa gradient ở 2 đầu."
+  },
+  {
+    "id": "fc-081",
+    "day": 1,
+    "module": "M1",
+    "tag": "Optimization",
+    "question": "So sánh Batch GD, Mini-batch SGD và Stochastic GD (Batch = 1)?",
+    "answer": "Batch GD: ổn định nhưng chậm/tốn RAM. SGD (B=1): cực nhanh nhưng Loss nhiễu/dao động mạnh. Mini-batch (32–256): cân bằng tốc độ GPU và độ ổn định."
+  },
+  {
+    "id": "fc-082",
+    "day": 1,
+    "module": "M1",
+    "tag": "Optimization",
+    "question": "Momentum trong Gradient Descent có tác dụng gì?",
+    "answer": "Tích lũy trung bình động (EMA) của các gradient trước đó để giảm dao động ngang và tăng tốc vượt qua vùng phẳng / cực tiểu cục bộ nông."
+  },
+  {
+    "id": "fc-083",
+    "day": 1,
+    "module": "M1",
+    "tag": "Optimization",
+    "question": "Adam Optimizer kết hợp hai cơ chế nào?",
+    "answer": "Kết hợp Momentum (ước lượng moment bậc 1 của gradient) và RMSProp (tự động điều chỉnh learning rate theo moment bậc 2 từng tham số)."
+  },
+  {
+    "id": "fc-084",
+    "day": 1,
+    "module": "M1",
+    "tag": "Optimization",
+    "question": "AdamW khác Adam ở điểm quan trọng nào?",
+    "answer": "Tách riêng Weight Decay (L2 penalty) ra khỏi bước cập nhật gradient thích ứng (decoupled weight decay), giúp tổng quát hóa tốt hơn — chuẩn mặc định train Transformer."
+  },
+  {
+    "id": "fc-085",
+    "day": 1,
+    "module": "M1",
+    "tag": "Optimization",
+    "question": "Learning Rate Warmup và Cosine Annealing dùng để làm gì?",
+    "answer": "Warmup tăng dần LR ở các bước đầu tránh làm nổ trọng số khi mới khởi tạo; Cosine Annealing giảm mượt LR về gần 0 để hội tụ chắc vào đáy cực tiểu."
+  },
+  {
+    "id": "fc-086",
+    "day": 1,
+    "module": "M1",
+    "tag": "Optimization",
+    "question": "Gradient Clipping giải quyết vấn đề gì?",
+    "answer": "Cắt giới hạn chuẩn (norm) của vector gradient khi vượt ngưỡng (vd max_norm=1.0) để ngăn chặn Exploding Gradient (Loss nhảy thành NaN)."
+  },
+  {
+    "id": "fc-087",
+    "day": 1,
+    "module": "M1",
+    "tag": "Optimization",
+    "question": "Gradient Accumulation dùng khi nào?",
+    "answer": "Khi VRAM GPU nhỏ không chứa nổi Batch Size lớn lúc training: cộng dồn gradient qua K micro-batch rồi mới gọi optimizer.step() 1 lần (không dùng khi inference!)."
+  },
+  {
+    "id": "fc-088",
+    "day": 1,
+    "module": "M1",
+    "tag": "Big-O Scaling",
+    "question": "Thuật toán O(n²) chạy n = 1.000 mất 3 phút. Khi n = 3.000 mất bao lâu?",
+    "answer": "n tăng 3 lần ⇒ O(n²) tăng 3² = 9 lần ⇒ 3 × 9 = 27 phút (bẫy hay chọn nhầm 9 phút!)."
+  },
+  {
+    "id": "fc-089",
+    "day": 1,
+    "module": "M1",
+    "tag": "Big-O Scaling",
+    "question": "Thuật toán O(n log n) vs O(n²) khi n tăng từ 1.000 lên 1.000.000?",
+    "answer": "O(n²) tăng gấp 1.000.000 lần (bất khả thi), còn O(n log n) chỉ tăng khoảng 2.000 lần (nhờ log₂(10⁶) ≈ 20 so với log₂(10³) ≈ 10)."
+  },
+  {
+    "id": "fc-090",
+    "day": 1,
+    "module": "M1",
+    "tag": "Linear Algebra",
+    "question": "Cách giải nhanh hệ phương trình 2 ẩn trong phòng thi?",
+    "answer": "Cộng hoặc trừ trực tiếp hai phương trình nếu hệ số một ẩn bằng/đối nhau; sau khi ra x, y nên thay ngược kiểm tra lại cả 2 phương trình trong 5 giây."
+  },
+  {
+    "id": "fc-14",
+    "day": 2,
+    "module": "M1",
+    "tag": "Metrics",
+    "question": "Precision?",
+    "answer": "TP / (TP + FP) — Trong những gì Model báo dương (Positive), đúng bao nhiêu?"
+  },
+  {
+    "id": "fc-15",
+    "day": 2,
+    "module": "M1",
+    "tag": "Metrics",
+    "question": "Recall?",
+    "answer": "TP / (TP + FN) — Trong toàn bộ các ca dương thật, Model bắt được bao nhiêu?"
+  },
+  {
+    "id": "fc-16",
+    "day": 2,
+    "module": "M1",
+    "tag": "Metrics",
+    "question": "F1-Score?",
+    "answer": "Trung bình điều hòa cân bằng Precision và Recall: F1 = 2·P·R / (P + R). Nếu P hoặc R rất thấp, F1 sẽ kéo tụt xuống mạnh."
+  },
+  {
+    "id": "fc-17",
+    "day": 2,
+    "module": "M1",
+    "tag": "Metrics",
+    "question": "Bài toán phát hiện bệnh nguy hiểm (ung thư) / tấn công mạng?",
+    "answer": "Ưu tiên Recall (hạ threshold) để tối thiểu hóa False Negative — tránh bỏ sót ca nguy hiểm."
+  },
+  {
+    "id": "fc-18",
+    "day": 2,
+    "module": "M1",
+    "tag": "Metrics",
+    "question": "Bài toán khóa nhầm User tốt hoặc đội duyệt tay quá tải?",
+    "answer": "Ưu tiên Precision (nâng threshold) để tối thiểu hóa False Positive — giảm báo động giả."
+  },
+  {
+    "id": "fc-091",
+    "day": 2,
+    "module": "M1",
+    "tag": "Probability",
+    "question": "Công thức Định lý Bayes?",
+    "answer": "P(A|B) = [P(B|A) · P(A)] / P(B), trong đó P(A) là Prior, P(B|A) là Likelihood, P(A|B) là Posterior."
+  },
+  {
+    "id": "fc-092",
+    "day": 2,
+    "module": "M1",
+    "tag": "Probability",
+    "question": "Điều kiện hai biến cố A và B độc lập (Independent)?",
+    "answer": "P(A ∩ B) = P(A) · P(B), tương đương P(A|B) = P(A). Không được nhầm độc lập với xung khắc (mutually exclusive: P(A ∩ B) = 0)."
+  },
+  {
+    "id": "fc-093",
+    "day": 2,
+    "module": "M1",
+    "tag": "Probability",
+    "question": "Quy tắc biến đổi Kỳ vọng E[aX + b] và Phương sai Var(aX + b)?",
+    "answer": "E[aX + b] = a·E[X] + b. Var(aX + b) = a²·Var(X) — cộng hằng số b KHÔNG làm thay đổi phương sai, còn nhân a phải bình phương!"
+  },
+  {
+    "id": "fc-094",
+    "day": 2,
+    "module": "M1",
+    "tag": "Probability",
+    "question": "Quy tắc 68–95–99.7% của Phân phối chuẩn (Gaussian)?",
+    "answer": "Khoảng 68% dữ liệu nằm trong μ ± 1σ, 95% trong μ ± 2σ và 99.7% trong μ ± 3σ."
+  },
+  {
+    "id": "fc-095",
+    "day": 2,
+    "module": "M1",
+    "tag": "Probability",
+    "question": "Z-score công thức và ý nghĩa?",
+    "answer": "z = (x - μ) / σ: đo xem điểm dữ liệu x cách trung bình bao nhiêu lần độ lệch chuẩn; |z| > 3 thường là dấu hiệu ngoại lai (outlier)."
+  },
+  {
+    "id": "fc-096",
+    "day": 2,
+    "module": "M1",
+    "tag": "Probability",
+    "question": "Mean (Trung bình) vs Median (Trung vị) khi dữ liệu có Outlier?",
+    "answer": "Mean bị kéo lệch mạnh bởi outlier (vd thu nhập, giá nhà); Median bền vững (robust) với outlier nên hay dùng để fillna dữ liệu lệch."
+  },
+  {
+    "id": "fc-097",
+    "day": 2,
+    "module": "M1",
+    "tag": "Probability",
+    "question": "IQR (Interquartile Range) dùng để phát hiện Outlier thế nào?",
+    "answer": "IQR = Q3 - Q1. Điểm nằm ngoài [Q1 - 1.5·IQR, Q3 + 1.5·IQR] thường bị gắn cờ là Outlier."
+  },
+  {
+    "id": "fc-098",
+    "day": 2,
+    "module": "M1",
+    "tag": "Probability",
+    "question": "Phân phối Bernoulli vs Binomial vs Poisson?",
+    "answer": "Bernoulli: 1 phép thử 0/1. Binomial: số lần thành công trong n phép thử độc lập. Poisson: số sự kiện xảy ra trong khoảng thời gian/không gian cố định (vd số request/giây)."
+  },
+  {
+    "id": "fc-099",
+    "day": 2,
+    "module": "M1",
+    "tag": "Probability",
+    "question": "Định lý Giới hạn Trung tâm (Central Limit Theorem - CLT)?",
+    "answer": "Trung bình mẫu của đủ nhiều biến ngẫu nhiên độc lập cùng phân phối sẽ xấp xỉ phân phối Chuẩn bất kể phân phối gốc có hình dạng gì."
+  },
+  {
+    "id": "fc-100",
+    "day": 2,
+    "module": "M1",
+    "tag": "Statistics",
+    "question": "Tương quan Pearson vs Spearman?",
+    "answer": "Pearson đo quan hệ tuyến tính (nhạy với outlier). Spearman đo quan hệ đơn điệu dựa trên thứ hạng (rank), bền hơn với outlier và quan hệ phi tuyến đơn điệu."
+  },
+  {
+    "id": "fc-101",
+    "day": 2,
+    "module": "M1",
+    "tag": "Statistics",
+    "question": "Hệ số tương quan r = 0 có nghĩa hai biến độc lập không?",
+    "answer": "Không! Pearson r = 0 chỉ có nghĩa không có tương quan TUYẾN TÍNH; hai biến vẫn có thể liên hệ phi tuyến chặt chẽ (vd y = x²)."
+  },
+  {
+    "id": "fc-102",
+    "day": 2,
+    "module": "M1",
+    "tag": "Statistics",
+    "question": "p-value trong Kiểm định giả thuyết (Hypothesis Testing) là gì?",
+    "answer": "Xác suất quan sát được kết quả cực đoan ít nhất bằng mẫu hiện tại NẾU giả thuyết không H0 là đúng. p-value < α (vd 0.05) ⇒ bác bỏ H0."
+  },
+  {
+    "id": "fc-103",
+    "day": 2,
+    "module": "M1",
+    "tag": "Statistics",
+    "question": "Sai lầm Loại I (Type I Error, α) vs Loại II (Type II Error, β)?",
+    "answer": "Type I (False Positive): bác bỏ H0 dù H0 đúng (báo hiệu ứng giả). Type II (False Negative): không bác bỏ H0 dù H0 sai. Power = 1 - β."
+  },
+  {
+    "id": "fc-104",
+    "day": 2,
+    "module": "M1",
+    "tag": "Statistics",
+    "question": "Multiple Testing Problem & Bonferroni Correction là gì?",
+    "answer": "Chạy đồng thời m kiểm định ở mức α = 0.05 làm xác suất dính ít nhất 1 False Positive tăng vọt. Bonferroni chia ngưỡng thành α_new = α / m để kiểm soát Family-Wise Error Rate."
+  },
+  {
+    "id": "fc-105",
+    "day": 2,
+    "module": "M1",
+    "tag": "Statistics",
+    "question": "Confidence Interval (Khoảng tin cậy 95%) hiểu đúng thế nào?",
+    "answer": "Nếu lặp lại quy trình lấy mẫu nhiều lần, 95% các khoảng tin cậy dựng được sẽ chứa tham số thật của tổng thể (không phải \"95% xác suất tham số nằm trong khoảng cố định này\")."
+  },
+  {
+    "id": "fc-106",
+    "day": 2,
+    "module": "M1",
+    "tag": "Statistics",
+    "question": "MLE (Maximum Likelihood Estimation) vs MAP?",
+    "answer": "MLE tìm tham số θ tối đa hóa xác suất sinh ra dữ liệu P(D|θ). MAP tối đa hóa P(θ|D) ∝ P(D|θ)·P(θ) (có thêm Prior — tương đương thêm Regularization L2/L1)."
+  },
+  {
+    "id": "fc-107",
+    "day": 2,
+    "module": "M1",
+    "tag": "Statistics",
+    "question": "A/B Testing cần điều kiện cốt lõi nào để kết luận nhân quả?",
+    "answer": "Phân nhóm ngẫu nhiên (randomization), đủ cỡ mẫu (power analysis), chạy đủ chu kỳ nghiệp vụ (tránh peeking sớm), kiểm tra SRM (Sample Ratio Mismatch)."
+  },
+  {
+    "id": "fc-108",
+    "day": 2,
+    "module": "M1",
+    "tag": "Statistics",
+    "question": "Simpson's Paradox là gì?",
+    "answer": "Xu hướng xuất hiện ở từng nhóm con nhưng bị đảo ngược khi gộp chung tất cả dữ liệu lại do biến nhiễu (confounding variable) và mất cân bằng cỡ nhóm."
+  },
+  {
+    "id": "fc-109",
+    "day": 2,
+    "module": "M1",
+    "tag": "Metrics",
+    "question": "Accuracy Paradox là gì?",
+    "answer": "Khi dữ liệu siêu lệch (99.9% Negative, 0.1% Positive), mô hình ngây thơ luôn đoán Negative vẫn đạt Accuracy 99.9% nhưng Recall = 0% — hoàn toàn vô dụng."
+  },
+  {
+    "id": "fc-110",
+    "day": 2,
+    "module": "M1",
+    "tag": "Metrics",
+    "question": "Công thức F-beta Score: khi nào chọn β < 1 vs β > 1?",
+    "answer": "F_β = (1+β²)·P·R / (β²·P + R). Chọn β < 1 (vd F0.5) khi ưu tiên Precision; chọn β > 1 (vd F2) khi ưu tiên Recall."
+  },
+  {
+    "id": "fc-111",
+    "day": 2,
+    "module": "M1",
+    "tag": "Metrics",
+    "question": "ROC-AUC vẽ hai trục nào? Miền giá trị?",
+    "answer": "Vẽ TPR (Recall) theo trục tung và FPR = FP/(FP+TN) theo trục hoành qua mọi ngưỡng. AUC = 0.5 là đoán ngẫu nhiên, 1.0 là hoàn hảo."
+  },
+  {
+    "id": "fc-112",
+    "day": 2,
+    "module": "M1",
+    "tag": "Metrics",
+    "question": "Tại sao bài toán Imbalanced nặng (0.1% gian lận) nên dùng PR-AUC thay vì ROC-AUC?",
+    "answer": "Vì TN quá lớn làm FPR = FP/(FP+TN) luôn rất nhỏ khiến đường ROC đẹp giả tạo. PR-AUC (Precision vs Recall) không dùng TN nên phơi bày thẳng báo động giả."
+  },
+  {
+    "id": "fc-113",
+    "day": 2,
+    "module": "M1",
+    "tag": "Metrics",
+    "question": "Specificity (True Negative Rate) công thức là gì?",
+    "answer": "Specificity = TN / (TN + FP) = 1 - FPR: tỷ lệ các ca âm tính thật được mô hình nhận đúng là âm tính."
+  },
+  {
+    "id": "fc-114",
+    "day": 2,
+    "module": "M1",
+    "tag": "Metrics",
+    "question": "Macro-F1 vs Micro-F1 vs Weighted-F1 trong phân loại đa lớp?",
+    "answer": "Macro-F1: trung bình cộng F1 từng lớp (coi trọng lớp hiếm ngang lớp lớn). Micro-F1: gộp tổng TP/FP/FN toàn cục. Weighted-F1: lấy trọng số theo số mẫu từng lớp."
+  },
+  {
+    "id": "fc-115",
+    "day": 2,
+    "module": "M1",
+    "tag": "Metrics",
+    "question": "So sánh RMSE và MAE trong bài toán Regression?",
+    "answer": "RMSE = sqrt(MSE) cùng đơn vị y và phạt rất nặng sai số lớn (nhạy outlier). MAE = mean(|y - ŷ|) bền vững (robust) hơn với outlier nhưng không khả vi tại 0."
+  },
+  {
+    "id": "fc-116",
+    "day": 2,
+    "module": "M1",
+    "tag": "Metrics",
+    "question": "Huber Loss dùng khi nào?",
+    "answer": "Kết hợp ưu điểm của MSE (mượt gần 0) và MAE (tuyến tính khi sai số lớn > δ), lý tưởng cho Regression có dữ liệu ngoại lai (outlier)."
+  },
+  {
+    "id": "fc-117",
+    "day": 2,
+    "module": "M1",
+    "tag": "Metrics",
+    "question": "R² (Coefficient of Determination) có thể âm không?",
+    "answer": "Có! R² = 1 - SS_res/SS_tot. Nếu mô hình tệ hơn cả đường dự đoán bằng hằng số trung bình ȳ thì R² < 0."
+  },
+  {
+    "id": "fc-118",
+    "day": 2,
+    "module": "M1",
+    "tag": "Metrics",
+    "question": "Log-Loss (Binary Cross-Entropy) phạt mạnh điều gì?",
+    "answer": "Phạt cực nặng (tiến tới +∞) những dự đoán SAI mà mô hình lại TỰ TIN cao (vd nhãn thật = 1 nhưng model dự đoán p = 0.001)."
+  },
+  {
+    "id": "fc-119",
+    "day": 2,
+    "module": "M1",
+    "tag": "Metrics",
+    "question": "Hạ Threshold (vd từ 0.5 xuống 0.2) ảnh hưởng Precision & Recall ra sao?",
+    "answer": "Mô hình báo Positive nhiều hơn ⇒ Recall tăng (hoặc giữ nguyên), còn Precision thường giảm do False Positive tăng lên."
+  },
+  {
+    "id": "fc-120",
+    "day": 2,
+    "module": "M1",
+    "tag": "Metrics",
+    "question": "Entropy và KL Divergence đo cái gì?",
+    "answer": "Entropy đo mức độ bất định của một phân phối; KL Divergence D_KL(P || Q) đo khoảng cách bất đối xứng giữa phân phối thật P và phân phối dự đoán Q (không đối xứng: KL(P||Q) ≠ KL(Q||P))."
+  },
+  {
+    "id": "fc-351",
+    "day": 8,
+    "module": "M1",
+    "tag": "Linear Algebra",
+    "question": "Điều kiện cộng/trừ hai ma trận A ± B? Tính nhanh [[1,2],[3,4]] + [[2,0],[1,3]]?",
+    "answer": "Hai ma trận phải CÙNG kích thước (m × n) rồi cộng từng phần tử tương ứng ⇒ [[3, 2], [4, 7]]."
+  },
+  {
+    "id": "fc-352",
+    "day": 8,
+    "module": "M1",
+    "tag": "Linear Algebra",
+    "question": "Tính nhanh định thức det([[2, 3], [1, 4]]) (a.pdf Mục 2.4)?",
+    "answer": "det = 2(4) - 3(1) = 8 - 3 = 5 (khác 0 ⇒ ma trận khả nghịch)."
+  },
+  {
+    "id": "fc-353",
+    "day": 8,
+    "module": "M1",
+    "tag": "Linear Algebra",
+    "question": "Tính định thức cấp 3 của A = [[2,1,3],[4,2,1],[1,3,2]] theo quy tắc Sarrus (a.pdf Mục 2.5)?",
+    "answer": "Tích xuôi: 2·2·2 + 1·1·1 + 3·4·3 = 8 + 1 + 36 = 45. Tích ngược: 3·2·1 + 1·4·2 + 2·1·3 = 6 + 8 + 6 = 20 ⇒ det(A) = 45 - 20 = 25."
+  },
+  {
+    "id": "fc-354",
+    "day": 8,
+    "module": "M1",
+    "tag": "Linear Algebra",
+    "question": "Tính nhanh ma trận nghịch đảo A^-1 của A = [[2, 1], [1, 1]]?",
+    "answer": "det(A) = 2(1) - 1(1) = 1 ⇒ A^-1 = (1/1)·[[1, -1], [-1, 2]] = [[1, -1], [-1, 2]]. Kiểm tra nhanh: A·A^-1 = I."
+  },
+  {
+    "id": "fc-355",
+    "day": 8,
+    "module": "M1",
+    "tag": "Linear Systems",
+    "question": "Giải nhanh hệ { x + y = 7; x - y = 1 } (a.pdf Mục 4)?",
+    "answer": "Cộng trực tiếp hai phương trình: 2x = 8 ⇒ x = 4, thay lại được y = 3."
+  },
+  {
+    "id": "fc-356",
+    "day": 8,
+    "module": "M1",
+    "tag": "Linear Systems",
+    "question": "Giải nhanh hệ { 2x + y = 7; x - y = 2 } (Câu 10 Module A, a.pdf)?",
+    "answer": "Cộng hai phương trình triệt tiêu y: 3x = 9 ⇒ x = 3, suy ra y = x - 2 = 1."
+  },
+  {
+    "id": "fc-357",
+    "day": 8,
+    "module": "M1",
+    "tag": "Calculus",
+    "question": "Cho f(x) = x³. Tính đạo hàm bậc 1 f'(x) và đạo hàm bậc 2 f''(x) (a.pdf Mục 5.1)?",
+    "answer": "f'(x) = 3x² và f''(x) = 6x. Lưu ý tại x = 0 có f'(0) = 0 và f''(0) = 0 (điểm uốn, không phải cực trị!)."
+  },
+  {
+    "id": "fc-358",
+    "day": 8,
+    "module": "M1",
+    "tag": "Calculus",
+    "question": "Cho f(x, y) = x² + 2y² - 4x + 4y. Tính vector Gradient ∇f tại (1, -1) (a.pdf Mục 6)?",
+    "answer": "∂f/∂x = 2x - 4, ∂f/∂y = 4y + 4 ⇒ tại (1, -1): ∇f(1, -1) = [-2, 0]."
+  },
+  {
+    "id": "fc-359",
+    "day": 8,
+    "module": "M1",
+    "tag": "Calculus",
+    "question": "Tìm điểm cực tiểu của hàm Loss L(x) = 3x² - 12x + 15 (a.pdf Mục 7)?",
+    "answer": "Giải L'(x) = 6x - 12 = 0 ⇒ x = 2. Vì L''(x) = 6 > 0 nên x = 2 là điểm cực tiểu (L(2) = 3)."
+  },
+  {
+    "id": "fc-360",
+    "day": 8,
+    "module": "M1",
+    "tag": "Big-O Scaling",
+    "question": "Thuật toán O(n²) xử lý 10.000 dòng mất 2 giờ. Nếu tăng lên 20.000 dòng thì mất bao lâu (a.pdf Mục 9)?",
+    "answer": "n tăng gấp 2 lần ⇒ thời gian O(n²) tăng 2² = 4 lần ⇒ 2 × 4 = 8 giờ."
+  },
+  {
+    "id": "fc-361",
+    "day": 8,
+    "module": "M1",
+    "tag": "Big-O Scaling",
+    "question": "Thuật toán O(n) mất 4 phút với n = 1.000. Với n = 5.000 mất xấp xỉ bao lâu (Câu 9 Module A, a.pdf)?",
+    "answer": "Độ phức tạp tuyến tính O(n): n tăng 5 lần ⇒ thời gian tăng 5 lần ⇒ 4 × 5 = 20 phút."
+  },
+  {
+    "id": "fc-362",
+    "day": 8,
+    "module": "M1",
+    "tag": "Metrics",
+    "question": "Cho TP = 80, FP = 20, FN = 20. Tính nhanh Precision, Recall và F1 (Câu 26–27 Module C, a.pdf)?",
+    "answer": "Precision = 80/(80+20) = 0.8 (80%); Recall = 80/(80+20) = 0.8 (80%); F1 = 2·0.8·0.8/(0.8+0.8) = 0.8 (80%)."
+  },
+  {
+    "id": "fc-363",
+    "day": 8,
+    "module": "M1",
+    "tag": "Metrics",
+    "question": "Tập dữ liệu có 950 Negative và 50 Positive. Model luôn đoán Negative đạt Accuracy bao nhiêu và nhược điểm gì (Câu 29–30, a.pdf)?",
+    "answer": "Accuracy = 950/1000 = 95% nhưng Recall = 0% (không bắt được ca Positive nào) — minh họa kinh điển cho lỗi Accuracy trên dữ liệu mất cân bằng."
+  },
+  {
+    "id": "fc-364",
+    "day": 8,
+    "module": "M1",
+    "tag": "Metrics",
+    "question": "Ý nghĩa trực giác khi mô hình hồi quy dự đoán dung lượng lưu trữ camera đạt RMSE = 2.5 TB (CĐ-09)?",
+    "answer": "Dự đoán lệch trung bình khoảng 2.5 TB so với thực tế (cùng đơn vị TB với nhãn gốc) và RMSE đặc biệt phạt nặng những lần dự đoán lệch lớn."
+  },
+  {
+    "id": "fc-365",
+    "day": 8,
+    "module": "M1",
+    "tag": "Exam Strategy",
+    "question": "Quy trình 5 bước xử lý câu hỏi khó trong phòng thi 90 phút (a.pdf Mục 1)?",
+    "answer": "(1) Đọc yêu cầu cuối câu trước; (2) Xác định chủ đề; (3) Viết công thức/quy tắc; (4) Tính nhanh & loại đáp án sai; (5) Quá 2 phút thì đánh dấu bỏ qua rồi quay lại."
+  }
+]

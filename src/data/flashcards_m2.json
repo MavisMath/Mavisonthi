@@ -1,0 +1,922 @@
+[
+  {
+    "id": "fc-37",
+    "day": 3,
+    "module": "M2",
+    "tag": "Big-O",
+    "question": "Set / Dict lookup (x in my_set)?",
+    "answer": "Trung bình O(1) nhờ bảng băm (Hash Table); trường hợp xấu nhất O(n) khi đụng độ băm."
+  },
+  {
+    "id": "fc-38",
+    "day": 3,
+    "module": "M2",
+    "tag": "Big-O",
+    "question": "List lookup (x in my_list)?",
+    "answer": "O(n) — phải duyệt tuần tự từ đầu đến cuối danh sách."
+  },
+  {
+    "id": "fc-39",
+    "day": 3,
+    "module": "M2",
+    "tag": "Big-O",
+    "question": "Nested Loop n × n?",
+    "answer": "O(n²) — rất dễ timeout với dữ liệu > 10.000 dòng, nên tối ưu bằng dict/set về O(n)."
+  },
+  {
+    "id": "fc-40",
+    "day": 3,
+    "module": "M2",
+    "tag": "Big-O",
+    "question": "Binary Search (tìm kiếm nhị phân)?",
+    "answer": "O(log n) — yêu cầu mảng đầu vào PHẢI đã được sắp xếp (sorted)."
+  },
+  {
+    "id": "fc-134",
+    "day": 3,
+    "module": "M2",
+    "tag": "Python Core",
+    "question": "Phân biệt Mutable vs Immutable trong Python?",
+    "answer": "Mutable (sửa trực tiếp được): list, dict, set. Immutable (không sửa tại chỗ): int, float, str, tuple, frozenset. Chỉ đối tượng Immutable (hashable) mới làm key của dict/set."
+  },
+  {
+    "id": "fc-135",
+    "day": 3,
+    "module": "M2",
+    "tag": "Python Core",
+    "question": "Slicing a = [10, 20, 30, 40]: giá trị của a[1:3], a[-1], a[::-1]?",
+    "answer": "a[1:3] = [20, 30] (lấy từ start đến trước end); a[-1] = 40; a[::-1] = [40, 30, 20, 10] (đảo ngược list)."
+  },
+  {
+    "id": "fc-136",
+    "day": 3,
+    "module": "M2",
+    "tag": "Python Core",
+    "question": "Bẫy gán b = a với Python list?",
+    "answer": "b và a trỏ tới CÙNG một vùng nhớ; sửa b.append(1) làm đổi cả a! Cần copy nông bằng a.copy() hoặc a[:], copy lồng nhau bằng copy.deepcopy(a)."
+  },
+  {
+    "id": "fc-137",
+    "day": 3,
+    "module": "M2",
+    "tag": "Python Core",
+    "question": "Bẫy Mutable Default Argument: def add(x, buf=[]): ...?",
+    "answer": "List mặc định [] chỉ tạo 1 lần duy nhất khi định nghĩa hàm, nên các lần gọi sau bị cộng dồn dữ liệu cũ! Đúng chuẩn: dùng buf=None rồi gán buf = [] bên trong hàm."
+  },
+  {
+    "id": "fc-138",
+    "day": 3,
+    "module": "M2",
+    "tag": "Python Core",
+    "question": "Khác nhau giữa == và is trong Python? Tại sao phải viết is not None?",
+    "answer": "== so sánh giá trị (value), còn is so sánh danh tính vùng nhớ (identity). None là singleton nên chuẩn PEP8 luôn dùng \"x is None\" / \"x is not None\"."
+  },
+  {
+    "id": "fc-139",
+    "day": 3,
+    "module": "M2",
+    "tag": "Python Core",
+    "question": "Độ phức tạp của len(my_list) và len(my_dict) trong Python?",
+    "answer": "Luôn là O(1) vì Python lưu sẵn thuộc tính độ dài trong header đối tượng — KHÔNG cần tách len(d) ra ngoài vòng lặp vì lý do tốc độ."
+  },
+  {
+    "id": "fc-140",
+    "day": 3,
+    "module": "M2",
+    "tag": "Python Core",
+    "question": "List: append() / pop() cuối vs insert(0, x) / pop(0) đầu?",
+    "answer": "Cuối list (append/pop()): O(1) trung bình. Đầu list (insert(0)/pop(0)): O(n) vì phải dịch chuyển toàn bộ phần tử phía sau!"
+  },
+  {
+    "id": "fc-141",
+    "day": 3,
+    "module": "M2",
+    "tag": "Python Core",
+    "question": "[1, 2, 3] * 2 trong Python list ra gì?",
+    "answer": "[1, 2, 3, 1, 2, 3] (nhân bản độ dài list, KHÔNG nhân từng phần tử như NumPy array!)."
+  },
+  {
+    "id": "fc-142",
+    "day": 3,
+    "module": "M2",
+    "tag": "Python Core",
+    "question": "Bẫy tạo ma trận 2D: [[0]*3]*3 vs [[0]*3 for _ in range(3)]?",
+    "answer": "[[0]*3]*3 tạo 3 tham chiếu trỏ tới CÙNG 1 list hàng — sửa m[0][0] = 1 sẽ đổi cả 3 hàng! Phải dùng List Comprehension [[0]*3 for _ in range(3)]."
+  },
+  {
+    "id": "fc-143",
+    "day": 3,
+    "module": "M2",
+    "tag": "Python Core",
+    "question": "dict.get(key, default) hơn gì so với dict[key]?",
+    "answer": "Tránh lỗi KeyError khi key không tồn tại, trả về default (mặc định None). Rất chuẩn khi đếm tần suất: counts[k] = counts.get(k, 0) + 1."
+  },
+  {
+    "id": "fc-144",
+    "day": 3,
+    "module": "M2",
+    "tag": "Python Core",
+    "question": "List Comprehension cú pháp có lọc điều kiện?",
+    "answer": "[r[\"val\"] * 2 for r in records if r.get(\"status\") == 1 and r.get(\"val\") is not None] — gọn, Pythonic và nhanh hơn vòng lặp append thường."
+  },
+  {
+    "id": "fc-145",
+    "day": 3,
+    "module": "M2",
+    "tag": "Python Core",
+    "question": "Generator Expression (x*2 for x in data) khác List Comprehension ở điểm nào?",
+    "answer": "Generator sinh từng phần tử theo kiểu lười (lazy evaluation), tốn bộ nhớ O(1) thay vì nạp toàn bộ vào RAM O(n) — tối ưu cho file log hàng GB."
+  },
+  {
+    "id": "fc-146",
+    "day": 3,
+    "module": "M2",
+    "tag": "Python Core",
+    "question": "Từ khóa yield trong Python hàm dùng làm gì?",
+    "answer": "Biến hàm thành Generator, tạm dừng và trả về từng giá trị một mà vẫn giữ nguyên trạng thái biến cục bộ giữa các lần gọi."
+  },
+  {
+    "id": "fc-147",
+    "day": 3,
+    "module": "M2",
+    "tag": "Python Core",
+    "question": "zip(a, b) và enumerate(a) dùng để làm gì?",
+    "answer": "zip(a, b) duyệt song song nhiều chuỗi cùng lúc (dừng theo chuỗi ngắn nhất). enumerate(a) trả về cặp (index, value) thay vì viết range(len(a))."
+  },
+  {
+    "id": "fc-148",
+    "day": 3,
+    "module": "M2",
+    "tag": "Python Core",
+    "question": "sorted(items, key=lambda x: (-x[1], x[0])) làm gì?",
+    "answer": "Trả về list MỚI đã sắp xếp: ưu tiên giảm dần theo x[1], nếu bằng nhau thì tăng dần theo x[0]. Không làm thay đổi items gốc (khác list.sort())."
+  },
+  {
+    "id": "fc-149",
+    "day": 3,
+    "module": "M2",
+    "tag": "Python Core",
+    "question": "collections.Counter dùng khi nào và hàm lấy Top-K?",
+    "answer": "Đếm tần suất xuất hiện trong O(n): Counter(words).most_common(k) trả về top k cặp (item, count) giảm dần."
+  },
+  {
+    "id": "fc-150",
+    "day": 3,
+    "module": "M2",
+    "tag": "Python Core",
+    "question": "collections.defaultdict(list) có ích gì?",
+    "answer": "Tự động khởi tạo giá trị mặc định (vd list rỗng []) khi truy cập key chưa có, giúp gom nhóm sạch gọn: groups[k].append(v)."
+  },
+  {
+    "id": "fc-151",
+    "day": 3,
+    "module": "M2",
+    "tag": "Data Structures",
+    "question": "collections.deque(maxlen=K) dùng cho bài toán nào?",
+    "answer": "Hàng đợi 2 đầu có append/popleft O(1). Kết hợp biến running_sum giúp tính Moving Average (Sliding Window) trên luồng RPS cao với độ phức tạp O(1)."
+  },
+  {
+    "id": "fc-152",
+    "day": 3,
+    "module": "M2",
+    "tag": "Data Structures",
+    "question": "Module heapq trong Python mặc định là Min-Heap hay Max-Heap?",
+    "answer": "Min-Heap (phần tử nhỏ nhất luôn ở heap[0]). Muốn làm Max-Heap, đẩy giá trị âm (-val) hoặc dùng heapq.nlargest(k, data)."
+  },
+  {
+    "id": "fc-153",
+    "day": 3,
+    "module": "M2",
+    "tag": "Data Structures",
+    "question": "Độ phức tạp tìm Top-K phần tử lớn nhất từ N phần tử bằng Heap?",
+    "answer": "Duy trì Min-Heap kích thước K: O(N log K) thời gian và O(K) bộ nhớ — vượt trội so với sort toàn bộ O(N log N) khi K ≪ N."
+  },
+  {
+    "id": "fc-154",
+    "day": 3,
+    "module": "M2",
+    "tag": "Data Structures",
+    "question": "Stack (LIFO) vs Queue (FIFO) trong Python cài bằng gì chuẩn nhất?",
+    "answer": "Stack dùng list (append/pop cuối đều O(1)). Queue phải dùng collections.deque (append phải, popleft trái đều O(1)), tuyệt đối tránh list.pop(0) O(n)."
+  },
+  {
+    "id": "fc-155",
+    "day": 3,
+    "module": "M2",
+    "tag": "Data Structures",
+    "question": "Các phép toán tập hợp Set: | (union), & (intersection), - (difference)?",
+    "answer": "a | b: hợp; a & b: giao (phần tử chung); a - b: hiệu (có trong a không có trong b). Rất nhanh để đối chiếu danh sách user/ID."
+  },
+  {
+    "id": "fc-156",
+    "day": 3,
+    "module": "M2",
+    "tag": "Algorithms",
+    "question": "Thuật toán sắp xếp mặc định của Python (Timsort) có độ phức tạp bao nhiêu?",
+    "answer": "Trung bình và xấu nhất O(n log n), tốt nhất O(n) với dữ liệu gần như đã sắp xếp, và là sắp xếp ổn định (stable sort)."
+  },
+  {
+    "id": "fc-157",
+    "day": 3,
+    "module": "M2",
+    "tag": "Algorithms",
+    "question": "Kỹ thuật Hash Map cho bài toán Two Sum tối ưu từ O(n²) xuống gì?",
+    "answer": "Xuống O(n) thời gian, O(n) bộ nhớ: duyệt 1 vòng, kiểm tra (target - x) có trong dict seen chưa."
+  },
+  {
+    "id": "fc-158",
+    "day": 3,
+    "module": "M2",
+    "tag": "Algorithms",
+    "question": "Kỹ thuật Two Pointers (2 con trỏ) thường áp dụng khi nào?",
+    "answer": "Khi mảng đã sắp xếp hoặc kiểm tra chuỗi đối xứng / loại phần tử trùng tại chỗ / hợp nhất 2 danh sách đã sort — đạt O(n) thời gian, O(1) bộ nhớ phụ."
+  },
+  {
+    "id": "fc-159",
+    "day": 3,
+    "module": "M2",
+    "tag": "Algorithms",
+    "question": "Sliding Window (Cửa sổ trượt) có 2 dạng nào?",
+    "answer": "(1) Cửa sổ cố định kích thước K (Moving Average) và (2) Cửa sổ co giãn (chuỗi con dài nhất thỏa điều kiện) — thường giảm từ O(n²) xuống O(n)."
+  },
+  {
+    "id": "fc-160",
+    "day": 3,
+    "module": "M2",
+    "tag": "Algorithms",
+    "question": "BFS vs DFS dùng cấu trúc dữ liệu nào và ứng dụng chính?",
+    "answer": "BFS dùng Queue (tìm đường đi ngắn nhất trên đồ thị không trọng số). DFS dùng Stack/Đệ quy (duyệt sâu, tìm chu trình, topological sort)."
+  },
+  {
+    "id": "fc-161",
+    "day": 3,
+    "module": "M2",
+    "tag": "Algorithms",
+    "question": "Dynamic Programming & @functools.lru_cache dùng khi nào?",
+    "answer": "Khi bài toán có bài toán con gối nhau (overlapping subproblems) và cấu trúc con tối ưu — lưu kết quả trung gian (memoization) tránh tính lặp mũ O(2^n)."
+  },
+  {
+    "id": "fc-162",
+    "day": 3,
+    "module": "M2",
+    "tag": "Algorithms",
+    "question": "Module bisect trong Python làm gì?",
+    "answer": "Thực hiện tìm kiếm nhị phân O(log n) trên list đã sắp xếp: bisect_left / bisect_right tìm vị trí chèn hoặc đếm số phần tử trong khoảng."
+  },
+  {
+    "id": "fc-163",
+    "day": 3,
+    "module": "M2",
+    "tag": "Python Core",
+    "question": "Nối chuỗi trong vòng lặp: dùng += hay \"\".join(parts)?",
+    "answer": "Phải dùng \"\".join(parts) tốn O(n)! Vì str là Immutable, dùng s += chunk trong vòng lặp copy lại toàn bộ chuỗi cũ, có thể đẩy độ phức tạp lên O(n²)."
+  },
+  {
+    "id": "fc-164",
+    "day": 3,
+    "module": "M2",
+    "tag": "Python Core",
+    "question": "Context Manager (with open(...) as f:) giải quyết vấn đề gì?",
+    "answer": "Đảm bảo tài nguyên (file handle, DB connection, socket) luôn được đóng tự động ngay cả khi xảy ra Exception — ngăn chặn Resource Leak."
+  },
+  {
+    "id": "fc-165",
+    "day": 3,
+    "module": "M2",
+    "tag": "Python Core",
+    "question": "Bẫy bắt ngoại lệ rộng: try: ... except Exception: pass?",
+    "answer": "Anti-pattern nghiêm trọng! Che giấu bug thật (KeyError, TypeError) làm hệ thống sai âm thầm. Phải bắt đúng loại ngoại lệ cụ thể và log/xử lý rõ ràng."
+  },
+  {
+    "id": "fc-166",
+    "day": 3,
+    "module": "M2",
+    "tag": "Python Core",
+    "question": "Pure Function và tránh Side Effect (in-place mutation) là gì?",
+    "answer": "Hàm không làm biến đổi tham số đầu vào (vd không tự ý df.drop(..., inplace=True) hay list.sort() trên input gốc của caller), giúp dễ test và tránh bug khó truy vết."
+  },
+  {
+    "id": "fc-167",
+    "day": 3,
+    "module": "M2",
+    "tag": "Python Core",
+    "question": "any() và all() trong Python có đặc điểm short-circuit gì?",
+    "answer": "any() dừng ngay khi gặp phần tử True đầu tiên; all() dừng ngay khi gặp phần tử False đầu tiên — cực hiệu quả khi kết hợp Generator."
+  },
+  {
+    "id": "fc-168",
+    "day": 3,
+    "module": "M2",
+    "tag": "Python Core",
+    "question": "*args và **kwargs trong định nghĩa hàm Python?",
+    "answer": "*args gom các tham số vị trí thừa thành tuple; **kwargs gom các tham số từ khóa thừa thành dict."
+  },
+  {
+    "id": "fc-169",
+    "day": 3,
+    "module": "M2",
+    "tag": "Python Core",
+    "question": "Decorator (@timer, @retry) hoạt động theo nguyên lý nào?",
+    "answer": "Hàm bậc cao nhận một hàm làm đầu vào, bọc thêm hành vi (logging, cache, retry, auth) rồi trả về hàm mới mà không sửa code gốc."
+  },
+  {
+    "id": "fc-170",
+    "day": 3,
+    "module": "M2",
+    "tag": "Python Core",
+    "question": "JSON serialization: json.loads vs json.dumps vs json.load?",
+    "answer": "loads/dumps (có \"s\") làm việc với chuỗi string; load/dump làm việc trực tiếp với đối tượng file."
+  },
+  {
+    "id": "fc-171",
+    "day": 3,
+    "module": "M2",
+    "tag": "Python Core",
+    "question": "So sánh số thực float: tại sao 0.1 + 0.2 == 0.3 trả về False?",
+    "answer": "Sai số biểu diễn nhị phân IEEE 754 (0.1 + 0.2 = 0.30000000000000004). Phải dùng math.isclose(a, b) hoặc abs(a - b) < 1e-9."
+  },
+  {
+    "id": "fc-172",
+    "day": 3,
+    "module": "M2",
+    "tag": "Clean Code",
+    "question": "Nguyên tắc Code Review chuẩn Google / SFIA Level 3?",
+    "answer": "Nhận xét mang tính xây dựng (constructive), tập trung vào code không công kích cá nhân; ưu tiên sửa naming tối nghĩa, edge case, bug logic và khả năng bảo trì."
+  },
+  {
+    "id": "fc-173",
+    "day": 3,
+    "module": "M2",
+    "tag": "Clean Code",
+    "question": "Defensive Programming & Input Schema Validation (vd Pydantic)?",
+    "answer": "Kiểm tra kiểu dữ liệu, biên giá trị, null/empty ngay tại biên API/hàm trước khi xử lý để \"fail fast\" với thông báo rõ thay vì sinh kết quả rác."
+  },
+  {
+    "id": "fc-174",
+    "day": 3,
+    "module": "M2",
+    "tag": "Engineering",
+    "question": "Unit Test & Mocking (unittest.mock / pytest) dùng để làm gì?",
+    "answer": "Kiểm thử độc lập từng hàm/module; dùng Mock giả lập lời gọi API/LLM/DB bên ngoài để test chạy nhanh, tất định (deterministic) và không tốn phí."
+  },
+  {
+    "id": "fc-175",
+    "day": 3,
+    "module": "M2",
+    "tag": "Engineering",
+    "question": "Bẫy chia cho 0 & biên danh sách rỗng khi viết code tay?",
+    "answer": "Luôn kiểm tra \"if not data: return []\" (hoặc 0.0) và \"if denom > 0 else 0.0\" ở đầu hàm trước khi tính trung bình, Precision/Recall hay chuẩn hóa."
+  },
+  {
+    "id": "fc-176",
+    "day": 3,
+    "module": "M2",
+    "tag": "Engineering",
+    "question": "Async/Await (asyncio) vs Multiprocessing trong Python (GIL)?",
+    "answer": "asyncio / Threading tối ưu cho tác vụ I/O-bound (gọi API LLM, truy vấn DB). Multiprocessing tối ưu cho tác vụ CPU-bound nặng nhờ vượt qua GIL."
+  },
+  {
+    "id": "fc-177",
+    "day": 3,
+    "module": "M2",
+    "tag": "Engineering",
+    "question": "Idempotency (Tính lũy đẳng) trong thiết kế API & Data Pipeline?",
+    "answer": "Chạy lại cùng một request hoặc job ETL nhiều lần vẫn cho đúng một trạng thái kết quả duy nhất (không nhân đôi bản ghi hay trừ tiền 2 lần)."
+  },
+  {
+    "id": "fc-178",
+    "day": 3,
+    "module": "M2",
+    "tag": "Engineering",
+    "question": "Exponential Backoff + Jitter khi gọi API LLM bị Rate Limit (HTTP 429)?",
+    "answer": "Thử lại với thời gian chờ tăng gấp đôi (1s, 2s, 4s...) kèm độ trễ ngẫu nhiên nhỏ (jitter) để tránh \"thundering herd\" làm sập server."
+  },
+  {
+    "id": "fc-179",
+    "day": 3,
+    "module": "M2",
+    "tag": "Engineering",
+    "question": "Logging chuẩn production khác gì print()?",
+    "answer": "Dùng module logging với cấp độ (INFO/WARNING/ERROR), structured JSON log, timestamp, request_id — và TUYỆT ĐỐI không log PII/API key."
+  },
+  {
+    "id": "fc-180",
+    "day": 4,
+    "module": "M2",
+    "tag": "NumPy",
+    "question": "np.array([1, 2, 3]) * 2 cho kết quả gì?",
+    "answer": "array([2, 4, 6]) — phép toán Vectorization thực hiện trên từng phần tử (element-wise), nhanh hơn vòng lặp Python gấp hàng chục lần."
+  },
+  {
+    "id": "fc-181",
+    "day": 4,
+    "module": "M2",
+    "tag": "NumPy",
+    "question": "Cắt lát ma trận 2D: matrix[0:2, 1:] lấy vùng nào?",
+    "answer": "Lấy hàng 0 đến trước hàng 2 (hàng 0, 1) và từ cột 1 đến hết cột cuối."
+  },
+  {
+    "id": "fc-182",
+    "day": 4,
+    "module": "M2",
+    "tag": "NumPy",
+    "question": "Bẫy NumPy View vs Copy khi slicing: sub = arr[0:2, 1:]?",
+    "answer": "Basic slicing trong NumPy trả về VIEW (dùng chung bộ nhớ với mảng gốc)! Sửa sub[0, 0] = 99 sẽ sửa luôn arr gốc. Muốn độc lập phải dùng .copy()."
+  },
+  {
+    "id": "fc-183",
+    "day": 4,
+    "module": "M2",
+    "tag": "NumPy",
+    "question": "Quy tắc NumPy Broadcasting?",
+    "answer": "So khớp kích thước shape từ PHẢI sang TRÁI: hai chiều tương thích khi bằng nhau hoặc một trong hai bằng 1 (vd (3, 4) + (4,) hợp lệ; (3, 4) + (3,) lỗi ValueError)."
+  },
+  {
+    "id": "fc-184",
+    "day": 4,
+    "module": "M2",
+    "tag": "NumPy",
+    "question": "axis=0 vs axis=1 trong NumPy (sum, mean, max)?",
+    "answer": "axis=0: gộp dọc theo từng CỘT (kết quả có số phần tử = số cột). axis=1: gộp ngang theo từng HÀNG (kết quả = số hàng)."
+  },
+  {
+    "id": "fc-185",
+    "day": 4,
+    "module": "M2",
+    "tag": "NumPy",
+    "question": "Khác nhau giữa a * b và a @ b (hoặc np.dot) trên ma trận 2D?",
+    "answer": "a * b là nhân từng phần tử tương ứng (Hadamard / element-wise). a @ b (np.matmul) là nhân ma trận chuẩn đại số tuyến tính."
+  },
+  {
+    "id": "fc-186",
+    "day": 4,
+    "module": "M2",
+    "tag": "NumPy",
+    "question": "np.where(cond, x, y) dùng làm gì?",
+    "answer": "Toán tử điều kiện vector hóa (giống if-else cho từng phần tử): trả về x nếu cond True, ngược lại y. Rất hay dùng tránh chia cho 0 hoặc gán nhãn theo threshold."
+  },
+  {
+    "id": "fc-187",
+    "day": 4,
+    "module": "M2",
+    "tag": "NumPy",
+    "question": "Boolean Masking trong NumPy: a[a > 5] trả về View hay Copy?",
+    "answer": "Trả về bản COPY (mảng 1D chứa các phần tử thỏa điều kiện), không phải View như basic slicing."
+  },
+  {
+    "id": "fc-188",
+    "day": 4,
+    "module": "M2",
+    "tag": "NumPy",
+    "question": "np.argmax(probs, axis=1) dùng làm gì trong Classification?",
+    "answer": "Trả về CHỈ SỐ (index) của lớp có xác suất lớn nhất trên mỗi hàng (mỗi mẫu), biến ma trận xác suất Softmax thành nhãn dự đoán."
+  },
+  {
+    "id": "fc-189",
+    "day": 4,
+    "module": "M2",
+    "tag": "NumPy",
+    "question": "np.argsort(arr)[::-1][:k] làm gì?",
+    "answer": "Trả về chỉ số của Top-K phần tử lớn nhất theo thứ tự giảm dần (rất hay dùng khi lấy Top-K kết quả Cosine Similarity trong RAG)."
+  },
+  {
+    "id": "fc-190",
+    "day": 4,
+    "module": "M2",
+    "tag": "NumPy",
+    "question": "arr.reshape(-1, 1) nghĩa là gì?",
+    "answer": "Tự động suy ra số hàng (-1) để biến mảng 1D cỡ (n,) thành vector cột 2D cỡ (n, 1) (thường cần khi đưa vào scikit-learn)."
+  },
+  {
+    "id": "fc-191",
+    "day": 4,
+    "module": "M2",
+    "tag": "NumPy",
+    "question": "np.nanmean(a) khác np.mean(a) ở điểm nào?",
+    "answer": "Nếu mảng chứa dù chỉ 1 giá trị NaN, np.mean(a) trả về NaN; còn np.nanmean(a) bỏ qua NaN để tính trung bình các phần tử hợp lệ."
+  },
+  {
+    "id": "fc-192",
+    "day": 4,
+    "module": "M2",
+    "tag": "NumPy",
+    "question": "np.clip(arr, a_min, a_max) dùng khi nào?",
+    "answer": "Ép mọi phần tử nhỏ hơn a_min thành a_min và lớn hơn a_max thành a_max (vd kẹp xác suất vào [1e-7, 1-1e-7] để tránh log(0) trong Cross-Entropy)."
+  },
+  {
+    "id": "fc-193",
+    "day": 4,
+    "module": "M2",
+    "tag": "NumPy",
+    "question": "Công thức chuẩn hóa Z-score từng cột ma trận X bằng NumPy?",
+    "answer": "(X - X.mean(axis=0)) / X.std(axis=0) — thực hiện cực gọn nhờ Broadcasting theo hàng."
+  },
+  {
+    "id": "fc-194",
+    "day": 4,
+    "module": "M2",
+    "tag": "NumPy",
+    "question": "np.linalg.norm(v) và np.linalg.det(A)?",
+    "answer": "np.linalg.norm(v) tính chuẩn L2 (độ dài vector); np.linalg.det(A) tính định thức; np.linalg.inv(A) tính ma trận nghịch đảo."
+  },
+  {
+    "id": "fc-195",
+    "day": 4,
+    "module": "M2",
+    "tag": "NumPy",
+    "question": "keepdims=True trong X.sum(axis=1, keepdims=True) có ích gì?",
+    "answer": "Giữ nguyên shape (N, 1) thay vì tụt xuống (N,) để chia/trừ ngược lại ma trận (N, D) bằng Broadcasting (vd tính Softmax từng hàng)."
+  },
+  {
+    "id": "fc-196",
+    "day": 4,
+    "module": "M2",
+    "tag": "NumPy",
+    "question": "np.vstack([a, b]) vs np.hstack([a, b])?",
+    "answer": "vstack ghép chồng theo chiều dọc (thêm hàng, axis=0); hstack ghép ngang theo chiều cột (thêm cột, axis=1)."
+  },
+  {
+    "id": "fc-197",
+    "day": 4,
+    "module": "M2",
+    "tag": "NumPy",
+    "question": "Cách cố định tính ngẫu nhiên trong NumPy hiện đại?",
+    "answer": "rng = np.random.default_rng(42) (hoặc np.random.seed(42)) để đảm bảo Reproducibility khi chia dữ liệu/khởi tạo trọng số."
+  },
+  {
+    "id": "fc-198",
+    "day": 4,
+    "module": "M2",
+    "tag": "Pandas",
+    "question": "Lọc DataFrame kết hợp 2 điều kiện trong Pandas?",
+    "answer": "df[(df[\"age\"] > 25) & (df[\"region\"] == \"HN\")] — PHẢI dùng &, |, ~ và bọc từng điều kiện trong ngoặc đơn (không dùng and/or của Python!)."
+  },
+  {
+    "id": "fc-199",
+    "day": 4,
+    "module": "M2",
+    "tag": "Pandas",
+    "question": "Khác nhau giữa df.loc[...] và df.iloc[...]?",
+    "answer": ".loc chọn theo NHÃN (label, slice bao gồm cả điểm cuối). .iloc chọn theo VỊ TRÍ SỐ NGUYÊN (0-based, slice KHÔNG gồm điểm cuối giống Python)."
+  },
+  {
+    "id": "fc-200",
+    "day": 4,
+    "module": "M2",
+    "tag": "Pandas",
+    "question": "Sắp xếp DataFrame theo cột score giảm dần?",
+    "answer": "df.sort_values(\"score\", ascending=False). Có thể truyền list cột: sort_values([\"region\", \"score\"], ascending=[True, False])."
+  },
+  {
+    "id": "fc-201",
+    "day": 4,
+    "module": "M2",
+    "tag": "Pandas",
+    "question": "Đếm số lượng Missing Values theo từng cột?",
+    "answer": "df.isna().sum() (hoặc df.isnull().sum()). Tính tỷ lệ thiếu: df.isna().mean()."
+  },
+  {
+    "id": "fc-202",
+    "day": 4,
+    "module": "M2",
+    "tag": "Pandas",
+    "question": "Chuỗi [10, NaN, NaN, 20] sau Forward Fill (ffill) ra gì?",
+    "answer": "[10, 10, 10, 20] — ffill() lấy giá trị hợp lệ gần nhất phía TRƯỚC điền vào ô thiếu (an toàn hơn bfill cho dữ liệu chuỗi thời gian vì không nhìn tương lai!)."
+  },
+  {
+    "id": "fc-203",
+    "day": 4,
+    "module": "M2",
+    "tag": "Pandas",
+    "question": "Tại sao bfill() (Backward Fill) có thể gây Data Leakage trên chuỗi thời gian?",
+    "answer": "Vì bfill() lấy giá trị ở thời điểm TƯƠNG LAI điền ngược về quá khứ, làm rò rỉ thông tin tương lai vào dữ liệu huấn luyện."
+  },
+  {
+    "id": "fc-204",
+    "day": 4,
+    "module": "M2",
+    "tag": "Pandas",
+    "question": "Xóa dòng trùng lặp và xóa dòng thiếu trên cột cụ thể?",
+    "answer": "df.drop_duplicates(subset=[\"user_id\"], keep=\"last\") và df.dropna(subset=[\"revenue\"])."
+  },
+  {
+    "id": "fc-205",
+    "day": 4,
+    "module": "M2",
+    "tag": "Pandas",
+    "question": "Điền thiếu cột revenue bằng trung vị (median)?",
+    "answer": "df[\"revenue\"] = df[\"revenue\"].fillna(df[\"revenue\"].median()) — lưu ý trong ML chỉ tính median trên tập Train rồi fill sang Val/Test!"
+  },
+  {
+    "id": "fc-206",
+    "day": 4,
+    "module": "M2",
+    "tag": "Pandas",
+    "question": "Cú pháp GroupBy + agg đặt tên cột mới (Named Aggregation)?",
+    "answer": "df.groupby(\"region\", as_index=False).agg(total_rev=(\"revenue\", \"sum\"), avg_score=(\"score\", \"mean\"))."
+  },
+  {
+    "id": "fc-207",
+    "day": 4,
+    "module": "M2",
+    "tag": "Pandas",
+    "question": "Khác biệt cốt lõi giữa pd.merge() và pd.concat()?",
+    "answer": "pd.merge() ghép 2 bảng theo KHÓA chung (như SQL JOIN: inner/left/right/outer). pd.concat([df1, df2]) nối chồng các DataFrame cùng cấu trúc theo trục (axis=0 thêm dòng, axis=1 thêm cột)."
+  },
+  {
+    "id": "fc-208",
+    "day": 4,
+    "module": "M2",
+    "tag": "Pandas",
+    "question": "groupby().transform() khác groupby().agg() ở điểm nào?",
+    "answer": "agg() nén mỗi nhóm thành 1 dòng. transform() trả về Series giữ NGUYÊN độ dài DataFrame gốc (vd điền thiếu bằng median của từng nhóm region)."
+  },
+  {
+    "id": "fc-209",
+    "day": 4,
+    "module": "M2",
+    "tag": "Pandas",
+    "question": "SettingWithCopyWarning trong Pandas là gì và cách tránh?",
+    "answer": "Cảnh báo khi ghi đè lên một slice có thể là view hoặc copy (vd df[df.age > 20][\"x\"] = 1). Luôn dùng .copy() khi tách DataFrame con hoặc dùng df.loc[mask, \"col\"] = val."
+  },
+  {
+    "id": "fc-210",
+    "day": 4,
+    "module": "M2",
+    "tag": "Pandas",
+    "question": "df[\"col\"].value_counts(normalize=True, dropna=False) trả về gì?",
+    "answer": "Tỷ lệ phần trăm (%) xuất hiện của từng giá trị duy nhất bao gồm cả NaN — dùng ngay bước EDA để phát hiện Class Imbalance."
+  },
+  {
+    "id": "fc-211",
+    "day": 4,
+    "module": "M2",
+    "tag": "Pandas",
+    "question": "df[\"val\"].shift(1) và df[\"val\"].rolling(7).mean() dùng khi nào?",
+    "answer": "Trong Time-Series: shift(1) tạo đặc trưng độ trễ (lag feature, giá trị hôm qua); rolling(7).mean() tính trung bình trượt 7 kỳ gần nhất."
+  },
+  {
+    "id": "fc-212",
+    "day": 4,
+    "module": "M2",
+    "tag": "Pandas",
+    "question": "pd.get_dummies(df, columns=[\"cat\"], drop_first=True) làm gì?",
+    "answer": "Mã hóa One-Hot Encoding biến phân loại thành các cột nhị phân 0/1; drop_first=True bỏ 1 cột để tránh đa cộng tuyến hoàn hảo (dummy variable trap)."
+  },
+  {
+    "id": "fc-213",
+    "day": 4,
+    "module": "M2",
+    "tag": "Pandas",
+    "question": "Tại sao nên ưu tiên phép toán vector hóa thay vì df.iterrows() / apply(axis=1)?",
+    "answer": "iterrows() và apply(axis=1) chạy vòng lặp Python từng dòng rất chậm (gấp 50–100×) so với vector hóa NumPy/Pandas hoặc np.where()."
+  },
+  {
+    "id": "fc-214",
+    "day": 4,
+    "module": "M2",
+    "tag": "Pandas",
+    "question": "pd.to_datetime(df[\"ts\"], errors=\"coerce\") tác dụng gì?",
+    "answer": "Chuyển cột chuỗi sang kiểu datetime; errors=\"coerce\" biến các chuỗi ngày lỗi thành NaT thay vì làm crash cả pipeline."
+  },
+  {
+    "id": "fc-215",
+    "day": 4,
+    "module": "M2",
+    "tag": "Pandas",
+    "question": "df.pivot_table(index, columns, values, aggfunc) dùng làm gì?",
+    "answer": "Xoay bảng tổng hợp chéo 2 chiều (giống Pivot Table Excel), hữu ích khi tạo ma trận User–Item hoặc báo cáo tổng hợp theo nhóm."
+  },
+  {
+    "id": "fc-216",
+    "day": 4,
+    "module": "M2",
+    "tag": "Pandas",
+    "question": "df[\"col\"].isin([\"A\", \"B\"]) và df[\"col\"].str.contains(\"err\", na=False)?",
+    "answer": "isin() lọc các dòng thuộc tập giá trị cho trước; str.contains(..., na=False) tìm chuỗi con an toàn ngay cả khi cột có giá trị NaN."
+  },
+  {
+    "id": "fc-217",
+    "day": 4,
+    "module": "M2",
+    "tag": "SQL",
+    "question": "Thứ tự thực thi logic của một câu truy vấn SQL?",
+    "answer": "FROM / JOIN → WHERE → GROUP BY → HAVING → SELECT (Window Functions) → DISTINCT → ORDER BY → LIMIT."
+  },
+  {
+    "id": "fc-218",
+    "day": 4,
+    "module": "M2",
+    "tag": "SQL",
+    "question": "Khác nhau giữa WHERE và HAVING trong SQL?",
+    "answer": "WHERE lọc từng dòng TRƯỚC khi GROUP BY (không dùng được hàm tổng hợp SUM/COUNT). HAVING lọc trên các nhóm SAU khi GROUP BY (dùng được SUM/COUNT/AVG)."
+  },
+  {
+    "id": "fc-219",
+    "day": 4,
+    "module": "M2",
+    "tag": "SQL",
+    "question": "COUNT(*) vs COUNT(col) vs COUNT(DISTINCT col)?",
+    "answer": "COUNT(*) đếm mọi dòng kể cả NULL; COUNT(col) chỉ đếm các dòng có col IS NOT NULL; COUNT(DISTINCT col) đếm số giá trị duy nhất khác NULL."
+  },
+  {
+    "id": "fc-220",
+    "day": 4,
+    "module": "M2",
+    "tag": "SQL",
+    "question": "INNER JOIN vs LEFT JOIN vs Anti-Join (tìm user chưa có đơn)?",
+    "answer": "INNER JOIN lấy phần giao. LEFT JOIN giữ toàn bộ bảng trái (không khớp thì bên phải là NULL). Anti-Join: LEFT JOIN ... WHERE right.id IS NULL."
+  },
+  {
+    "id": "fc-221",
+    "day": 4,
+    "module": "M2",
+    "tag": "SQL",
+    "question": "Phân biệt Window Functions: ROW_NUMBER() vs RANK() vs DENSE_RANK()?",
+    "answer": "Khi điểm bằng nhau (100, 100, 90): ROW_NUMBER ra (1, 2, 3); RANK ra (1, 1, 3 — nhảy số); DENSE_RANK ra (1, 1, 2 — không nhảy số)."
+  },
+  {
+    "id": "fc-222",
+    "day": 4,
+    "module": "M2",
+    "tag": "SQL",
+    "question": "Cú pháp SQL lấy Top-1 giao dịch mới nhất của mỗi user bằng Window Function?",
+    "answer": "Dùng CTE với ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY created_at DESC) AS rn, sau đó lọc WHERE rn = 1."
+  },
+  {
+    "id": "fc-223",
+    "day": 4,
+    "module": "M2",
+    "tag": "SQL",
+    "question": "LAG() và LEAD() trong SQL Window Functions dùng làm gì?",
+    "answer": "LAG(col, 1) lấy giá trị dòng trước đó, LEAD(col, 1) lấy dòng kế tiếp trong cùng phân vùng PARTITION BY — cực mạnh để tính chênh lệch theo thời gian."
+  },
+  {
+    "id": "fc-224",
+    "day": 4,
+    "module": "M2",
+    "tag": "SQL",
+    "question": "Tính tổng lũy kế (Running Total) trong SQL viết như thế nào?",
+    "answer": "SUM(amount) OVER (PARTITION BY user_id ORDER BY created_at ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)."
+  },
+  {
+    "id": "fc-225",
+    "day": 4,
+    "module": "M2",
+    "tag": "SQL",
+    "question": "So sánh với NULL trong SQL: tại sao col = NULL luôn sai?",
+    "answer": "Trong logic 3 giá trị của SQL, mọi phép so sánh = NULL hay != NULL đều trả về UNKNOWN (falsy). Bắt buộc dùng IS NULL / IS NOT NULL và COALESCE(col, 0)."
+  },
+  {
+    "id": "fc-226",
+    "day": 4,
+    "module": "M2",
+    "tag": "System Design",
+    "question": "Tối ưu bảng PostgreSQL inference_logs 500 triệu dòng (latency 3s → < 200ms)?",
+    "answer": "Áp dụng Table Partitioning theo created_at hoặc user_id kết hợp đánh B-Tree Index trên cột truy vấn để DB chỉ quét phân vùng nhỏ (Partition Pruning)."
+  },
+  {
+    "id": "fc-227",
+    "day": 4,
+    "module": "M2",
+    "tag": "System Design",
+    "question": "Composite Index (user_id, created_at) và quy tắc Leftmost Prefix?",
+    "answer": "Index này tăng tốc truy vấn lọc (user_id) hoặc (user_id AND created_at), nhưng KHÔNG hiệu quả nếu chỉ lọc theo created_at mà bỏ qua cột đầu user_id."
+  },
+  {
+    "id": "fc-228",
+    "day": 4,
+    "module": "M2",
+    "tag": "System Design",
+    "question": "EXPLAIN ANALYZE trong PostgreSQL dùng để kiểm tra điều gì?",
+    "answer": "Xem kế hoạch thực thi thực tế: có đang bị Seq Scan (quét toàn bảng chậm) hay đã dùng Index Scan / Partition Pruning, kèm thời gian thực thi thật."
+  },
+  {
+    "id": "fc-229",
+    "day": 4,
+    "module": "M2",
+    "tag": "System Design",
+    "question": "N+1 Query Problem là gì và cách khắc phục?",
+    "answer": "Chạy 1 query lấy N bản ghi rồi lặp N lần gọi thêm N query vào DB. Khắc phục bằng JOIN, WHERE id IN (...) hoặc batch query."
+  },
+  {
+    "id": "fc-366",
+    "day": 8,
+    "module": "M2",
+    "tag": "Python Core",
+    "question": "Output của đoạn code: a = [1, 2, 3, 4]; print(a[1:3]) (Câu 1 Module B, a.pdf)?",
+    "answer": "[2, 3] — slicing lấy từ chỉ số 1 đến TRƯỚC chỉ số 3 (chỉ số 1 và 2)."
+  },
+  {
+    "id": "fc-367",
+    "day": 8,
+    "module": "M2",
+    "tag": "NumPy",
+    "question": "Output của: a = np.array([1, 2, 3]); print(a * 3) (Câu 2 Module B, a.pdf)?",
+    "answer": "[3 6 9] — nhân từng phần tử của mảng NumPy với 3 nhờ Vectorization."
+  },
+  {
+    "id": "fc-368",
+    "day": 8,
+    "module": "M2",
+    "tag": "NumPy",
+    "question": "Output của: m = np.array([[1,2,3],[4,5,6],[7,8,9]]); print(m[0:2, 1:]) (Câu 3 Module B, a.pdf)?",
+    "answer": "[[2 3], [5 6]] — lấy hàng 0, 1 và cột 1, 2."
+  },
+  {
+    "id": "fc-369",
+    "day": 8,
+    "module": "M2",
+    "tag": "NumPy",
+    "question": "Hai cú pháp chuẩn tính trung bình của mảng NumPy a và 3 hàm tổng hợp đi kèm (a.pdf Mục 12.4)?",
+    "answer": "np.mean(a) hoặc a.mean(); đi kèm a.sum(), a.max(), a.min() và tích vô hướng np.dot(a, b)."
+  },
+  {
+    "id": "fc-370",
+    "day": 8,
+    "module": "M2",
+    "tag": "Pandas",
+    "question": "Viết 1 dòng Pandas: lọc age > 25 rồi sắp xếp score giảm dần (a.pdf Mục 13.3)?",
+    "answer": "df[df[\"age\"] > 25].sort_values(\"score\", ascending=False)."
+  },
+  {
+    "id": "fc-371",
+    "day": 8,
+    "module": "M2",
+    "tag": "Pandas",
+    "question": "Viết lệnh Pandas tính tổng revenue theo từng region (Câu 9 Module B, a.pdf)?",
+    "answer": "df.groupby(\"region\")[\"revenue\"].sum()."
+  },
+  {
+    "id": "fc-372",
+    "day": 8,
+    "module": "M2",
+    "tag": "Pandas",
+    "question": "Viết lệnh Pandas dùng groupby().agg() tính đồng thời tổng revenue và trung bình score theo region (a.pdf Mục 13.8)?",
+    "answer": "df.groupby(\"region\").agg({\"revenue\": \"sum\", \"score\": \"mean\"})."
+  },
+  {
+    "id": "fc-373",
+    "day": 8,
+    "module": "M2",
+    "tag": "Pandas",
+    "question": "Cú pháp Pandas xóa dòng chứa NaN và điền NaN cột age bằng giá trị trung bình (a.pdf Mục 13.4)?",
+    "answer": "Xóa: df.dropna(). Điền: df[\"age\"] = df[\"age\"].fillna(df[\"age\"].mean()). (Nhớ trong ML chỉ tính mean trên Train!)."
+  },
+  {
+    "id": "fc-374",
+    "day": 8,
+    "module": "M2",
+    "tag": "Pandas",
+    "question": "Cú pháp ghép hai bảng customers và orders theo khóa chung customer_id (a.pdf Mục 13.9)?",
+    "answer": "pd.merge(customers, orders, on=\"customer_id\") (mặc định how=\"inner\", có thể đổi sang how=\"left\")."
+  },
+  {
+    "id": "fc-375",
+    "day": 8,
+    "module": "M2",
+    "tag": "Pandas",
+    "question": "Cú pháp nối hai DataFrame df1 và df2 cùng cấu trúc cột theo chiều dọc (a.pdf Mục 13.10)?",
+    "answer": "pd.concat([df1, df2], ignore_index=True) — merge ghép theo key, còn concat nối theo trục (axis)."
+  },
+  {
+    "id": "fc-376",
+    "day": 8,
+    "module": "M2",
+    "tag": "Pandas",
+    "question": "df.fillna(method=\"ffill\") vs df.ffill() trong Pandas 2.x?",
+    "answer": "Cả hai đều thực hiện Forward Fill (điền bằng giá trị hợp lệ gần nhất phía trước), nhưng Pandas 2.x khuyến nghị viết gọn df.ffill() vì tham số method trong fillna đã deprecated."
+  },
+  {
+    "id": "fc-377",
+    "day": 8,
+    "module": "M2",
+    "tag": "Python Core",
+    "question": "Khác nhau giữa list.sort() và sorted(iterable) trong Python?",
+    "answer": "list.sort() sắp xếp TẠI CHỖ (in-place) và trả về None (hay mắc bẫy x = a.sort() ⇒ x là None!). sorted(a) trả về list MỚI, không biến đổi dữ liệu gốc."
+  },
+  {
+    "id": "fc-378",
+    "day": 8,
+    "module": "M2",
+    "tag": "Python Core",
+    "question": "Cách duyệt đồng thời cả khóa và giá trị của một dict trong Python?",
+    "answer": "Dùng for key, val in my_dict.items(): ... (trả về view cặp tuple (key, value), hiệu quả hơn tra cứu my_dict[k] lặp lại)."
+  },
+  {
+    "id": "fc-379",
+    "day": 8,
+    "module": "M2",
+    "tag": "Pandas",
+    "question": "Tác dụng của df.reset_index(drop=True) sau khi lọc hoặc xóa dòng trùng?",
+    "answer": "Đánh lại chỉ số hàng sạch sẽ từ 0, 1, 2...; drop=True tránh việc Pandas đẩy cột index cũ thành một cột dữ liệu thừa tên \"index\"."
+  },
+  {
+    "id": "fc-380",
+    "day": 8,
+    "module": "M2",
+    "tag": "NumPy",
+    "question": "Phân biệt nhanh np.arange(0, 10, 2) và np.linspace(0, 10, 5)?",
+    "answer": "arange chỉ định BƯỚC NHẢY (không gồm điểm cuối 10 ⇒ [0,2,4,6,8]); linspace chỉ định SỐ LƯỢNG ĐIỂM chia đều gồm cả 2 đầu ([0, 2.5, 5, 7.5, 10])."
+  }
+]

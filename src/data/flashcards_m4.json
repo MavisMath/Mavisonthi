@@ -1,0 +1,402 @@
+[
+  {
+    "id": "fc-46",
+    "day": 2,
+    "module": "M4",
+    "tag": "Logic",
+    "question": "A ⇒ B, biết B đúng?",
+    "answer": "Không suy ra được A đúng (ngụy biện khẳng định hệ quả / lỗi suy luận đảo: B ⇏ A)."
+  },
+  {
+    "id": "fc-47",
+    "day": 2,
+    "module": "M4",
+    "tag": "Logic",
+    "question": "A ⇒ B, biết B sai?",
+    "answer": "Suy ra chắc chắn A sai theo mệnh đề phản đảo tương đương (Contrapositive: ¬B ⇒ ¬A)."
+  },
+  {
+    "id": "fc-121",
+    "day": 2,
+    "module": "M4",
+    "tag": "Logic",
+    "question": "Mệnh đề kéo theo P → Q chỉ SAI trong duy nhất trường hợp nào?",
+    "answer": "Khi P ĐÚNG mà Q SAI. Nếu P sai thì P → Q luôn đúng về mặt logic (vacuously true)."
+  },
+  {
+    "id": "fc-122",
+    "day": 2,
+    "module": "M4",
+    "tag": "Logic",
+    "question": "Phủ định của mệnh đề kéo theo ¬(P → Q) là gì?",
+    "answer": "P ∧ ¬Q (P đúng VÀ Q sai). Ví dụ: phủ định \"Nếu có lỗi thì ghi log\" là \"Có lỗi NHƯNG không ghi log\"."
+  },
+  {
+    "id": "fc-123",
+    "day": 2,
+    "module": "M4",
+    "tag": "Logic",
+    "question": "Định luật De Morgan 1: ¬(A ∧ B)?",
+    "answer": "¬A ∨ ¬B (\"Không phải (A VÀ B)\" tương đương \"Không A HOẶC Không B\"). Rất hay ra bẫy viết điều kiện chặn firewall / if-else."
+  },
+  {
+    "id": "fc-124",
+    "day": 2,
+    "module": "M4",
+    "tag": "Logic",
+    "question": "Định luật De Morgan 2: ¬(A ∨ B)?",
+    "answer": "¬A ∧ ¬B (\"Không phải (A HOẶC B)\" tương đương \"Không A VÀ Không B\")."
+  },
+  {
+    "id": "fc-125",
+    "day": 2,
+    "module": "M4",
+    "tag": "Logic",
+    "question": "Phủ định lượng từ phổ quát ¬(∀x P(x)) là gì?",
+    "answer": "∃x ¬P(x): để bác bỏ câu \"Mọi camera đều hoạt động\", chỉ cần chỉ ra 1 phản ví dụ (tồn tại ít nhất 1 camera hỏng)."
+  },
+  {
+    "id": "fc-126",
+    "day": 2,
+    "module": "M4",
+    "tag": "Logic",
+    "question": "Phủ định lượng từ tồn tại ¬(∃x P(x)) là gì?",
+    "answer": "∀x ¬P(x): phủ định \"Có ít nhất một server bị treo\" là \"Mọi server đều không bị treo\"."
+  },
+  {
+    "id": "fc-127",
+    "day": 2,
+    "module": "M4",
+    "tag": "Logic",
+    "question": "Điều kiện Cần (Necessary) vs Điều kiện Đủ (Sufficient) trong P → Q?",
+    "answer": "P là điều kiện ĐỦ để có Q; Q là điều kiện CẦN để có P."
+  },
+  {
+    "id": "fc-128",
+    "day": 2,
+    "module": "M4",
+    "tag": "Fallacies",
+    "question": "Survivorship Bias (Sai lệch người sống sót) là gì?",
+    "answer": "Chỉ phân tích các trường hợp thành công/sống sót mà bỏ quên các trường hợp thất bại đã bị loại khỏi tập dữ liệu, dẫn đến kết luận sai lệch."
+  },
+  {
+    "id": "fc-129",
+    "day": 2,
+    "module": "M4",
+    "tag": "Fallacies",
+    "question": "Correlation ≠ Causation (Tương quan không phải nhân quả) có 3 nguyên nhân ẩn nào?",
+    "answer": "(1) Biến nhiễu thứ ba (Confounder), (2) Quan hệ nhân quả ngược chiều, hoặc (3) Trùng hợp ngẫu nhiên. Cần thí nghiệm có kiểm soát (A/B Test) để chứng minh nhân quả."
+  },
+  {
+    "id": "fc-130",
+    "day": 2,
+    "module": "M4",
+    "tag": "Fallacies",
+    "question": "Ngụy biện Cherry-Picking (Chọn lọc bằng chứng) trong đánh giá AI?",
+    "answer": "Chỉ khoe các ví dụ/prompt mà model trả lời đẹp (hoặc chỉ báo Accuracy tổng) trong khi giấu đi các ca thất bại hoặc phân nhóm có hiệu suất kém."
+  },
+  {
+    "id": "fc-131",
+    "day": 2,
+    "module": "M4",
+    "tag": "Fallacies",
+    "question": "Ngụy biện Lưỡng phân sai (False Dilemma) là gì?",
+    "answer": "Ép bài toán chỉ có 2 cực đoan (vd \"hoặc deploy DNN ngay không giải thích, hoặc bỏ hẳn AI\") trong khi còn giải pháp trung dung (Shadow Mode, DNN + SHAP, giảm scope HITL)."
+  },
+  {
+    "id": "fc-132",
+    "day": 2,
+    "module": "M4",
+    "tag": "Fallacies",
+    "question": "Base Rate Fallacy (Ngụy biện tỷ lệ nền) khi đánh giá test y tế/gian lận?",
+    "answer": "Bỏ qua xác suất tiên nghiệm P(A) rất nhỏ (vd bệnh hiếm 0.1%), dẫn đến tưởng rằng test nhạy 99% báo dương là chắc chắn 99% mắc bệnh."
+  },
+  {
+    "id": "fc-133",
+    "day": 2,
+    "module": "M4",
+    "tag": "Fallacies",
+    "question": "Confirmation Bias & Goodhart's Law trong dự án AI?",
+    "answer": "Confirmation Bias: chỉ tìm dữ liệu ủng hộ giả thuyết sẵn có. Goodhart's Law: \"Khi một chỉ số trở thành mục tiêu tối ưu cứng, nó không còn là thước đo tốt nữa\" (vd gaming CTR gây hại trải nghiệm)."
+  },
+  {
+    "id": "fc-48",
+    "day": 7,
+    "module": "M4",
+    "tag": "Privacy",
+    "question": "PII (Personally Identifiable Information)?",
+    "answer": "Thông tin định danh cá nhân (CCCD, SĐT, email, địa chỉ, sinh trắc học) — BẮT BUỘC dừng nạp, Mask/Anonymize bằng NER (<NAME>, <PHONE>) trước khi train."
+  },
+  {
+    "id": "fc-49",
+    "day": 7,
+    "module": "M4",
+    "tag": "Ethics",
+    "question": "Bias trong hệ thống AI?",
+    "answer": "Thiên lệch hệ thống gây bất lợi cho một nhóm người — thường bắt nguồn từ dữ liệu huấn luyện mất cân bằng, nhãn chủ quan hoặc biến thay thế (proxy), không sửa được bằng cách đổi kiến trúc model."
+  },
+  {
+    "id": "fc-50",
+    "day": 7,
+    "module": "M4",
+    "tag": "Governance",
+    "question": "Human-in-the-Loop (HITL)?",
+    "answer": "Con người có thẩm quyền kiểm tra, phê duyệt hoặc bác bỏ các quyết định có rủi ro cao (tín dụng, tuyển dụng, y tế) hoặc hành động ghi/xóa không thể hoàn tác của Agent."
+  },
+  {
+    "id": "fc-329",
+    "day": 7,
+    "module": "M4",
+    "tag": "OWASP LLM",
+    "question": "OWASP LLM01: Direct vs Indirect Prompt Injection?",
+    "answer": "Direct: người dùng trực tiếp gõ lệnh \"bỏ qua hướng dẫn trước đó...\". Indirect: chỉ thị độc hại ẩn bên trong email, web, tài liệu PDF/ticket mà RAG hoặc Agent đọc vào."
+  },
+  {
+    "id": "fc-330",
+    "day": 7,
+    "module": "M4",
+    "tag": "OWASP LLM",
+    "question": "Cách phòng thủ TRIỆT ĐỂ nhất chống Prompt Injection lộ dữ liệu trong RAG?",
+    "answer": "Áp dụng RBAC & Nguyên tắc quyền tối thiểu (Least Privilege) ở tầng API/Middleware TRƯỚC khi truy xuất Vector DB — LLM tuyệt đối không được cầm quyền đọc dữ liệu vượt cấp user."
+  },
+  {
+    "id": "fc-331",
+    "day": 7,
+    "module": "M4",
+    "tag": "OWASP LLM",
+    "question": "OWASP LLM02: Sensitive Information Disclosure (PII Memorization)?",
+    "answer": "LLM ghi nhớ thuộc lòng PII/bí mật trong tập fine-tune hoặc lộ qua context RAG. Phòng thủ: NER Redaction/Anonymization trước khi train, lọc đầu ra (output DLP), tách quyền dữ liệu."
+  },
+  {
+    "id": "fc-332",
+    "day": 7,
+    "module": "M4",
+    "tag": "OWASP LLM",
+    "question": "Tại sao nén dữ liệu chứa PII thành file ZIP có mật khẩu KHÔNG giải quyết rủi ro khi Fine-tune?",
+    "answer": "Mật khẩu ZIP chỉ bảo vệ dữ liệu lúc nghỉ (data at rest); khi giải nén đưa vào GPU để huấn luyện thì LLM vẫn đọc và ghi nhớ nguyên vẹn PII."
+  },
+  {
+    "id": "fc-333",
+    "day": 7,
+    "module": "M4",
+    "tag": "OWASP LLM",
+    "question": "OWASP LLM04: Data & Model Poisoning?",
+    "answer": "Kẻ tấn công cài dữ liệu độc/nhãn sai vào tập huấn luyện hoặc kho tài liệu RAG để tạo backdoor hoặc bẻ lái câu trả lời. Phòng thủ: chỉ nạp từ nguồn nội bộ đã duyệt, kiểm duyệt & xác thực nguồn gốc dữ liệu."
+  },
+  {
+    "id": "fc-334",
+    "day": 7,
+    "module": "M4",
+    "tag": "OWASP LLM",
+    "question": "OWASP LLM05: Improper Output Handling là gì?",
+    "answer": "Lấy thẳng đầu ra LLM chạy thành câu lệnh SQL, Shell, HTML/JS mà không kiểm tra/sanitize → gây SQL Injection, XSS, RCE. Phòng thủ: Parameterized query, allowlist lệnh, escape output."
+  },
+  {
+    "id": "fc-335",
+    "day": 7,
+    "module": "M4",
+    "tag": "OWASP LLM",
+    "question": "OWASP LLM06: Excessive Agency (Agent quá nhiều quyền)?",
+    "answer": "Cấp cho AI Agent các tool/quyền rộng hơn cần thiết (vd tự ý xóa DB, đổi firewall, gửi email ra ngoài). Phòng thủ: quyền tối thiểu, chỉ mở tool đọc mặc định, buộc HITL cho mọi hành động ghi/tác động."
+  },
+  {
+    "id": "fc-336",
+    "day": 7,
+    "module": "M4",
+    "tag": "OWASP LLM",
+    "question": "OWASP LLM03 (Supply Chain) & LLM10 (Unbounded Consumption / DoS)?",
+    "answer": "Supply Chain: dùng model/checkpoint (file .pickle) hoặc thư viện nhiễm mã độc — ưu tiên safetensors, nguồn tin cậy. Unbounded Consumption: tấn công nhồi prompt/vòng lặp đốt chi phí — chặn bằng rate limit, max_tokens, budget cap."
+  },
+  {
+    "id": "fc-337",
+    "day": 7,
+    "module": "M4",
+    "tag": "Privacy",
+    "question": "6 nguyên tắc cốt lõi của Luật Bảo vệ Dữ liệu Cá nhân 2025 & GDPR?",
+    "answer": "(1) Hợp pháp & minh bạch (có đồng ý); (2) Giới hạn mục đích; (3) Tối thiểu hóa dữ liệu; (4) Chính xác & giới hạn lưu trữ; (5) Toàn vẹn & bảo mật; (6) Trách nhiệm giải trình."
+  },
+  {
+    "id": "fc-338",
+    "day": 7,
+    "module": "M4",
+    "tag": "Privacy",
+    "question": "Dữ liệu cá nhân nhạy cảm (sinh trắc học/khuôn mặt, sức khỏe) & Quyền được xóa trong RAG?",
+    "answer": "Cần mức bảo vệ nghiêm ngặt hơn nhiều so với ghi hình thường; khi đưa dữ liệu vào bên thứ 3 (API nước ngoài) phải ẩn danh hóa hoặc có DPA; kho Vector RAG phải hỗ trợ xóa vector theo user_id khi được yêu cầu."
+  },
+  {
+    "id": "fc-339",
+    "day": 7,
+    "module": "M4",
+    "tag": "Copyright",
+    "question": "Quy tắc Bản quyền (Copyright) khi thu thập dữ liệu trên Internet để train AI?",
+    "answer": "KHÔNG mặc định dữ liệu công khai trên mạng là miễn phí thương mại; luôn kiểm tra nguồn gốc, License (MIT/Apache/CC-BY/NC) và tôn trọng quyền sở hữu trí tuệ."
+  },
+  {
+    "id": "fc-340",
+    "day": 7,
+    "module": "M4",
+    "tag": "EU AI Act",
+    "question": "EU AI Act: Nhóm 1 — Rủi ro không chấp nhận được (Unacceptable Risk — Bị CẤM)?",
+    "answer": "Chấm điểm công dân (Social Scoring), thao túng hành vi gây hại, nhận dạng cảm xúc tại nơi làm việc/trường học, nhận diện sinh trắc học thời gian thực diện rộng nơi công cộng (trừ ngoại lệ an ninh hẹp)."
+  },
+  {
+    "id": "fc-341",
+    "day": 7,
+    "module": "M4",
+    "tag": "EU AI Act",
+    "question": "EU AI Act: Nhóm 2 — Rủi ro cao (High-Risk) gồm lĩnh vực nào & yêu cầu gì?",
+    "answer": "Tuyển dụng, chấm điểm tín dụng/vay vốn, giáo dục, y tế, hạ tầng trọng yếu. Bắt buộc: quản trị rủi ro, chất lượng dữ liệu, tài liệu kỹ thuật, ghi log, minh bạch/giải thích được và giám sát con người."
+  },
+  {
+    "id": "fc-342",
+    "day": 7,
+    "module": "M4",
+    "tag": "EU AI Act",
+    "question": "EU AI Act: Nhóm 3 (Rủi ro hạn chế) & Nhóm 4 (Rủi ro tối thiểu)?",
+    "answer": "Hạn chế (Limited): nghĩa vụ minh bạch — chatbot phải khai báo rõ là AI, nội dung sinh (deepfake) phải gắn nhãn. Tối thiểu (Minimal): gần như không ràng buộc (bộ lọc spam, AI trong game)."
+  },
+  {
+    "id": "fc-343",
+    "day": 7,
+    "module": "M4",
+    "tag": "Fairness",
+    "question": "Historical & Representation Bias trong AI tuyển dụng là gì?",
+    "answer": "Tập dữ liệu huấn luyện thiếu đa dạng hoặc mang định kiến lịch sử (vd ít mẫu ứng viên nữ/giọng địa phương). Khắc phục: kiểm toán dataset, bổ sung mẫu đại diện và chuẩn hóa tiêu chí gán nhãn."
+  },
+  {
+    "id": "fc-344",
+    "day": 7,
+    "module": "M4",
+    "tag": "Fairness",
+    "question": "Proxy Variable (Biến thay thế) gây thiên kiến dù đã xóa cột giới tính/chủng tộc?",
+    "answer": "Xóa thuộc tính nhạy cảm (vd giới tính/chủng tộc) nhưng giữ lại cột tương quan chặt với nó (vd mã bưu điện ZIP code, tên trường) khiến mô hình vẫn gián tiếp phân biệt đối xử."
+  },
+  {
+    "id": "fc-345",
+    "day": 7,
+    "module": "M4",
+    "tag": "Fairness",
+    "question": "Cách kiểm tra Fairness (Disparate Impact / Equalized Odds) của mô hình?",
+    "answer": "Không chỉ nhìn Accuracy tổng! Phải phân tách (disaggregate) đo tỷ lệ duyệt, Recall, FPR giữa từng phân nhóm nhân khẩu học; quy tắc 4/5 (80% rule) cảnh báo Disparate Impact."
+  },
+  {
+    "id": "fc-346",
+    "day": 7,
+    "module": "M4",
+    "tag": "Fairness",
+    "question": "Feedback Loop (Vòng lặp phản hồi lệch) trong hệ thống AI là gì?",
+    "answer": "Quyết định thiên lệch của AI tạo ra dữ liệu tương lai càng lệch hơn (vd chỉ kiểm tra khu vực A → bắt nhiều lỗi ở A → train lại càng tập trung phạt A)."
+  },
+  {
+    "id": "fc-347",
+    "day": 7,
+    "module": "M4",
+    "tag": "Governance",
+    "question": "Automation Bias trong quy trình Human-in-the-Loop (HITL) là gì?",
+    "answer": "Con người phê duyệt thụ động tin tuyệt đối vào gợi ý của máy (gật đầu mọi đề xuất) do thiếu thời gian hoặc thiếu thông tin giải thích. Khắc phục: hiển thị bằng chứng, độ tự tin và quy trình kiểm tra ngẫu nhiên."
+  },
+  {
+    "id": "fc-348",
+    "day": 7,
+    "module": "M4",
+    "tag": "Governance",
+    "question": "Model Card (Thẻ mô hình) dùng để làm gì?",
+    "answer": "Tài liệu minh bạch hóa mô hình: mục đích sử dụng, tập dữ liệu huấn luyện, chỉ số đánh giá theo từng phân nhóm, giới hạn đã biết và các trường hợp CẤM dùng."
+  },
+  {
+    "id": "fc-349",
+    "day": 7,
+    "module": "M4",
+    "tag": "Governance",
+    "question": "Red Teaming cho hệ thống LLM/AI là gì?",
+    "answer": "Kiểm thử đối kháng chủ động (đóng vai kẻ tấn công) bằng bộ kịch bản Prompt Injection, Jailbreak, trích xuất PII, sinh nội dung độc hại trước và sau khi phát hành."
+  },
+  {
+    "id": "fc-350",
+    "day": 7,
+    "module": "M4",
+    "tag": "Ethics",
+    "question": "Xử lý đúng chuẩn Level 3/4 khi Model mới pass 70% Safety Test mà sếp ép deploy ngay?",
+    "answer": "KHÔNG im lặng deploy và KHÔNG chống đối cảm tính. Trình bày Risk bằng Evidence từ 30% ca fail → nêu hậu quả pháp lý/uy tín → đề xuất giảm Scope (Shadow Mode / HITL / Canary có ngưỡng) → ghi nhận biên bản trách nhiệm."
+  },
+  {
+    "id": "fc-391",
+    "day": 8,
+    "module": "M4",
+    "tag": "Logic",
+    "question": "Cho mệnh đề: \"Nếu máy nhiễm mã độc (P) thì antivirus báo động (Q).\" Viết câu Phản đảo (đúng) và câu Đảo (chưa chắc đúng) (CĐ-12)?",
+    "answer": "Phản đảo (tương đương): \"Antivirus không báo động ⇒ máy không nhiễm\". Đảo (chưa chắc đúng): \"Antivirus báo động ⇒ máy nhiễm\" (vì có thể là báo động nhầm FP!)."
+  },
+  {
+    "id": "fc-392",
+    "day": 8,
+    "module": "M4",
+    "tag": "Logic",
+    "question": "Điều kiện vào hệ thống: (tài khoản hợp lệ VÀ đúng nhóm). Nếu viết nhầm luật chặn firewall là (không hợp lệ VÀ sai nhóm) thì hậu quả gì (CĐ-12)?",
+    "answer": "Để lọt tất cả người chỉ vi phạm 1 trong 2 điều kiện (vd tài khoản hợp lệ nhưng sai nhóm)! Theo De Morgan phải chặn khi (không hợp lệ HOẶC sai nhóm)."
+  },
+  {
+    "id": "fc-393",
+    "day": 8,
+    "module": "M4",
+    "tag": "Privacy",
+    "question": "5 bước chuẩn khi phát hiện chat log huấn luyện chứa CCCD và mật khẩu (a.pdf Mục 38)?",
+    "answer": "(1) Dừng đưa trực tiếp vào Pipeline; (2) Mask/Remove/Anonymize PII; (3) Kiểm tra Policy; (4) Giới hạn quyền truy cập; (5) Chỉ dùng dữ liệu thực sự cần thiết."
+  },
+  {
+    "id": "fc-394",
+    "day": 8,
+    "module": "M4",
+    "tag": "Product Safety",
+    "question": "5 giải pháp tầng UI khi AI tư vấn tài chính có rủi ro Hallucination (a.pdf Mục 41)?",
+    "answer": "(1) Hiển thị Citation; (2) Hiển thị nguồn; (3) Cảnh báo AI có thể sai; (4) Cho phép người dùng bấm Report; (5) Không trình bày AI như chuyên gia tuyệt đối."
+  },
+  {
+    "id": "fc-395",
+    "day": 8,
+    "module": "M4",
+    "tag": "Product Safety",
+    "question": "6 giải pháp tầng Data Pipeline để giảm Hallucination trong sản phẩm AI (a.pdf Mục 41)?",
+    "answer": "(1) RAG; (2) Kiểm tra chất lượng nguồn; (3) Guardrail; (4) Ngưỡng Confidence/Threshold; (5) Human Review cho rủi ro cao; (6) Logging và Monitoring."
+  },
+  {
+    "id": "fc-396",
+    "day": 8,
+    "module": "M4",
+    "tag": "Ethics",
+    "question": "Nếu mô hình AI không chắc chắn trong bài toán chẩn đoán y tế, hệ thống phải xử lý ra sao (Câu 10 Module D, a.pdf)?",
+    "answer": "Tuyệt đối không tự bịa hoặc ép ra kết luận dứt khoát; phải báo rõ độ bất định/fallback và chuyển ngay cho bác sĩ hoặc chuyên gia (Human Review)."
+  },
+  {
+    "id": "fc-397",
+    "day": 8,
+    "module": "M4",
+    "tag": "Governance",
+    "question": "4 lợi ích cốt lõi của Logging trong hệ thống AI production (Câu 12 Module D, a.pdf)?",
+    "answer": "(1) Điều tra nguyên nhân lỗi sự cố; (2) Audit tuân thủ & trách nhiệm giải trình; (3) Monitoring giám sát Drift/latency; (4) Phân tích hành vi Model sau triển khai."
+  },
+  {
+    "id": "fc-398",
+    "day": 8,
+    "module": "M4",
+    "tag": "Privacy",
+    "question": "Đưa nội dung ticket/email có tên, SĐT nhân viên lên dịch vụ AI API bên ngoài phát sinh rủi ro pháp lý nào (CĐ-12)?",
+    "answer": "Là hành vi chuyển dữ liệu cá nhân cho bên thứ ba (có thể ra nước ngoài theo Luật Bảo vệ DLCN 2025 / GDPR). Cần ẩn danh hóa trước, chạy mô hình nội bộ hoặc ký thỏa thuận xử lý dữ liệu (DPA)."
+  },
+  {
+    "id": "fc-399",
+    "day": 8,
+    "module": "M4",
+    "tag": "Privacy",
+    "question": "Camera ghi hình nhân viên thông thường vs Camera nhận diện khuôn mặt khác nhau thế nào về mức độ bảo vệ (CĐ-12)?",
+    "answer": "Cả hai đều là dữ liệu cá nhân cần thông báo rõ khu vực/mục đích và giới hạn lưu trữ, nhưng nhận diện khuôn mặt là DỮ LIỆU SINH TRẮC HỌC nhạy cảm nên mức rủi ro và yêu cầu bảo vệ cao hơn nhiều."
+  },
+  {
+    "id": "fc-400",
+    "day": 8,
+    "module": "M4",
+    "tag": "OWASP LLM",
+    "question": "3 lớp phòng thủ OWASP cụ thể cho AI Agent & RAG trong vận hành IT (CĐ-12)?",
+    "answer": "(1) Agent chỉ tự đọc log, restart server bắt buộc người duyệt (giảm Excessive Agency); (2) Kiểm tra định dạng & allowlist lệnh trước khi chạy output LLM (chống Improper Output Handling); (3) Chỉ nạp kho nội bộ đã duyệt vào RAG (chống Data Poisoning)."
+  }
+]

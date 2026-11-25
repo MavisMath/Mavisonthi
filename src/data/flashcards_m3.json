@@ -1,0 +1,1082 @@
+[
+  {
+    "id": "fc-01",
+    "day": 5,
+    "module": "M3",
+    "tag": "ML Basics",
+    "question": "Classification?",
+    "answer": "Học có giám sát với Output là Label rời rạc (nhãn phân loại, ví dụ Spam / Not Spam, phân loại bệnh)."
+  },
+  {
+    "id": "fc-02",
+    "day": 5,
+    "module": "M3",
+    "tag": "ML Basics",
+    "question": "Regression?",
+    "answer": "Học có giám sát với Output là số liên tục (ví dụ dự đoán giá nhà, doanh thu, dung lượng lưu trữ)."
+  },
+  {
+    "id": "fc-03",
+    "day": 5,
+    "module": "M3",
+    "tag": "ML Basics",
+    "question": "Clustering?",
+    "answer": "Học không giám sát: gom nhóm dữ liệu KHÔNG có nhãn dựa trên độ tương đồng (vd phân khúc khách hàng, K-Means)."
+  },
+  {
+    "id": "fc-04",
+    "day": 5,
+    "module": "M3",
+    "tag": "Algorithms",
+    "question": "KNN (K-Nearest Neighbors)?",
+    "answer": "Dự đoán dựa trên K hàng xóm gần nhất (không có bước train tham số; nhạy noise khi K=1; BẮT BUỘC chuẩn hóa thang đo vì dùng khoảng cách)."
+  },
+  {
+    "id": "fc-05",
+    "day": 5,
+    "module": "M3",
+    "tag": "Algorithms",
+    "question": "Naive Bayes?",
+    "answer": "Thuật toán dựa trên Định lý Bayes với giả định cốt lõi: Conditional Independence giữa các Feature khi đã biết Class."
+  },
+  {
+    "id": "fc-06",
+    "day": 5,
+    "module": "M3",
+    "tag": "Loss",
+    "question": "MSE (Mean Squared Error)?",
+    "answer": "Regression Loss = (1/n)·Σ(y_i - ŷ_i)². Phạt nặng sai số lớn (nhạy với outlier)."
+  },
+  {
+    "id": "fc-07",
+    "day": 5,
+    "module": "M3",
+    "tag": "Loss",
+    "question": "Cross-Entropy Loss?",
+    "answer": "Classification Loss tiêu chuẩn (nhị phân và đa lớp, ảnh, văn bản, ngôn ngữ) — đo độ lệch giữa phân phối xác suất dự đoán và nhãn thật."
+  },
+  {
+    "id": "fc-08",
+    "day": 5,
+    "module": "M3",
+    "tag": "Training",
+    "question": "Overfitting?",
+    "answer": "Train rất tốt (99%), Validation/Test kém (65%) — High Variance (học vẹt nhiễu của tập train)."
+  },
+  {
+    "id": "fc-09",
+    "day": 5,
+    "module": "M3",
+    "tag": "Training",
+    "question": "Underfitting?",
+    "answer": "Cả Train và Validation đều kém — High Bias (mô hình quá đơn giản, chưa nắm được quy luật dữ liệu)."
+  },
+  {
+    "id": "fc-12",
+    "day": 5,
+    "module": "M3",
+    "tag": "Training",
+    "question": "Epoch?",
+    "answer": "Một lượt mô hình đi qua TOÀN BỘ tập dữ liệu huấn luyện (Training Set)."
+  },
+  {
+    "id": "fc-13",
+    "day": 5,
+    "module": "M3",
+    "tag": "Training",
+    "question": "Batch Size?",
+    "answer": "Số lượng mẫu (samples) được xử lý trong MỘT lần tính gradient và cập nhật trọng số."
+  },
+  {
+    "id": "fc-29",
+    "day": 5,
+    "module": "M3",
+    "tag": "Deep Learning",
+    "question": "CNN (Convolutional Neural Network)?",
+    "answer": "Mạng tích chập chuyên xử lý ảnh / dữ liệu có cấu trúc không gian (Spatial Pattern) nhờ bộ lọc (kernel) chia sẻ trọng số."
+  },
+  {
+    "id": "fc-230",
+    "day": 5,
+    "module": "M3",
+    "tag": "Data Split",
+    "question": "Vai trò khác nhau của 3 tập Train / Validation / Test?",
+    "answer": "Train (~70%): học trọng số. Validation (~15%): chọn mô hình, chỉnh Hyperparameter, Early Stopping. Test (~15%): đánh giá cuối cùng DUY NHẤT 1 lần trên dữ liệu chưa thấy."
+  },
+  {
+    "id": "fc-231",
+    "day": 5,
+    "module": "M3",
+    "tag": "Data Leakage",
+    "question": "Data Leakage là gì và dấu hiệu nhận biết sớm nhất?",
+    "answer": "Thông tin từ tập Test hoặc từ tương lai lọt vào quá trình huấn luyện khiến điểm Val/Test cao bất thường (vd 99%) nhưng ra production sập mạnh."
+  },
+  {
+    "id": "fc-232",
+    "day": 5,
+    "module": "M3",
+    "tag": "Data Leakage",
+    "question": "4 kiểu Data Leakage kinh điển trong đề thi VinUni?",
+    "answer": "(1) Fit Scaler/Imputer trên toàn dataset trước khi chia; (2) Feature chứa đáp án/hậu quả tương lai; (3) Mẫu trùng lặp ở cả Train và Test; (4) Trộn ngẫu nhiên dữ liệu Time-Series."
+  },
+  {
+    "id": "fc-233",
+    "day": 5,
+    "module": "M3",
+    "tag": "Data Leakage",
+    "question": "Cách chuẩn hóa dữ liệu (StandardScaler) đúng quy trình chống Leakage?",
+    "answer": "Chia train/val/test TRƯỚC; gọi scaler.fit_transform(X_train) trên tập Train, sau đó CHỈ gọi scaler.transform(X_val) và scaler.transform(X_test) (nên đóng gói bằng sklearn Pipeline)."
+  },
+  {
+    "id": "fc-234",
+    "day": 5,
+    "module": "M3",
+    "tag": "Validation",
+    "question": "K-Fold vs Stratified K-Fold vs TimeSeriesSplit?",
+    "answer": "K-Fold: chia K phần đều. Stratified K-Fold: giữ nguyên tỷ lệ các lớp trong mỗi fold (bắt buộc cho dữ liệu mất cân bằng). TimeSeriesSplit: luôn train quá khứ, test tương lai."
+  },
+  {
+    "id": "fc-235",
+    "day": 5,
+    "module": "M3",
+    "tag": "Algorithms",
+    "question": "Logistic Regression dùng cho bài toán nào dù tên có chữ \"Regression\"?",
+    "answer": "Phân loại (Classification)! Đưa tổ hợp tuyến tính z = w·x + b qua hàm Sigmoid để ra xác suất thuộc lớp 1 rồi so với ngưỡng threshold."
+  },
+  {
+    "id": "fc-236",
+    "day": 5,
+    "module": "M3",
+    "tag": "Algorithms",
+    "question": "Decision Tree tách nhánh dựa trên tiêu chí nào và nhược điểm chính?",
+    "answer": "Dựa trên Gini Impurity hoặc Entropy / Information Gain (MSE cho hồi quy). Dễ giải thích nhưng cực dễ Overfit nếu không giới hạn max_depth / min_samples_leaf."
+  },
+  {
+    "id": "fc-237",
+    "day": 5,
+    "module": "M3",
+    "tag": "Algorithms",
+    "question": "So sánh Bagging (Random Forest) vs Boosting (XGBoost / LightGBM)?",
+    "answer": "Bagging: train nhiều cây ĐỘC LẬP song song trên mẫu bootstrap để giảm Variance. Boosting: train TUẦN TỰ, cây sau sửa lỗi (residual) của cây trước để giảm Bias — cực mạnh trên dữ liệu bảng."
+  },
+  {
+    "id": "fc-238",
+    "day": 5,
+    "module": "M3",
+    "tag": "Algorithms",
+    "question": "K-Means chọn số cụm k bằng 2 phương pháp nào và có cần scaling không?",
+    "answer": "Chọn k bằng Elbow Method (điểm khuỷu tay của Inertia) hoặc Silhouette Score (-1 đến 1). BẮT BUỘC chuẩn hóa thang đo trước vì dùng khoảng cách Euclidean."
+  },
+  {
+    "id": "fc-239",
+    "day": 5,
+    "module": "M3",
+    "tag": "Algorithms",
+    "question": "DBSCAN có ưu điểm gì vượt trội K-Means?",
+    "answer": "Không cần chọn trước số cụm k, phát hiện được cụm hình dạng bất kỳ (phi cầu) và tự động tách điểm ngoại lai (noise/outlier)."
+  },
+  {
+    "id": "fc-240",
+    "day": 5,
+    "module": "M3",
+    "tag": "Algorithms",
+    "question": "SVM (Support Vector Machine) và Kernel Trick?",
+    "answer": "Tìm siêu phẳng phân tách có lề (Margin) lớn nhất. Kernel Trick (RBF, Poly) chiếu dữ liệu sang không gian nhiều chiều hơn để phân tách phi tuyến mà không cần tính tọa độ tường minh."
+  },
+  {
+    "id": "fc-241",
+    "day": 5,
+    "module": "M3",
+    "tag": "Regularization",
+    "question": "So sánh Regularization L1 (Lasso) vs L2 (Ridge)?",
+    "answer": "L1 phạt λ·Σ|w_i| → ép nhiều trọng số về ĐÚNG 0 (tự động chọn đặc trưng / sparse). L2 phạt λ·Σw_i² → thu nhỏ đều trọng số gần 0 nhưng hiếm khi bằng 0, xử lý tốt đa cộng tuyến."
+  },
+  {
+    "id": "fc-242",
+    "day": 5,
+    "module": "M3",
+    "tag": "Regularization",
+    "question": "6 cách chính để chống Overfitting?",
+    "answer": "(1) Thêm dữ liệu sạch; (2) Data Augmentation; (3) Regularization (L1/L2, Weight Decay); (4) Dropout; (5) Early Stopping; (6) Giảm độ phức tạp mô hình / giảm feature thừa."
+  },
+  {
+    "id": "fc-243",
+    "day": 5,
+    "module": "M3",
+    "tag": "Regularization",
+    "question": "Dropout hoạt động khác nhau thế nào lúc Train vs lúc Inference?",
+    "answer": "Lúc Train: tắt ngẫu nhiên tỷ lệ p neuron mỗi bước để tránh phụ thuộc lẫn nhau. Lúc Inference (model.eval()): TẮT Dropout, dùng toàn bộ neuron đã chuẩn hóa tỷ lệ."
+  },
+  {
+    "id": "fc-244",
+    "day": 5,
+    "module": "M3",
+    "tag": "Regularization",
+    "question": "Early Stopping hoạt động ra sao?",
+    "answer": "Theo dõi Validation Loss sau mỗi epoch; khi Val Loss không còn giảm sau số epoch \"patience\" (trong khi Train Loss vẫn giảm), dừng train và giữ checkpoint tốt nhất."
+  },
+  {
+    "id": "fc-245",
+    "day": 5,
+    "module": "M3",
+    "tag": "Imbalance",
+    "question": "SMOTE làm gì và bẫy chết người khi dùng SMOTE?",
+    "answer": "SMOTE sinh thêm mẫu tổng hợp cho lớp thiểu số bằng cách nội suy giữa các hàng xóm gần nhất. BẪY: TUYỆT ĐỐI chỉ áp dụng SMOTE trên tập Train (bên trong CV fold), không làm trước khi chia Val/Test!"
+  },
+  {
+    "id": "fc-246",
+    "day": 5,
+    "module": "M3",
+    "tag": "Imbalance",
+    "question": "Focal Loss là gì và dùng trong bài toán nào?",
+    "answer": "Biến thể của Cross-Entropy thêm nhân tử (1 - p_t)^γ để giảm trọng số các mẫu dễ phân loại và tập trung phạt mạnh các mẫu khó / lớp hiếm (rất nổi tiếng trong Object Detection & Fraud lệch lớp nặng)."
+  },
+  {
+    "id": "fc-247",
+    "day": 5,
+    "module": "M3",
+    "tag": "Imbalance",
+    "question": "Tham số class_weight=\"balanced\" có tác dụng gì?",
+    "answer": "Tự động gán trọng số phạt cao hơn tỉ lệ nghịch với tần suất lớp thiểu số trong hàm Loss mà không cần nhân bản dữ liệu."
+  },
+  {
+    "id": "fc-248",
+    "day": 5,
+    "module": "M3",
+    "tag": "Feature Eng",
+    "question": "StandardScaler vs MinMaxScaler vs RobustScaler?",
+    "answer": "StandardScaler: (x-μ)/σ (mean=0, std=1). MinMaxScaler: nén về [0,1] (rất nhạy outlier). RobustScaler: dùng Median và IQR — bền vững nhất khi có outlier."
+  },
+  {
+    "id": "fc-249",
+    "day": 5,
+    "module": "M3",
+    "tag": "Feature Eng",
+    "question": "Khi nào dùng One-Hot Encoding vs Ordinal Encoding vs Target Encoding?",
+    "answer": "One-Hot: biến định danh không thứ tự ít giá trị. Ordinal: có thứ tự tự nhiên (Thấp/Trung/Cao). Target Encoding: biến nhiều danh mục (high-cardinality như mã bưu điện — nhớ fit chỉ trên train/OOF tránh leak)."
+  },
+  {
+    "id": "fc-250",
+    "day": 5,
+    "module": "M3",
+    "tag": "Feature Eng",
+    "question": "Mô hình dạng cây (XGBoost / Random Forest) có bắt buộc chuẩn hóa thang đo không?",
+    "answer": "Không bắt buộc! Vì cây chỉ tách ngưỡng so sánh lớn hơn/nhỏ hơn trên từng feature (bất biến với phép co giãn đơn điệu), khác với KNN, K-Means, SVM, Logistic/Linear Regression, Neural Net."
+  },
+  {
+    "id": "fc-251",
+    "day": 5,
+    "module": "M3",
+    "tag": "Feature Eng",
+    "question": "Curse of Dimensionality (Lời nguyền chiều cao) gây ra vấn đề gì?",
+    "answer": "Khi số chiều quá lớn, các điểm dữ liệu trở nên thưa thớt và khoảng cách giữa mọi cặp điểm gần như bằng nhau → làm hỏng KNN/K-Means và gây Overfitting. Khắc phục bằng Feature Selection hoặc PCA/SVD."
+  },
+  {
+    "id": "fc-252",
+    "day": 5,
+    "module": "M3",
+    "tag": "Deep Learning",
+    "question": "Backpropagation (Lan truyền ngược) là gì?",
+    "answer": "Thuật toán áp dụng Chain Rule từ tầng Output ngược về Input để tính đạo hàm riêng ∂L/∂W cho từng trọng số trong mạng nơ-ron."
+  },
+  {
+    "id": "fc-253",
+    "day": 5,
+    "module": "M3",
+    "tag": "Deep Learning",
+    "question": "Vanishing Gradient là gì và 3 cách khắc phục kinh điển?",
+    "answer": "Gradient thu nhỏ dần về 0 khi truyền ngược qua nhiều lớp sâu khiến các lớp đầu không học được. Khắc phục: (1) Đổi Sigmoid/Tanh sang ReLU/GELU; (2) Skip/Residual Connections (ResNet); (3) BatchNorm / LayerNorm & He/Xavier Init."
+  },
+  {
+    "id": "fc-254",
+    "day": 5,
+    "module": "M3",
+    "tag": "Deep Learning",
+    "question": "Batch Normalization vs Layer Normalization?",
+    "answer": "BatchNorm chuẩn hóa theo chiều Batch cho từng feature (chuẩn trong CNN, nhạy khi batch size nhỏ). LayerNorm chuẩn hóa theo toàn bộ feature của TỪNG mẫu độc lập (chuẩn trong Transformer/LLM)."
+  },
+  {
+    "id": "fc-255",
+    "day": 5,
+    "module": "M3",
+    "tag": "Deep Learning",
+    "question": "Residual Connection (Skip Connection: y = F(x) + x) giúp ích gì?",
+    "answer": "Tạo \"đường cao tốc\" cho gradient chảy thẳng ngược về các lớp đầu không bị suy giảm, cho phép huấn luyện mạng sâu hàng trăm lớp (ResNet, Transformer)."
+  },
+  {
+    "id": "fc-256",
+    "day": 5,
+    "module": "M3",
+    "tag": "Deep Learning",
+    "question": "Weight Initialization: Xavier (Glorot) vs He (Kaiming)?",
+    "answer": "Khởi tạo trọng số toàn 0 làm mọi neuron học giống hệt nhau (symmetry breaking fail). Dùng Xavier cho Sigmoid/Tanh và He Initialization cho ReLU để giữ phương sai ổn định qua các lớp."
+  },
+  {
+    "id": "fc-257",
+    "day": 5,
+    "module": "M3",
+    "tag": "Computer Vision",
+    "question": "Công thức kích thước đầu ra lớp Conv2D: input W, kernel K, padding P, stride S?",
+    "answer": "W_out = floor((W - K + 2P) / S) + 1. Stride lớn hơn giúp giảm kích thước bản đồ đặc trưng nhanh hơn."
+  },
+  {
+    "id": "fc-258",
+    "day": 5,
+    "module": "M3",
+    "tag": "Computer Vision",
+    "question": "Max Pooling vs Global Average Pooling (GAP)?",
+    "answer": "Max Pooling lấy giá trị lớn nhất trong vùng cửa sổ để giảm chiều và tăng bất biến dịch chuyển. GAP lấy trung bình toàn bộ mỗi feature map, giảm mạnh tham số thay cho Flatten+Dense."
+  },
+  {
+    "id": "fc-259",
+    "day": 5,
+    "module": "M3",
+    "tag": "Computer Vision",
+    "question": "Transfer Learning (Fine-tune backbone pretrained như ResNet/ViT) dùng khi nào?",
+    "answer": "Khi tập dữ liệu ảnh/văn bản nhỏ: đóng băng (freeze) các lớp đầu trích xuất đặc trưng tổng quát, chỉ train lớp phân loại cuối rồi mới unfreeze fine-tune nhẹ với LR nhỏ."
+  },
+  {
+    "id": "fc-260",
+    "day": 5,
+    "module": "M3",
+    "tag": "Computer Vision",
+    "question": "IoU (Intersection over Union) trong Object Detection (YOLO)?",
+    "answer": "IoU = Diện tích phần giao / Diện tích phần hợp giữa hộp dự đoán và Ground Truth (thường ngưỡng ≥ 0.5 để coi là phát hiện đúng TP)."
+  },
+  {
+    "id": "fc-261",
+    "day": 5,
+    "module": "M3",
+    "tag": "Computer Vision",
+    "question": "NMS (Non-Maximum Suppression) và mAP trong YOLO dùng để làm gì?",
+    "answer": "NMS loại bỏ các bounding box trùng lặp bao quanh cùng 1 vật thể (chỉ giữ box tự tin cao nhất). mAP (mean Average Precision) là chỉ số chuẩn đánh giá độ chính xác phát hiện vật thể."
+  },
+  {
+    "id": "fc-262",
+    "day": 5,
+    "module": "M3",
+    "tag": "Deep Learning",
+    "question": "Tại sao Transformer thay thế RNN/LSTM trong NLP hiện đại?",
+    "answer": "RNN/LSTM phải xử lý tuần tự từng token (khó song song hóa trên GPU) và dễ quên ngữ cảnh xa; Transformer xử lý song song toàn chuỗi nhờ Self-Attention."
+  },
+  {
+    "id": "fc-263",
+    "day": 5,
+    "module": "M3",
+    "tag": "XAI",
+    "question": "SHAP (SHapley Additive exPlanations) hoạt động dựa trên lý thuyết nào?",
+    "answer": "Dựa trên giá trị Shapley trong lý thuyết trò chơi hợp tác: phân bổ công bằng đóng góp biên của từng feature cho dự đoán cụ thể (hỗ trợ cả Local & Global explanation)."
+  },
+  {
+    "id": "fc-264",
+    "day": 5,
+    "module": "M3",
+    "tag": "XAI",
+    "question": "LIME (Local Interpretable Model-agnostic Explanations) khác SHAP ở điểm nào?",
+    "answer": "LIME gây nhiễu các điểm quanh mẫu cần giải thích rồi khớp một mô hình tuyến tính cục bộ đơn giản. Nhanh hơn SHAP tổng quát nhưng lời giải thích có thể kém nhất quán hơn giữa các lần chạy."
+  },
+  {
+    "id": "fc-265",
+    "day": 5,
+    "module": "M3",
+    "tag": "XAI",
+    "question": "Grad-CAM dùng trong bài toán nào?",
+    "answer": "Giải thích trực quan mạng CNN/ảnh bằng bản đồ nhiệt (heatmap) chỉ ra vùng pixel nào trên ảnh quyết định nhãn dự đoán — rất mạnh để phát hiện Spurious Correlations (vd nhận diện sói nhờ nền tuyết)."
+  },
+  {
+    "id": "fc-266",
+    "day": 5,
+    "module": "M3",
+    "tag": "XAI",
+    "question": "Spurious Correlation (Tương quan giả tạo) trong mô hình AI là gì?",
+    "answer": "Mô hình học đường tắt từ đặc trưng nhiễu không liên quan bản chất (vd nhãn bệnh viện trên góc ảnh X-quang thay vì tổn thương phổi) — phát hiện bằng XAI (Grad-CAM/SHAP) và kiểm tra tập OOD."
+  },
+  {
+    "id": "fc-267",
+    "day": 5,
+    "module": "M3",
+    "tag": "XAI",
+    "question": "Đánh đổi Interpretability vs Accuracy trong ngân hàng (DNN hơn XGBoost 6%)?",
+    "answer": "Luật yêu cầu giải thích rõ khi từ chối vay. Giải pháp L3/L4: dùng DNN kèm SHAP/LIME sinh giải thích cục bộ NHƯNG phải kiểm chứng latency và tính nhất quán (hoặc tạm giữ XGBoost nếu không đạt)."
+  },
+  {
+    "id": "fc-19",
+    "day": 6,
+    "module": "M3",
+    "tag": "LLM/RAG",
+    "question": "Embedding?",
+    "answer": "Vector Representation dày đặc (vd 768–1536 chiều) biểu diễn ngữ nghĩa văn bản/dữ liệu sao cho nội dung giống nghĩa nằm gần nhau."
+  },
+  {
+    "id": "fc-20",
+    "day": 6,
+    "module": "M3",
+    "tag": "LLM/RAG",
+    "question": "Vector DB?",
+    "answer": "Cơ sở dữ liệu chuyên lưu Embedding và thực hiện Similarity Retrieval (tìm đoạn tương đồng nhanh bằng HNSW/IVF)."
+  },
+  {
+    "id": "fc-21",
+    "day": 6,
+    "module": "M3",
+    "tag": "LLM/RAG",
+    "question": "RAG (Retrieval-Augmented Generation)?",
+    "answer": "Truy xuất tài liệu liên quan rồi đưa vào prompt làm ngữ cảnh cho LLM sinh câu trả lời kèm trích nguồn — KHÔNG làm thay đổi weight của mô hình."
+  },
+  {
+    "id": "fc-22",
+    "day": 6,
+    "module": "M3",
+    "tag": "LLM/RAG",
+    "question": "Fine-tuning?",
+    "answer": "Tiếp tục huấn luyện cập nhật trọng số Model / Adapter trên tập dữ liệu chuyên biệt để học Style, Format (JSON), Hành vi hoặc tác vụ đặc thù."
+  },
+  {
+    "id": "fc-23",
+    "day": 6,
+    "module": "M3",
+    "tag": "LLM/RAG",
+    "question": "LoRA (Low-Rank Adaptation)?",
+    "answer": "Kỹ thuật PEFT đóng băng trọng số gốc, chỉ train 2 ma trận hạng thấp nhỏ A, B (ΔW = B·A) — tiết kiệm mạnh VRAM, train nhanh, file adapter nhẹ."
+  },
+  {
+    "id": "fc-24",
+    "day": 6,
+    "module": "M3",
+    "tag": "LLM Sampling",
+    "question": "Temperature thấp (0.0 – 0.2)?",
+    "answer": "Chia logit cho T nhỏ làm xác suất tập trung vào token cao nhất → ít ngẫu nhiên, ổn định, nhất quán (chuẩn cho code, JSON, RAG tra cứu)."
+  },
+  {
+    "id": "fc-25",
+    "day": 6,
+    "module": "M3",
+    "tag": "LLM Sampling",
+    "question": "Temperature cao (0.8 – 1.0+)?",
+    "answer": "Làm phẳng phân phối xác suất → đầu ra đa dạng, sáng tạo, ngẫu nhiên hơn (nhưng dễ lạc đề hoặc Hallucination)."
+  },
+  {
+    "id": "fc-26",
+    "day": 6,
+    "module": "M3",
+    "tag": "LLM Sampling",
+    "question": "Top-K Sampling?",
+    "answer": "Chỉ giữ lại đúng K token có xác suất cao nhất trước khi chuẩn hóa lại và lấy mẫu (K nhỏ → ít đa dạng hơn)."
+  },
+  {
+    "id": "fc-27",
+    "day": 6,
+    "module": "M3",
+    "tag": "LLM Sampling",
+    "question": "Top-P (Nucleus Sampling)?",
+    "answer": "Chọn tập nhỏ nhất các token có xác suất cao nhất sao cho tổng xác suất tích lũy đạt ngưỡng P (vd 0.9) — linh hoạt theo độ chắc chắn của ngữ cảnh."
+  },
+  {
+    "id": "fc-28",
+    "day": 6,
+    "module": "M3",
+    "tag": "Transformer",
+    "question": "Self-Attention?",
+    "answer": "Mỗi token xem xét mức độ liên quan với mọi token khác trong chuỗi qua bộ ba Q-K-V; độ phức tạp tính toán & bộ nhớ là O(N²) theo độ dài chuỗi N."
+  },
+  {
+    "id": "fc-33",
+    "day": 6,
+    "module": "M3",
+    "tag": "LLM Safety",
+    "question": "Hallucination (Ảo giác LLM)?",
+    "answer": "Mô hình sinh ra thông tin nghe rất hợp lý, tự tin nhưng sai sự thật hoặc không có trong tài liệu cung cấp."
+  },
+  {
+    "id": "fc-34",
+    "day": 6,
+    "module": "M3",
+    "tag": "LLM Safety",
+    "question": "Giảm Hallucination trong sản phẩm AI bằng những lớp nào?",
+    "answer": "RAG, Grounding, Citation (trích nguồn), Prompt rõ ràng + Fallback \"không tìm thấy thông tin\", Retrieval Threshold, Guardrails và Human Review cho rủi ro cao."
+  },
+  {
+    "id": "fc-35",
+    "day": 6,
+    "module": "M3",
+    "tag": "Architecture",
+    "question": "Dữ liệu thay đổi hàng ngày/hàng tuần và cần trích nguồn nên dùng gì?",
+    "answer": "RAG (chỉ cần cập nhật tài liệu/index, không cần train lại weight, hỗ trợ citation dễ dàng)."
+  },
+  {
+    "id": "fc-36",
+    "day": 6,
+    "module": "M3",
+    "tag": "Architecture",
+    "question": "Muốn mô hình học Style/văn phong hoặc JSON Format cố định nên dùng gì?",
+    "answer": "Fine-tuning (hoặc LoRA/QLoRA) kết hợp Structured Output."
+  },
+  {
+    "id": "fc-268",
+    "day": 6,
+    "module": "M3",
+    "tag": "Transformer",
+    "question": "Tokenization (BPE) và lưu ý đặc biệt với tiếng Việt?",
+    "answer": "Văn bản bị cắt thành mảnh từ (subword token) trước khi nạp vào LLM. Tiếng Việt thường tốn nhiều token hơn tiếng Anh cho cùng nội dung → tốn chi phí API và nhanh đầy Context Window hơn."
+  },
+  {
+    "id": "fc-269",
+    "day": 6,
+    "module": "M3",
+    "tag": "Transformer",
+    "question": "Ý nghĩa trực giác của bộ ba Query (Q), Key (K), Value (V) trong Attention?",
+    "answer": "Query: tôi đang tìm thông tin gì? Key: token này có nhãn thông tin gì? Value: nội dung thực tế cần lấy ra. Công thức: softmax(Q·K^T / √d_k) · V."
+  },
+  {
+    "id": "fc-270",
+    "day": 6,
+    "module": "M3",
+    "tag": "Transformer",
+    "question": "Tại sao công thức Scaled Dot-Product Attention phải chia cho √d_k?",
+    "answer": "Để ngăn tích vô hướng Q·K^T quá lớn khi chiều d_k lớn, tránh đẩy hàm Softmax vào vùng bão hòa có gradient gần bằng 0."
+  },
+  {
+    "id": "fc-271",
+    "day": 6,
+    "module": "M3",
+    "tag": "Transformer",
+    "question": "Multi-Head Attention làm gì?",
+    "answer": "Chạy song song nhiều đầu Attention trên các không gian con chiếu khác nhau để mỗi đầu tập trung nắm bắt một loại quan hệ (ngữ pháp, đại từ, ngữ nghĩa)."
+  },
+  {
+    "id": "fc-272",
+    "day": 6,
+    "module": "M3",
+    "tag": "Transformer",
+    "question": "Positional Encoding & RoPE (Rotary Position Embedding) dùng để làm gì?",
+    "answer": "Vì Self-Attention xử lý song song không tự biết thứ tự từ, Positional Encoding/RoPE tiêm thông tin vị trí vào token (RoPE là chuẩn của Llama/Qwen giúp mở rộng ngữ cảnh tốt)."
+  },
+  {
+    "id": "fc-273",
+    "day": 6,
+    "module": "M3",
+    "tag": "Transformer",
+    "question": "Phân biệt Encoder-only (BERT), Decoder-only (GPT/Llama) và Encoder-Decoder (T5)?",
+    "answer": "BERT (hai chiều): mạnh về phân loại, NER, Embedding. GPT/Llama (Masked Causal Attention): mạnh về sinh văn bản/chat. T5: mạnh về dịch máy, tóm tắt seq2seq."
+  },
+  {
+    "id": "fc-274",
+    "day": 6,
+    "module": "M3",
+    "tag": "Transformer",
+    "question": "KV Cache tăng tốc sinh token của LLM như thế nào?",
+    "answer": "Lưu lại ma trận Key và Value của các token đã sinh trước đó trong VRAM để không phải tính lại từ đầu ở mỗi bước decode mới — đánh đổi thêm VRAM để tăng tốc mạnh."
+  },
+  {
+    "id": "fc-275",
+    "day": 6,
+    "module": "M3",
+    "tag": "Transformer",
+    "question": "FlashAttention tối ưu điều gì so với Attention tiêu chuẩn?",
+    "answer": "Tối ưu đọc/ghi bộ nhớ GPU (IO-aware tiling trên SRAM) giúp tính Attention chính xác nhưng nhanh hơn nhiều và giảm tiêu thụ bộ nhớ từ O(N²) xuống O(N)."
+  },
+  {
+    "id": "fc-276",
+    "day": 6,
+    "module": "M3",
+    "tag": "LLM Sampling",
+    "question": "Greedy Decoding vs Beam Search?",
+    "answer": "Greedy luôn chọn 1 token xác suất cao nhất mỗi bước (nhanh nhưng dễ lặp/cục bộ). Beam Search giữ B nhánh tốt nhất song song (tốt cho dịch máy, chậm hơn)."
+  },
+  {
+    "id": "fc-277",
+    "day": 6,
+    "module": "M3",
+    "tag": "Prompting",
+    "question": "Zero-shot vs Few-shot vs Chain-of-Thought (CoT) Prompting?",
+    "answer": "Zero-shot: ra lệnh trực tiếp. Few-shot: kèm vài ví dụ input-output mẫu. CoT: yêu cầu suy luận từng bước trước khi kết luận — tăng mạnh độ chính xác bài toán logic/toán."
+  },
+  {
+    "id": "fc-278",
+    "day": 6,
+    "module": "M3",
+    "tag": "Prompting",
+    "question": "Structured Outputs (JSON Schema / Constrained Decoding) dùng khi nào?",
+    "answer": "Ép LLM luôn xuất đúng cấu trúc JSON hợp lệ (khớp schema/Pydantic) để tích hợp an toàn với backend API và pipeline trích xuất dữ liệu."
+  },
+  {
+    "id": "fc-279",
+    "day": 6,
+    "module": "M3",
+    "tag": "RAG & Search",
+    "question": "5 bước chuẩn trong một RAG Pipeline?",
+    "answer": "(1) Nạp & làm sạch tài liệu; (2) Chunking + gắn Metadata; (3) Embedding & lưu Vector DB; (4) Retrieval (Hybrid + Rerank); (5) Ghép Context vào Prompt để LLM sinh câu trả lời kèm Citation."
+  },
+  {
+    "id": "fc-280",
+    "day": 6,
+    "module": "M3",
+    "tag": "RAG & Search",
+    "question": "Thông lệ kích thước Chunking và Overlap trong RAG?",
+    "answer": "Khoảng 300–800 token mỗi chunk, chồng lấn (overlap) 10–15%, ưu tiên cắt theo cấu trúc (tiêu đề, đoạn, bước thao tác) và gắn metadata (phiên bản, ngày hiệu lực, nhóm quyền)."
+  },
+  {
+    "id": "fc-281",
+    "day": 6,
+    "module": "M3",
+    "tag": "RAG & Search",
+    "question": "Hậu quả nếu Chunk quá ngắn vs Chunk quá dài?",
+    "answer": "Quá ngắn: đứt ngữ cảnh, thiếu thông tin liên kết. Quá dài: loãng vector embedding, nhồi nhiều nhiễu vào prompt, tốn token API và tăng nguy cơ \"Lost in the Middle\"."
+  },
+  {
+    "id": "fc-282",
+    "day": 6,
+    "module": "M3",
+    "tag": "RAG & Search",
+    "question": "HNSW (Hierarchical Navigable Small World) trong Vector DB là gì?",
+    "answer": "Chỉ mục tìm kiếm lân cận gần đúng (ANN) dạng đồ thị nhiều tầng giúp tìm Top-K vector tương đồng trong hàng triệu bản ghi ở mức mili-giây thay vì quét vét cạn O(N)."
+  },
+  {
+    "id": "fc-283",
+    "day": 6,
+    "module": "M3",
+    "tag": "RAG & Search",
+    "question": "Tại sao Vector Search thuần lại kém khi tra mã lỗi (0x0000007B), mã sản phẩm, IP?",
+    "answer": "Vì Dense Embedding tối ưu cho ngữ nghĩa chung chứ không khớp chính xác từng chuỗi ký tự/mã hiếm. Giải pháp: nâng cấp sang Hybrid Search (Vector + BM25)."
+  },
+  {
+    "id": "fc-284",
+    "day": 6,
+    "module": "M3",
+    "tag": "RAG & Search",
+    "question": "BM25 là gì trong Hybrid Search?",
+    "answer": "Thuật toán tìm kiếm từ khóa thưa (lexical/sparse search) cải tiến từ TF-IDF có tính đến độ bão hòa tần suất từ và độ dài tài liệu — cực mạnh khi khớp mã lỗi, tên riêng, thuật ngữ chính xác."
+  },
+  {
+    "id": "fc-285",
+    "day": 6,
+    "module": "M3",
+    "tag": "RAG & Search",
+    "question": "RRF (Reciprocal Rank Fusion) kết hợp Vector Search và BM25 bằng công thức nào?",
+    "answer": "score(d) = Σ 1 / (k + rank_i(d)) (thường k = 60). Gộp dựa trên thứ hạng (rank) nên không cần chuẩn hóa thang điểm khác nhau giữa Cosine và BM25."
+  },
+  {
+    "id": "fc-286",
+    "day": 6,
+    "module": "M3",
+    "tag": "RAG & Search",
+    "question": "Bi-Encoder (Retrieval) vs Cross-Encoder (Rerank) khác nhau thế nào?",
+    "answer": "Bi-Encoder mã hóa query và doc ĐỘC LẬP nên cực nhanh (tìm top 50). Cross-Encoder đọc CÙNG LÚC cặp (query, doc) qua Attention nên chính xác vượt trội (rerank top 50 → top 5), nhưng chậm hơn."
+  },
+  {
+    "id": "fc-287",
+    "day": 6,
+    "module": "M3",
+    "tag": "RAG Eval",
+    "question": "Recall@k trong đánh giá RAG đo điều gì?",
+    "answer": "Tỷ lệ câu hỏi mà đoạn tài liệu chứa đáp án đúng xuất hiện trong Top-k kết quả truy xuất (vd 82/100 câu có đoạn đúng trong top 5 ⇒ Recall@5 = 82%)."
+  },
+  {
+    "id": "fc-288",
+    "day": 6,
+    "module": "M3",
+    "tag": "RAG Eval",
+    "question": "nDCG và MRR khác Recall@k ở điểm nào?",
+    "answer": "Recall@k không quan tâm thứ tự trong top-k; còn nDCG và MRR thưởng điểm CAO HƠN khi tài liệu đúng được xếp ở hạng 1 thay vì hạng 5."
+  },
+  {
+    "id": "fc-289",
+    "day": 6,
+    "module": "M3",
+    "tag": "RAG Eval",
+    "question": "Faithfulness (Độ trung thực) và Answer Relevance trong RAG?",
+    "answer": "Faithfulness đo câu trả lời có bám sát ngữ cảnh truy xuất không (không bịa ngoài tài liệu). Answer Relevance đo câu trả lời có đi thẳng vào trọng tâm câu hỏi của người dùng không."
+  },
+  {
+    "id": "fc-290",
+    "day": 6,
+    "module": "M3",
+    "tag": "RAG Eval",
+    "question": "Chẩn đoán tách bạch lỗi RAG: Recall@5 = 88% nhưng Faithfulness = 54%?",
+    "answer": "Truy xuất (Retrieval) đang TỐT, lỗi nằm ở khâu SINH (Generation/Prompt)! Sửa: hạ Temperature (0–0.2), siết System Prompt chỉ trả lời theo context, thêm fallback \"không biết\" (KHÔNG vội sửa chunking hay fine-tune!)."
+  },
+  {
+    "id": "fc-291",
+    "day": 6,
+    "module": "M3",
+    "tag": "RAG Eval",
+    "question": "Chẩn đoán lỗi RAG khi Recall@5 thấp (vd 52%)?",
+    "answer": "Lỗi nằm ở khâu TRUY XUẤT (Retrieval): cần sửa chiến lược Chunking, đổi model Embedding tốt hơn cho tiếng Việt, thêm Hybrid Search (Vector + BM25 + RRF) và Rerank."
+  },
+  {
+    "id": "fc-292",
+    "day": 6,
+    "module": "M3",
+    "tag": "RAG & Search",
+    "question": "Metadata Filtering trong RAG dùng khi nào?",
+    "answer": "Lọc trước theo phiên bản tài liệu, ngày hiệu lực, phòng ban, nhóm quyền (RBAC) TRƯỚC hoặc TRONG khi tìm vector để tránh lôi chính sách hết hạn hoặc dữ liệu trái phép."
+  },
+  {
+    "id": "fc-293",
+    "day": 6,
+    "module": "M3",
+    "tag": "RAG & Search",
+    "question": "Hiện tượng \"Lost in the Middle\" của LLM là gì?",
+    "answer": "LLM chú ý tốt thông tin ở đầu và cuối prompt, nhưng dễ bỏ sót thông tin nằm ở đoạn GIỮA khi context quá dài — lý do nên dùng Rerank để chỉ giữ Top-5 đoạn chất lượng nhất."
+  },
+  {
+    "id": "fc-294",
+    "day": 6,
+    "module": "M3",
+    "tag": "Fine-tuning",
+    "question": "QLoRA là gì và NF4 (4-bit NormalFloat) có tác dụng gì?",
+    "answer": "QLoRA nén trọng số gốc của LLM xuống lượng tử hóa 4-bit (NF4 + Double Quantization) rồi gắn adapter LoRA (BF16) — cho phép fine-tune model 7B–70B trên GPU VRAM nhỏ."
+  },
+  {
+    "id": "fc-295",
+    "day": 6,
+    "module": "M3",
+    "tag": "Fine-tuning",
+    "question": "Chuỗi huấn luyện LLM hiện đại: Pre-training → SFT → RLHF / DPO?",
+    "answer": "Pre-training: học ngôn ngữ từ kho khổng lồ (next-token prediction). SFT: học theo cặp lệnh-đáp án. RLHF/DPO: căn chỉnh (Alignment) theo sở thích & an toàn con người (DPO đơn giản hơn vì không cần train Reward Model riêng)."
+  },
+  {
+    "id": "fc-296",
+    "day": 6,
+    "module": "M3",
+    "tag": "Fine-tuning",
+    "question": "Catastrophic Forgetting khi Fine-tuning là gì và cách phòng tránh?",
+    "answer": "Mô hình quên kiến thức nền tổng quát sau khi fine-tune trên dữ liệu mới hẹp. Khắc phục: pha trộn (mix) một phần dữ liệu cũ/tổng quát, dùng LR nhỏ hoặc dùng LoRA."
+  },
+  {
+    "id": "fc-297",
+    "day": 6,
+    "module": "M3",
+    "tag": "Fine-tuning",
+    "question": "Prompt Engineering khác Fine-tuning ở điểm cốt lõi nào?",
+    "answer": "Prompt Engineering chỉ thay đổi hướng dẫn đầu vào (Inference time, nhanh, không đổi trọng số). Fine-tuning cập nhật trực tiếp Parameter/Adapter qua quá trình Training."
+  },
+  {
+    "id": "fc-298",
+    "day": 6,
+    "module": "M3",
+    "tag": "AI Agent",
+    "question": "AI Agent khác chatbot LLM thông thường ở điểm gì?",
+    "answer": "Agent đặt LLM trong một vòng lặp tự chủ: lập kế hoạch, quyết định gọi công cụ (Tools/API), quan sát kết quả trả về và lặp lại cho tới khi hoàn thành mục tiêu."
+  },
+  {
+    "id": "fc-299",
+    "day": 6,
+    "module": "M3",
+    "tag": "AI Agent",
+    "question": "Function Calling / Tool Use hoạt động theo cơ chế nào?",
+    "answer": "LLM KHÔNG trực tiếp thực thi code; nó trả về yêu cầu gọi hàm có cấu trúc JSON (tên hàm + tham số). Backend của ứng dụng xác thực quyền, thực thi hàm rồi trả kết quả lại cho LLM."
+  },
+  {
+    "id": "fc-300",
+    "day": 6,
+    "module": "M3",
+    "tag": "AI Agent",
+    "question": "Vòng lặp ReAct (Reasoning + Acting) gồm 3 bước nào?",
+    "answer": "Thought (suy luận cần làm gì) → Action (gọi tool kèm tham số) → Observation (đọc kết quả từ tool), lặp lại tới khi ra câu trả lời cuối."
+  },
+  {
+    "id": "fc-301",
+    "day": 6,
+    "module": "M3",
+    "tag": "AI Agent",
+    "question": "3 giới hạn bắt buộc (Guardrails) khi triển khai AI Agent lên production?",
+    "answer": "(1) Max steps / timeout / token budget (tránh lặp vô hạn đốt tiền); (2) Phân tách Tool Đọc (tự chạy) vs Tool Ghi/Xóa (bắt buộc HITL duyệt); (3) Allowlist lệnh & nguyên tắc quyền tối thiểu."
+  },
+  {
+    "id": "fc-302",
+    "day": 6,
+    "module": "M3",
+    "tag": "AI Agent",
+    "question": "Short-term Memory vs Long-term Memory trong AI Agent?",
+    "answer": "Short-term: lịch sử hội thoại trong Context Window (cần tóm tắt/cắt cửa sổ). Long-term: lưu kiến thức/hồ sơ người dùng bền vững trong Vector DB hoặc cơ sở dữ liệu ngoài."
+  },
+  {
+    "id": "fc-303",
+    "day": 6,
+    "module": "M3",
+    "tag": "AI Agent",
+    "question": "MCP (Model Context Protocol) giải quyết bài toán gì cho hệ thống Agent?",
+    "answer": "Chuẩn hóa giao thức kết nối giữa ứng dụng LLM/Agent với các nguồn dữ liệu và công cụ bên ngoài (DB, Git, API) theo kiến trúc Client–Server thống nhất, tránh viết keo nối riêng lẻ."
+  },
+  {
+    "id": "fc-304",
+    "day": 7,
+    "module": "M3",
+    "tag": "MLOps",
+    "question": "MLOps khác DevOps truyền thống ở hai yếu tố biến động nào?",
+    "answer": "Ngoài Code, hệ thống ML có thêm DỮ LIỆU (Data) và MÔ HÌNH (Model) liên tục biến động ngoài thực tế — đòi hỏi Eval Gate, quản trị phiên bản 4 trục và giám sát Drift."
+  },
+  {
+    "id": "fc-305",
+    "day": 7,
+    "module": "M3",
+    "tag": "Serving",
+    "question": "Tại sao đo độ trễ Production phải dùng p95 / p99 thay vì Trung bình (Mean)?",
+    "answer": "Trung bình che giấu các request bị treo chậm (tail latency). Ví dụ mean = 1.2s nhưng p95 = 6s nghĩa là cứ 20 khách hàng có 1 người phải chờ trên 6 giây!"
+  },
+  {
+    "id": "fc-306",
+    "day": 7,
+    "module": "M3",
+    "tag": "Serving",
+    "question": "TTFT (Time To First Token) và TPOT trong LLM Serving là gì?",
+    "answer": "TTFT: thời gian chờ đến khi hiện token đầu tiên (quyết định cảm giác nhanh của chatbot, kết hợp Streaming). TPOT: thời gian sinh trung bình mỗi token tiếp theo."
+  },
+  {
+    "id": "fc-307",
+    "day": 7,
+    "module": "M3",
+    "tag": "Serving",
+    "question": "Static Batching vs Continuous Batching trong phục vụ LLM (vLLM)?",
+    "answer": "Static Batching phải đợi câu dài nhất trong batch xong mới nhận request mới (lãng phí GPU). Continuous Batching chèn ngay request mới vào slot trống ở từng bước sinh token → tăng mạnh throughput."
+  },
+  {
+    "id": "fc-308",
+    "day": 7,
+    "module": "M3",
+    "tag": "Serving",
+    "question": "3 lớp Caching giảm chi phí & độ trễ cho hệ thống LLM/RAG?",
+    "answer": "(1) Response / Semantic Cache (trả ngay câu hỏi lặp lại như quên mật khẩu); (2) Embedding Cache; (3) Prefix / KV Cache (dùng lại system prompt dài). Nhớ xóa cache (invalidation) khi tài liệu gốc đổi!"
+  },
+  {
+    "id": "fc-309",
+    "day": 7,
+    "module": "M3",
+    "tag": "Optimization",
+    "question": "Quantization (Lượng tử hóa FP16 → INT8 / INT4) đánh đổi điều gì?",
+    "answer": "Giảm mạnh VRAM, tăng tốc inference và chạy được trên GPU rẻ/Edge AI; đánh đổi là có thể giảm nhẹ độ chính xác nên PHẢI chạy bộ đánh giá (Eval) trước và sau khi lượng tử hóa."
+  },
+  {
+    "id": "fc-310",
+    "day": 7,
+    "module": "M3",
+    "tag": "Optimization",
+    "question": "Knowledge Distillation (Chưng cất mô hình) là gì?",
+    "answer": "Huấn luyện mô hình nhỏ nhẹ (Student) bắt chước phân phối xác suất đầu ra (soft logits) của mô hình lớn (Teacher) — lý tưởng để triển khai Edge AI / mobile."
+  },
+  {
+    "id": "fc-311",
+    "day": 7,
+    "module": "M3",
+    "tag": "Optimization",
+    "question": "Model Routing (Định tuyến mô hình) giúp tiết kiệm chi phí thế nào?",
+    "answer": "Dùng bộ phân loại nhẹ đẩy câu hỏi đơn giản sang model nhỏ/rẻ (vd 7B/Flash), chỉ đẩy tác vụ suy luận phức tạp sang model lớn (Pro) — giảm 50–70% chi phí API."
+  },
+  {
+    "id": "fc-312",
+    "day": 7,
+    "module": "M3",
+    "tag": "MLOps Cost",
+    "question": "Công thức tính Chi phí trên mỗi 1.000 Request (Cost / 1K req) khi tự host GPU?",
+    "answer": "Cost/1K = (Giá thuê GPU mỗi giờ ÷ Số request thực tế xử lý mỗi giờ) × 1000. Lưu ý: nếu GPU utilization chỉ đạt 40%, chi phí thực tăng gấp 2.5 lần so với lý thuyết 100%!"
+  },
+  {
+    "id": "fc-313",
+    "day": 7,
+    "module": "M3",
+    "tag": "MLOps Cost",
+    "question": "Công thức ROI của dự án AI và bẫy thường quên?",
+    "answer": "ROI = (Lợi ích - Chi phí) / Chi phí. Bẫy: chỉ tính phí API/GPU mà quên chi phí ẩn (bảo trì, gán nhãn dữ liệu, đánh giá Eval, giám sát và nhân sự vận hành)."
+  },
+  {
+    "id": "fc-314",
+    "day": 7,
+    "module": "M3",
+    "tag": "CI/CD",
+    "question": "Eval Gate (Cổng đánh giá tự động) với Golden Set trong CI/CD cho AI?",
+    "answer": "Mỗi lần đổi prompt, model, chunking hay dữ liệu, CI tự chạy bộ Golden Set cố định; chỉ cho deploy nếu đạt mọi ngưỡng (vd Recall@5 ≥ 85%, Faithfulness ≥ 92%, p95 ≤ 3s)."
+  },
+  {
+    "id": "fc-315",
+    "day": 7,
+    "module": "M3",
+    "tag": "CI/CD",
+    "question": "4 trục quản lý phiên bản (Versioning) bắt buộc trong MLOps?",
+    "answer": "(1) Code (Git); (2) Data (DVC / dataset snapshot hash); (3) Model (Model Registry kèm metrics & người duyệt); (4) Prompt & cấu hình — đảm bảo truy vết và rollback tức thì."
+  },
+  {
+    "id": "fc-316",
+    "day": 7,
+    "module": "M3",
+    "tag": "Drift",
+    "question": "Phân biệt Data Drift (Covariate Shift) vs Concept Drift?",
+    "answer": "Data Drift: phân phối đầu vào P(X) thay đổi (vd camera đổi độ phân giải, khách hàng hỏi chủ đề mới). Concept Drift: mối quan hệ P(Y|X) thay đổi (vd lạm phát đổi cách định giá nhà, kiểu gian lận mới)."
+  },
+  {
+    "id": "fc-317",
+    "day": 7,
+    "module": "M3",
+    "tag": "Drift",
+    "question": "PSI (Population Stability Index) ngưỡng đọc nhanh?",
+    "answer": "PSI < 0.1: phân phối ổn định; 0.1 – 0.25: dịch chuyển nhẹ cần theo dõi; PSI > 0.25: Drift nghiêm trọng, cần điều tra và kích hoạt cập nhật mô hình."
+  },
+  {
+    "id": "fc-318",
+    "day": 7,
+    "module": "M3",
+    "tag": "Drift",
+    "question": "Kiểm định Kolmogorov-Smirnov (KS-test) phát hiện Drift và hạn chế của nó?",
+    "answer": "KS-test so sánh 2 phân phối tích lũy (CDF) của biến số liên tục. Hạn chế: với cỡ mẫu cực lớn (hàng triệu dòng), sai lệch cực nhỏ vô nghĩa về nghiệp vụ cũng cho p-value < 0.05 (cần kết hợp effect size/PSI)."
+  },
+  {
+    "id": "fc-319",
+    "day": 7,
+    "module": "M3",
+    "tag": "Drift",
+    "question": "Chiến lược Retraining an toàn & tiết kiệm nhất khi phát hiện Concept Drift?",
+    "answer": "Trigger-based (chỉ kích hoạt khi detect Drift qua PSI/KS-test/metrics), sau đó Fine-tune trên dữ liệu mới PHA TRỘN một phần dữ liệu cũ để tránh Catastrophic Forgetting (tránh retrain mỗi ngày lãng phí GPU)."
+  },
+  {
+    "id": "fc-320",
+    "day": 7,
+    "module": "M3",
+    "tag": "Deployment",
+    "question": "Shadow Mode Deployment là gì?",
+    "answer": "Chạy bản mô hình mới SONG SONG với bản cũ trên lưu lượng thực tế, ghi log so sánh kết quả nhưng CHƯA trả kết quả của bản mới cho người dùng — rủi ro bằng 0."
+  },
+  {
+    "id": "fc-321",
+    "day": 7,
+    "module": "M3",
+    "tag": "Deployment",
+    "question": "Canary Deployment (5% → 25% → 100%) vs Blue-Green Deployment?",
+    "answer": "Canary mở dần lưu lượng (5% trước) để phát hiện sớm tụt chất lượng/lỗi và Rollback chỉ ảnh hưởng nhóm nhỏ. Blue-Green dựng 2 môi trường song song và chuyển 100% traffic tức thì."
+  },
+  {
+    "id": "fc-322",
+    "day": 7,
+    "module": "M3",
+    "tag": "Deployment",
+    "question": "Rollback tự động cần chuẩn bị 2 điều kiện gì trước khi phát hành?",
+    "answer": "(1) Giữ sẵn image/model tag phiên bản ổn định trước đó; (2) Thiết lập ngưỡng cảnh báo tự động (error rate, p95, tỷ lệ thumbs-down / escalation tăng bất thường)."
+  },
+  {
+    "id": "fc-323",
+    "day": 7,
+    "module": "M3",
+    "tag": "MLOps",
+    "question": "5 yếu tố đảm bảo Tái lập kết quả (Reproducibility) trong ML?",
+    "answer": "(1) Docker image tag/digest cố định; (2) Lock file cố định version thư viện; (3) Random seed; (4) Data hash/version & config; (5) Ghi nhận phần cứng/CUDA driver."
+  },
+  {
+    "id": "fc-324",
+    "day": 7,
+    "module": "M3",
+    "tag": "MLOps",
+    "question": "Training-Serving Skew là gì?",
+    "answer": "Sự sai lệch giữa pipeline tiền xử lý đặc trưng lúc huấn luyện (vd Pandas offline) và lúc phục vụ thực tế (vd API online) làm mô hình dự đoán sai dù code không báo lỗi."
+  },
+  {
+    "id": "fc-325",
+    "day": 7,
+    "module": "M3",
+    "tag": "MLOps",
+    "question": "Feature Store giải quyết vấn đề gì trong hệ thống ML lớn?",
+    "answer": "Lưu trữ, chia sẻ và phục vụ thống nhất các đặc trưng (offline cho training và online độ trễ thấp cho inference), ngăn chặn Training-Serving Skew và tính trùng lặp."
+  },
+  {
+    "id": "fc-326",
+    "day": 7,
+    "module": "M3",
+    "tag": "MLOps",
+    "question": "Online Evaluation vs Offline Evaluation?",
+    "answer": "Offline: đánh giá trên tập Test/Golden Set trước deploy (F1, Recall@5, Faithfulness). Online: đo tác động nghiệp vụ thật sau deploy (A/B test, tỷ lệ chuyển người, tỷ lệ hữu ích, doanh thu)."
+  },
+  {
+    "id": "fc-327",
+    "day": 7,
+    "module": "M3",
+    "tag": "MLOps",
+    "question": "LLM-as-a-Judge là gì và cần kiểm soát bias gì?",
+    "answer": "Dùng một LLM mạnh chấm điểm đầu ra của hệ thống RAG/Agent theo rubric (Faithfulness, Relevance) ở quy mô lớn. Cần hiệu chuẩn với người chấm mẫu (human-annotated golden set) vì LLM hay thiên vị câu dài (verbosity bias)."
+  },
+  {
+    "id": "fc-328",
+    "day": 7,
+    "module": "M3",
+    "tag": "MLOps",
+    "question": "Dockerfile tối ưu cho ML Inference Service cần chú ý gì?",
+    "answer": "Dùng base image cố định tag (slim), copy requirements.txt và cài trước để tận dụng Docker layer cache, không nhúng API key/secret vào image, chạy dưới user non-root."
+  },
+  {
+    "id": "fc-381",
+    "day": 8,
+    "module": "M3",
+    "tag": "AI Map",
+    "question": "Quan hệ bao hàm giữa AI, Machine Learning và Deep Learning (a.pdf Mục 15)?",
+    "answer": "AI ⊃ Machine Learning ⊃ Deep Learning. ML gồm Classification, Regression, Clustering; DL gồm Neural Network, CNN, Transformer, LLM."
+  },
+  {
+    "id": "fc-382",
+    "day": 8,
+    "module": "M3",
+    "tag": "Algorithms",
+    "question": "Trong KNN với K = 3, ba hàng xóm gần nhất có nhãn A, A, B ⇒ dự đoán gì? Điều gì xảy ra nếu chọn K quá lớn (a.pdf Mục 17)?",
+    "answer": "Dự đoán nhãn A (2 phiếu vs 1). Nếu chọn K quá lớn, biên quyết định bị làm phẳng quá mức, mất cấu trúc cục bộ dẫn đến Underfitting."
+  },
+  {
+    "id": "fc-383",
+    "day": 8,
+    "module": "M3",
+    "tag": "Algorithms",
+    "question": "KNN có cần quá trình huấn luyện (train) tham số phức tạp giống Neural Network không (Câu 31 Module C, a.pdf)?",
+    "answer": "Không! KNN là \"Lazy Learner\": chủ yếu lưu Training Data lúc train và chỉ tính khoảng cách tìm hàng xóm lúc Inference (nên Inference chậm khi dữ liệu lớn)."
+  },
+  {
+    "id": "fc-384",
+    "day": 8,
+    "module": "M3",
+    "tag": "Validation",
+    "question": "Tại sao không được dùng Test Set nhiều lần để tinh chỉnh Hyperparameter (Câu 34 Module C, a.pdf)?",
+    "answer": "Dùng Test Set lặp lại để chỉnh mô hình làm Test Set mất tính độc lập và gây Leakage trong đánh giá — phải dùng Validation Set / K-Fold để chọn model & Early Stopping."
+  },
+  {
+    "id": "fc-385",
+    "day": 8,
+    "module": "M3",
+    "tag": "Architecture",
+    "question": "Luồng kiến trúc 7 tầng chuẩn của một AI Assistant dùng RAG (a.pdf Mục 33)?",
+    "answer": "User → Frontend → Backend/API → Retriever + Vector DB → LLM → Safety/Validation → Response."
+  },
+  {
+    "id": "fc-386",
+    "day": 8,
+    "module": "M3",
+    "tag": "Architecture",
+    "question": "5 lý do ưu tiên RAG cho SmartHome Assistant tư vấn sản phẩm & chính sách bảo hành (a.pdf Mục 32)?",
+    "answer": "(1) Không cần nhồi facts vào weight; (2) Dễ cập nhật khi giá/chính sách đổi; (3) Chỉ nạp context liên quan; (4) Hiển thị Citation nguồn; (5) Giảm Hallucination."
+  },
+  {
+    "id": "fc-387",
+    "day": 8,
+    "module": "M3",
+    "tag": "Feature Eng",
+    "question": "Ví dụ 3 đặc trưng (Feature) tốt để phát hiện máy tính nhiễm mã độc trong hệ thống IT (CĐ-09)?",
+    "answer": "Số kết nối ra ngoài mỗi giờ, tỷ lệ kết nối tới cổng mạng lạ (rare ports) và khung giờ hoạt động bất thường — chất lượng Feature thường quyết định hơn chọn thuật toán."
+  },
+  {
+    "id": "fc-388",
+    "day": 8,
+    "module": "M3",
+    "tag": "Algorithms",
+    "question": "Ghép đúng thuật toán với 4 bài toán IT Ops (CĐ-09): dung lượng camera, email phishing, luật login sai > 5, hành vi mạng không nhãn?",
+    "answer": "Dung lượng camera → Linear Regression; Phishing → Logistic Regression; Luật login sai > 5 ngoài giờ → Decision Tree; Gom hành vi lưu lượng không nhãn → K-Means."
+  },
+  {
+    "id": "fc-389",
+    "day": 8,
+    "module": "M3",
+    "tag": "Drift",
+    "question": "4 dấu hiệu thực tế phát hiện Drift trên production khi chưa kịp có nhãn thật (CĐ-11)?",
+    "answer": "(1) PSI/KS-test phân phối đầu vào; (2) Tỷ lệ người dùng bấm \"không hữu ích\" tăng; (3) Tỷ lệ chuyển cho nhân viên thật (escalation) tăng; (4) Tỷ lệ từ chối/fallback tăng bất thường."
+  },
+  {
+    "id": "fc-390",
+    "day": 8,
+    "module": "M3",
+    "tag": "MLOps Cost",
+    "question": "Tính ROI (CĐ-11): Chatbot giảm 200 ticket/tháng (mỗi ticket 15 phút ⇒ 50 giờ công = 5 triệu đồng), chi phí vận hành 2 triệu/tháng?",
+    "answer": "ROI = (Lợi ích - Chi phí) / Chi phí = (5 - 2) / 2 = 1.5 = 150%. Khi báo cáo thực tế cần cộng đủ chi phí ẩn (bảo trì, đánh giá, giám sát)."
+  }
+]
