@@ -18,6 +18,7 @@ import {
   loadFlashcardProgress,
   saveFlashcardProgress,
 } from '../utils/storage.js';
+import KeywordText from './KeywordText.jsx';
 
 const MODULE_MAP = Object.fromEntries(MODULES.map((m) => [m.code, m]));
 
@@ -767,7 +768,7 @@ export default function FlashcardTab({
                     </span>
                     {currentCard.tag && (
                       <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
-                        {currentCard.tag}
+                        <KeywordText text={currentCard.tag} />
                       </span>
                     )}
                     <code className="font-mono text-xs text-slate-400">
@@ -793,16 +794,20 @@ export default function FlashcardTab({
                     Mặt trước · Thuật ngữ / Câu hỏi
                   </span>
                   <h2 className="max-w-xl text-xl font-bold leading-snug tracking-tight text-slate-900 sm:text-2xl">
-                    {currentCard.question}
+                    <KeywordText text={currentCard.question} />
                   </h2>
                 </div>
 
-                <div className="flex items-center justify-center gap-2 border-t border-slate-100 pt-4 text-xs text-slate-400">
+                <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 border-t border-slate-100 pt-4 text-xs text-slate-400">
                   <span>Nhấn vào thẻ hoặc bấm</span>
                   <kbd className="rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-mono text-[11px] font-medium text-slate-600">
                     Space
                   </kbd>
-                  <span>để lật xem đáp án</span>
+                  <span>để lật xem đáp án · Bấm từ</span>
+                  <span className="border-b border-dashed border-blue-500 text-blue-600">
+                    gạch chân xanh
+                  </span>
+                  <span>để xem giải thích nhanh</span>
                 </div>
               </div>
 
@@ -842,10 +847,10 @@ export default function FlashcardTab({
 
                 <div className="my-6 flex flex-col items-center justify-center text-center">
                   <p className="mb-3 max-w-lg text-xs font-medium text-slate-500">
-                    {currentCard.question}
+                    <KeywordText text={currentCard.question} />
                   </p>
                   <p className="max-w-xl text-base font-medium leading-relaxed text-slate-900 sm:text-lg">
-                    {currentCard.answer}
+                    <KeywordText text={currentCard.answer} />
                   </p>
                 </div>
 

@@ -4,24 +4,28 @@ import {
   ArrowLeft,
   ArrowRight,
   BookOpen,
+  Calculator,
   Check,
   CheckCircle2,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   ClipboardList,
   Compass,
   Copy,
+  Cpu,
   ExternalLink,
   Lightbulb,
   RotateCcw,
   Sparkles,
+  Target,
   Trophy,
   Video,
   XCircle,
 } from 'lucide-react';
 import { TOPIC_GROUPS, TOPICS } from '../data/topicsData.js';
 import { loadTopicsProgress, saveTopicsProgress } from '../utils/storage.js';
-import RichInlineText from './RichInlineText.jsx';
+import KeywordText from './KeywordText.jsx';
 
 const GROUP_MAP = Object.fromEntries(TOPIC_GROUPS.map((g) => [g.id, g]));
 const OPTION_LETTERS = ['A', 'B', 'C', 'D'];
@@ -207,13 +211,23 @@ export default function TopicsTab({ onPracticeModule }) {
                 key={sub.label}
                 className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200/80 bg-slate-50 px-2.5 py-1 text-xs text-slate-700"
               >
-                <span>{sub.label}</span>
+                <span>
+                  <KeywordText text={sub.label} />
+                </span>
                 <span className="font-mono text-[11px] font-semibold text-slate-500">
                   {sub.weight}%
                 </span>
               </span>
             ))}
           </div>
+
+          <p className="mt-3 text-xs text-slate-500">
+            Mẹo: Bấm vào bất kỳ{' '}
+            <span className="border-b border-dashed border-blue-500 font-medium text-blue-700">
+              từ khóa gạch chân xanh
+            </span>{' '}
+            nào để mở giải thích đời thường &amp; cách tính.
+          </p>
 
           {/* 4-Step Interactive Stepper */}
           <div className="mt-5 grid grid-cols-2 gap-2 border-t border-slate-100 pt-5 sm:grid-cols-4">
@@ -264,26 +278,103 @@ export default function TopicsTab({ onPracticeModule }) {
             </div>
 
             <p className="text-sm leading-relaxed text-slate-700 sm:text-[15px]">
-              {activeTopic.step1.essence}
+              <KeywordText text={activeTopic.step1.essence} />
             </p>
 
-            {/* Formulas List */}
-            <div className="space-y-2">
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                Công thức &amp; Cú pháp bắt buộc thuộc
-              </h2>
-              <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50/80 p-4">
+            {/* Real-World AI Problem Blocks (Plain-Language Breakdown) */}
+            {Array.isArray(activeTopic.step1.problemBlocks) &&
+              activeTopic.step1.problemBlocks.length > 0 && (
+                <div className="space-y-3.5">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                      Hiểu qua bài toán AI thực tế ({activeTopic.step1.problemBlocks.length} công cụ cốt lõi)
+                    </h2>
+                    <span className="font-mono text-[11px] text-slate-400">
+                      Không cần học vẹt ký hiệu
+                    </span>
+                  </div>
+
+                  <div className="space-y-3.5">
+                    {activeTopic.step1.problemBlocks.map((block, idx) => (
+                      <article
+                        key={idx}
+                        className="overflow-hidden rounded-xl border border-slate-200/90 bg-white shadow-2xs"
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 bg-slate-50/80 px-4 py-3">
+                          <div className="flex items-center gap-2.5">
+                            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-slate-900 font-mono text-xs font-bold text-white">
+                              {idx + 1}
+                            </span>
+                            <h3 className="text-sm font-bold text-slate-900">
+                              <KeywordText text={block.title} />
+                            </h3>
+                          </div>
+                          {block.formulaShort && (
+                            <code className="rounded-md border border-slate-200 bg-white px-2 py-0.5 font-mono text-[11px] font-medium text-slate-700">
+                              {block.formulaShort}
+                            </code>
+                          )}
+                        </div>
+
+                        <div className="space-y-2.5 p-4 text-sm leading-relaxed">
+                          <div className="flex items-start gap-2.5 rounded-lg border border-blue-100 bg-blue-50/45 px-3.5 py-2.5">
+                            <Target className="mt-0.5 h-4 w-4 shrink-0 text-blue-600" />
+                            <p className="text-slate-800">
+                              <strong className="font-semibold text-blue-900">
+                                Bài toán thực tế cần giải:{' '}
+                              </strong>
+                              <KeywordText text={block.realProblem} />
+                            </p>
+                          </div>
+
+                          <div className="flex items-start gap-2.5 rounded-lg border border-indigo-100 bg-indigo-50/45 px-3.5 py-2.5">
+                            <Cpu className="mt-0.5 h-4 w-4 shrink-0 text-indigo-600" />
+                            <p className="text-slate-800">
+                              <strong className="font-semibold text-indigo-900">
+                                Vai trò của công cụ/công thức:{' '}
+                              </strong>
+                              <KeywordText text={block.aiRole} />
+                            </p>
+                          </div>
+
+                          <div className="flex items-start gap-2.5 rounded-lg border border-teal-200/75 bg-teal-50/45 px-3.5 py-2.5">
+                            <Calculator className="mt-0.5 h-4 w-4 shrink-0 text-teal-600" />
+                            <p className="text-slate-800">
+                              <strong className="font-semibold text-teal-900">
+                                Diễn giải từng bước (+ / − / × / ÷ &amp; thay số):{' '}
+                              </strong>
+                              <KeywordText text={block.plainSteps} />
+                            </p>
+                          </div>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+            {/* Compact Symbol Cheat-Sheet (Collapsible) */}
+            <details className="group rounded-xl border border-slate-200 bg-slate-50/70">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-600 transition-colors hover:text-slate-900">
+                <span>
+                  Bảng tóm tắt ký hiệu rút gọn ({activeTopic.step1.formulas.length} dòng ôn trước giờ thi)
+                </span>
+                <ChevronDown className="h-4 w-4 text-slate-400 transition-transform group-open:rotate-180" />
+              </summary>
+              <div className="space-y-2 border-t border-slate-200/70 px-4 py-3.5">
                 {activeTopic.step1.formulas.map((formula, idx) => (
                   <div
                     key={idx}
                     className="flex items-start gap-2.5 font-mono text-xs leading-6 text-slate-800 sm:text-[13px]"
                   >
                     <span className="mt-0.5 text-slate-400">▸</span>
-                    <span>{formula}</span>
+                    <span>
+                      <KeywordText text={formula} />
+                    </span>
                   </div>
                 ))}
               </div>
-            </div>
+            </details>
 
             {/* Worked Quick Example */}
             {activeTopic.step1.quickExample && (
@@ -291,13 +382,13 @@ export default function TopicsTab({ onPracticeModule }) {
                 <p className="font-semibold text-slate-900">
                   Ví dụ nhanh:{' '}
                   <span className="font-normal text-slate-700">
-                    <RichInlineText text={activeTopic.step1.quickExample.problem} />
+                    <KeywordText text={activeTopic.step1.quickExample.problem} />
                   </span>
                 </p>
                 <p className="mt-2 font-semibold text-teal-900">
                   Lời giải gọn:{' '}
                   <span className="font-normal text-slate-800">
-                    <RichInlineText text={activeTopic.step1.quickExample.solution} />
+                    <KeywordText text={activeTopic.step1.quickExample.solution} />
                   </span>
                 </p>
               </div>
@@ -324,7 +415,7 @@ export default function TopicsTab({ onPracticeModule }) {
                     key={kw}
                     className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 font-mono text-xs font-semibold text-slate-800"
                   >
-                    {kw}
+                    <KeywordText text={kw} />
                   </span>
                 ))}
               </div>
@@ -336,7 +427,7 @@ export default function TopicsTab({ onPracticeModule }) {
                 Mẹo nhớ nhanh trong phòng thi
               </p>
               <p className="mt-1.5 text-sm leading-relaxed text-slate-800">
-                <RichInlineText text={activeTopic.step2.memoryTip} />
+                <KeywordText text={activeTopic.step2.memoryTip} />
               </p>
             </div>
 
@@ -429,10 +520,10 @@ export default function TopicsTab({ onPracticeModule }) {
                     </span>
                     <div>
                       <h3 className="text-sm font-bold text-amber-950">
-                        <RichInlineText text={trap.title} />
+                        <KeywordText text={trap.title} />
                       </h3>
                       <p className="mt-1 text-sm leading-relaxed text-amber-900/90">
-                        <RichInlineText text={trap.detail} />
+                        <KeywordText text={trap.detail} />
                       </p>
                     </div>
                   </div>
@@ -492,7 +583,7 @@ export default function TopicsTab({ onPracticeModule }) {
                     </div>
 
                     <p className="mt-2 text-sm font-semibold leading-relaxed text-slate-900">
-                      <RichInlineText text={q.question} />
+                      <KeywordText text={q.question} />
                     </p>
 
                     <div className="mt-3 space-y-2">
@@ -541,7 +632,7 @@ export default function TopicsTab({ onPracticeModule }) {
                               {letter}
                             </span>
                             <span className="flex-1">
-                              <RichInlineText text={opt} />
+                              <KeywordText text={opt} />
                             </span>
                           </button>
                         );
@@ -553,7 +644,7 @@ export default function TopicsTab({ onPracticeModule }) {
                         <strong className="font-semibold text-slate-900">
                           Giải thích:{' '}
                         </strong>
-                        <RichInlineText text={q.explanation} />
+                        <KeywordText text={q.explanation} />
                       </p>
                     )}
                   </div>
@@ -897,7 +988,7 @@ export default function TopicsTab({ onPracticeModule }) {
                               <li key={sub.label} className="space-y-1">
                                 <div className="flex items-center justify-between gap-2 text-xs">
                                   <span className="text-slate-600">
-                                    {sub.label}
+                                    <KeywordText text={sub.label} />
                                   </span>
                                   <span className="shrink-0 font-mono text-[11px] font-semibold text-slate-700 tabular-nums">
                                     {sub.weight}%

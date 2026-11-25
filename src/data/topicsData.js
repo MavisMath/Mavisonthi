@@ -66,6 +66,48 @@ export const TOPICS = [
         'Sarrus 3×3: det = aei + bfg + cdh − ceg − bdi − afh  |  Trace(A) = tổng đường chéo chính',
         'Trị riêng: A·v = λ·v  |  SVD: A = U·Σ·V^T (dùng CSR + Truncated SVD cho ma trận thưa)',
       ],
+      problemBlocks: [
+        {
+          title: 'Dot product & Cosine similarity',
+          formulaShort: 'Cosine = (u · v) ÷ (||u|| × ||v||)',
+          realProblem:
+            'Làm sao Chatbot RAG so sánh câu hỏi ngắn của khách với 10.000 đoạn tài liệu dài ngắn khác nhau để tìm ra đoạn khớp ý nhất?',
+          aiRole:
+            'Vector Database biến mỗi câu thành một danh sách số (vector), rồi dùng Cosine similarity đo góc lệch giữa chúng để bỏ qua sự chênh lệch độ dài văn bản.',
+          plainSteps:
+            'Bước 1: Lấy từng cặp số cùng vị trí của 2 vector nhân nhau rồi cộng dồn (Dot product) làm Tử số. Bước 2: Bình phương từng số trong mỗi vector, cộng lại rồi lấy căn bậc hai để ra độ dài thật, sau đó nhân 2 độ dài làm Mẫu số. Bước 3: Lấy Tử số ÷ Mẫu số → điểm từ −1 đến +1. Ví dụ u = [3, 4] và v = [6, 8]: Tử = 3×6 + 4×8 = 50; Độ dài u = √(9+16) = 5, độ dài v = √(36+64) = 10 → Mẫu = 5×10 = 50 → Cosine = 50 ÷ 50 = 1.0 (khớp hướng 100%).',
+        },
+        {
+          title: 'Nhân ma trận & Đường chéo chính Trace(AB)',
+          formulaShort: '(m × n) · (n × p) = (m × p)',
+          realProblem:
+            'Làm sao một tầng mạng nơ-ron tính điểm dự đoán cho cả 100 khách hàng cùng lúc thay vì tính nhẩm thủ công từng người?',
+          aiRole:
+            'Nhân ma trận gộp toàn bộ phép tính "lấy từng đặc trưng nhân trọng số rồi cộng lại" cho hàng loạt mẫu vào một lệnh GPU duy nhất (nhớ kích thước bên trong phải khớp: số cột bảng trái = số dòng bảng phải).',
+          plainSteps:
+            'Để tính ô ở Dòng i, Cột j của bảng kết quả: lấy lần lượt từng số trên Dòng i bảng trái nhân với từng số trên Cột j bảng phải rồi cộng lại. Mẹo tính Trace(AB): chỉ cần tính đúng các ô nằm trên đường chéo (Dòng 1 × Cột 1, Dòng 2 × Cột 2) rồi cộng chúng lại, không cần nhân cả bảng!',
+        },
+        {
+          title: 'Determinant (Định thức) & Ma trận nghịch đảo',
+          formulaShort: 'det 2×2 = (a × d) − (b × c)',
+          realProblem:
+            'Khi giải hệ phương trình tìm trọng số hồi quy tuyến tính, làm sao kiểm tra nhanh bảng dữ liệu có bị dư thừa cột trùng lặp khiến bài toán vô nghiệm/không đảo ngược được không?',
+          aiRole:
+            'Determinant đo xem phép biến đổi bảng số có làm "ép bẹp" mất một chiều thông tin hay không: chỉ khi det(A) ≠ 0 thì ma trận mới khả nghịch (giải ngược ra đúng 1 nghiệm duy nhất).',
+          plainSteps:
+            'Với bảng 2×2 [[a, b], [c, d]]: Bước 1 lấy tích đường chéo chính (a × d). Bước 2 lấy tích đường chéo phụ (b × c). Bước 3 lấy (Chính) − (Phụ). Ví dụ [[3, 2], [1, 5]] → (3×5) − (2×1) = 15 − 2 = 13 ≠ 0 ⇒ khả nghịch; muốn lấy nghịch đảo thì đổi chỗ a↔d, đổi dấu b, c rồi chia tất cả cho 13.',
+        },
+        {
+          title: 'CSR & Truncated SVD (nén bảng dữ liệu thưa)',
+          formulaShort: 'CSR + Truncated SVD (giữ 80–85% phương sai)',
+          realProblem:
+            'Bảng lịch sử mua hàng 100.000 khách × 50.000 sản phẩm (99% là số 0 vì mỗi người chỉ mua vài món) bị tràn RAM (OOM) khi cố giảm số cột để đưa vào mô hình gợi ý?',
+          aiRole:
+            'Định dạng CSR chỉ lưu các ô khác 0, kết hợp Truncated SVD nén bảng xuống vài trăm cột cốt lõi mà KHÔNG trừ trung bình (tránh biến hàng tỷ số 0 thành số khác 0 như Standard PCA).',
+          plainSteps:
+            'Bước 1: Lưu bảng thưa dưới dạng CSR (chỉ ghi giá trị khác 0 + vị trí cột). Bước 2: Chạy Truncated SVD chọn số chiều k giữ lại ~80–85% lượng thông tin quan trọng nhất (thay vì cố giữ 99% làm phình RAM). Ví dụ: giảm từ 50.000 cột xuống k = 100 cột giúp tiết kiệm RAM hàng trăm lần.',
+        },
+      ],
       quickExample: {
         problem: 'Cho A = [[1, 2], [3, 4]] và B = [[2, 0], [1, 3]]. Tính Trace(AB) và kiểm tra A có khả nghịch không?',
         solution:
@@ -158,6 +200,48 @@ export const TOPICS = [
         "Cực trị: f'(x) = 0;  f''(x) > 0 ⇒ Local Min;  f''(x) < 0 ⇒ Local Max",
         'Update: θ_new = θ_old − η·∇L  |  Adam = Momentum + RMSProp  |  AdamW tách riêng Weight Decay',
         'ReLU(x) = max(0, x)  |  Sigmoid σ(x) ∈ (0, 1), σ\' = σ(1−σ)  |  Softmax: exp(z_i)/Σexp(z_j)',
+      ],
+      problemBlocks: [
+        {
+          title: 'Gradient Descent & Learning Rate (đi xuống đáy sai số)',
+          formulaShort: 'w_mới = w_cũ − (LR × độ dốc)',
+          realProblem:
+            'Khi AI dự đoán giá nhà đang bị lệch lớn so với giá thật, làm sao mô hình biết phải tăng hay giảm từng trọng số bao nhiêu để lần đoán sau ít sai hơn?',
+          aiRole:
+            'Gradient cho biết chiều dốc đi lên của sai số (Loss), nên Gradient Descent chủ động trừ đi một phần độ dốc (theo bước chân Learning Rate) để trượt dần xuống đáy sai số nhỏ nhất.',
+          plainSteps:
+            'Bước 1: Tính độ dốc (đạo hàm) của sai số theo trọng số hiện tại. Bước 2: Lấy Learning Rate (η) nhân với độ dốc đó để ra độ lớn bước nhảy. Bước 3: Lấy Trọng số cũ TRỪ đi bước nhảy vừa tính. Ví dụ: w_cũ = 5.0, độ dốc = +4.0, LR = 0.1 → Bước nhảy = 0.1 × 4.0 = 0.4 → w_mới = 5.0 − 0.4 = 4.6.',
+        },
+        {
+          title: 'Chain Rule & Backpropagation (quy trách nhiệm lỗi qua nhiều lớp)',
+          formulaShort: 'dL/dw = (dL/dy) × (dy/dw)',
+          realProblem:
+            'Một mạng nơ-ron sâu hàng chục lớp dự đoán sai ở đầu ra cuối cùng — làm sao truy ngược lại để biết trọng số ở tận lớp đầu tiên gây ra bao nhiêu phần lỗi?',
+          aiRole:
+            'Chain Rule là động cơ toán học của Backpropagation: tách chuỗi ảnh hưởng phức tạp thành từng mắt xích nhỏ rồi nhân nối tiếp từ cuối mạng về đầu mạng.',
+          plainSteps:
+            'Bước 1: Đo xem nếu đầu ra trung gian y tăng 1 đơn vị thì lỗi cuối L tăng mấy lần (dL/dy). Bước 2: Đo xem nếu trọng số w tăng 1 đơn vị thì y tăng mấy lần (dy/dw). Bước 3: Lấy 2 tốc độ đó NHÂN nhau. Ví dụ: y tăng 1 làm L tăng 2; w tăng 1 làm y tăng 3 → chỉnh w thêm 1 làm L thay đổi 2 × 3 = 6 lần.',
+        },
+        {
+          title: 'Tìm cực trị bằng đạo hàm bậc 1 & bậc 2',
+          formulaShort: "f'(x) = 0  &  f''(x) > 0 ⇒ Đáy",
+          realProblem:
+            'Làm sao tìm chính xác điểm đặt tham số để hàm chi phí/sai số chạm đáy thấp nhất mà không bị nhầm với đỉnh đồi cao nhất?',
+          aiRole:
+            'Tại đáy thung lũng hay đỉnh đồi, mặt đất đều phẳng (độ dốc f\' = 0); đạo hàm bậc 2 (f\'\', tương ứng ma trận Hessian ở nhiều biến) đo độ cong để phân biệt chắc chắn đáy lõm lên hay đỉnh lồi xuống.',
+          plainSteps:
+            'Bước 1: Lấy đạo hàm bậc 1 rồi cho bằng 0 để tìm vị trí mặt phẳng. Bước 2: Lấy đạo hàm thêm lần nữa (bậc 2): nếu > 0 là hình chữ U (đáy cực tiểu), nếu < 0 là hình úp ngược (đỉnh cực đại). Ví dụ f(x) = x² − 6x + 10: f\'(x) = 2x − 6 = 0 → x = 3; f\'\'(x) = 2 > 0 ⇒ chắc chắn là đáy tại x = 3.',
+        },
+        {
+          title: 'Hàm kích hoạt ReLU, Sigmoid & Softmax',
+          formulaShort: 'Softmax = e^(z_i) ÷ Σ e^(z_j)',
+          realProblem:
+            'Đầu ra thô của mạng AI là những con số bất kỳ (như [2, 1, 0]) — làm sao đổi chúng thành bảng % xác suất chọn từng lớp có tổng đúng bằng 100%?',
+          aiRole:
+            'ReLU giúp các lớp ẩn học nhanh mà không bị triệt tiêu tín hiệu (khắc phục Vanishing Gradient của Sigmoid), còn Softmax đứng ở lớp cuối để chuyển điểm thô thành phân phối xác suất.',
+          plainSteps:
+            'Với Softmax: Bước 1 lấy hằng số e (≈ 2.718) mũ từng điểm số để mọi số đều dương và phóng đại số lớn hơn. Bước 2 cộng tổng tất cả các số vừa mũ xong. Bước 3 lấy từng số chia cho tổng đó. Ví dụ điểm [2, 1, 0] → e² ≈ 7.39, e¹ ≈ 2.72, e⁰ = 1 → Tổng = 11.11 → Xác suất ≈ 66.5%, 24.5%, 9.0% (cộng lại đúng 100%).',
+        },
       ],
       quickExample: {
         problem: 'Cho L(x, y) = x² + 2y² − 4x + 4y. Tìm ∇L(1, −1) và hướng cập nhật giảm Loss?',
@@ -257,6 +341,48 @@ export const TOPICS = [
         'Chuẩn (Gaussian): 68% (±1σ) · 95% (±2σ) · 99.7% (±3σ)  |  Z = (x − μ) / σ',
         'Bernoulli (1 lần 0/1) · Binomial (k lần trong n phép thử) · Poisson (số sự kiện trong khoảng thời gian)',
       ],
+      problemBlocks: [
+        {
+          title: 'Định lý Bayes & Tỷ lệ nền (Base Rate)',
+          formulaShort: 'P(Thật | +) = Dương thật ÷ Tổng bị báo (+)',
+          realProblem:
+            'Một hệ thống AI chẩn đoán bệnh hiếm (chỉ 1% dân số mắc) có độ nhạy 99% và tỷ lệ báo nhầm 5%. Khi máy báo Dương tính (+), khả năng bệnh nhân thực sự bị bệnh có phải 99% không?',
+          aiRole:
+            'Định lý Bayes buộc ta tính cả "tỷ lệ nền" (số người khỏe đông áp đảo) để không bị đánh lừa bởi lượng báo động giả khổng lồ trong y tế, lọc spam và phát hiện gian lận.',
+          plainSteps:
+            'Giả sử có 1.000 người: Bước 1 tính số ca Dương thật = 10 người bệnh × 99% ≈ 9.9 ca. Bước 2 tính số ca Báo nhầm = 990 người khỏe × 5% = 49.5 ca. Bước 3 lấy Dương thật ÷ (Dương thật + Báo nhầm) = 9.9 ÷ (9.9 + 49.5) ≈ 16.7% — thấp hơn rất nhiều so với ảo giác 99%!',
+        },
+        {
+          title: 'Kỳ vọng E[aX+b] & Phương sai Var(aX+b)',
+          formulaShort: 'E[aX+b] = a·E[X]+b  |  Var(aX+b) = a²·Var(X)',
+          realProblem:
+            'Khi quy đổi cột doanh thu từ USD sang VND (nhân hệ số a) hoặc cộng thêm phí cố định +b cho mọi đơn hàng, mức trung bình và độ biến động dữ liệu thay đổi thế nào?',
+          aiRole:
+            'Giúp kỹ sư dự đoán ngay tác động của bước chuẩn hóa dữ liệu (Scaling / Normalization) lên phân phối đầu vào trước khi nạp vào mô hình AI.',
+          plainSteps:
+            'Với Trung bình (Kỳ vọng): cứ nhân a rồi cộng b bình thường. Với Phương sai (đo độ tản rộng): cộng thêm b chỉ dịch cả tập số đi chứ không kéo giãn chúng nên vứt bỏ +b, còn hệ số nhân a phải BÌNH PHƯƠNG lên rồi nhân phương sai cũ. Ví dụ Var(X) = 4 → Var(3X + 5) = (3 × 3) × 4 = 36 (bỏ hoàn toàn +5).',
+        },
+        {
+          title: 'Chuẩn hóa Z-score & Quy tắc 68 – 95 – 99.7',
+          formulaShort: 'Z = (Giá trị − Trung bình) ÷ Độ lệch chuẩn',
+          realProblem:
+            'Làm sao so sánh công bằng cột Tuổi (20–60) với cột Thu nhập (10–200 triệu) và phát hiện ngay giao dịch dị biệt (Outlier) quá xa mức bình thường?',
+          aiRole:
+            'StandardScaler đưa mọi cột dữ liệu về chung thước đo Z-score (trung bình 0, độ lệch chuẩn 1), giúp thuật toán dựa trên khoảng cách (KNN, K-Means, Linear) không bị cột số to nuốt chửng.',
+          plainSteps:
+            'Bước 1: Lấy Giá trị quan sát TRỪ đi Trung bình (μ) để xem lệch bao nhiêu. Bước 2: Lấy độ lệch đó CHIA cho Độ lệch chuẩn (σ) để ra số "bước lệch" Z. Ví dụ thời gian xử lý trung bình μ = 100ms, σ = 20ms; ca chạy 160ms có Z = (160 − 100) ÷ 20 = +3 (nằm sát rìa 99.7% ⇒ dấu hiệu bất thường!).',
+        },
+        {
+          title: 'Chọn đúng phân phối: Bernoulli, Nhị thức & Poisson',
+          formulaShort: '1 lần → Bernoulli · n lần → Binomial · theo giờ → Poisson',
+          realProblem:
+            'Làm sao ước lượng lượng API request đổ vào máy chủ AI mỗi giây hoặc số khách bấm mua hàng trong 100 lượt hiển thị để dự phòng tải server?',
+          aiRole:
+            'Chọn đúng mô hình xác suất giúp tính trước xác suất nghẽn cổ chai, kích hoạt Auto-scaling và thiết kế bài kiểm định A/B chuẩn xác.',
+          plainSteps:
+            'Nhìn vào đơn vị bài toán: (1) Đếm 1 lần tung có/không (click hay không) → Bernoulli; (2) Đếm số lần thành công trong đúng n lượt cố định (k click trên 100 lần hiện) → Nhị thức (Binomial); (3) Đếm số sự kiện rơi vào 1 khung thời gian (số request mỗi giây, số lỗi mỗi giờ) → Poisson (kỳ vọng = phương sai = λ).',
+        },
+      ],
       quickExample: {
         problem: 'Bệnh hiếm có P(Bệnh) = 1%. Test nhạy P(+|Bệnh) = 99%, báo giả P(+|Khỏe) = 5%. Có kết quả (+), xác suất thật sự mắc bệnh?',
         solution:
@@ -344,6 +470,48 @@ export const TOPICS = [
         'Statistical Power = 1 − β (thường đặt ≥ 80%)  |  Bonferroni cho m kiểm định: α_new = α / m',
         'IQR = Q3 − Q1 (Outlier nằm ngoài [Q1 − 1.5·IQR, Q3 + 1.5·IQR])',
         'SRM (Sample Ratio Mismatch): tỉ lệ chia traffic thực tế lệch thiết kế (vd 50/50 thành 53/47) ⇒ kết quả A/B vô hiệu!',
+      ],
+      problemBlocks: [
+        {
+          title: 'Standard Error (SE) & Khoảng tin cậy 95% (CI)',
+          formulaShort: 'SE = σ ÷ √n  |  CI 95% = x̄ ± 1.96 × SE',
+          realProblem:
+            'Chỉ chạy thử tính năng gợi ý AI trên một mẫu nhỏ 100 khách hàng — làm sao ước lượng biên độ sai số khi nhân rộng ra hàng triệu khách và cần tăng mẫu bao nhiêu để biên độ giảm một nửa?',
+          aiRole:
+            'SE và CI 95% định lượng độ bấp bênh của ước lượng mẫu; nếu khoảng tin cậy mức tăng trưởng vẫn cắt qua số 0 (ví dụ từ −1% đến +3%) thì chưa thể khẳng định AI mới thắng.',
+          plainSteps:
+            'Bước 1: Lấy độ lệch chuẩn σ CHIA cho căn bậc hai của cỡ mẫu n (√n) để ra SE — vì có căn bậc hai nên muốn giảm sai số đi 2 lần phải TĂNG cỡ mẫu lên 2² = 4 lần! Bước 2: Lấy Trung bình đo được ± (1.96 × SE). Ví dụ σ = 10, n = 100 → SE = 10 ÷ √100 = 1 → CI 95% quanh trung bình 50 là [50 − 1.96, 50 + 1.96] = [48.04, 51.96].',
+        },
+        {
+          title: 'p-value, Sai lầm Loại I–II & Hiệu chỉnh Bonferroni',
+          formulaShort: 'Ngưỡng mới α_new = α ÷ số phép thử m',
+          realProblem:
+            'Nhóm sản phẩm chạy A/B test và soi cùng lúc 20 chỉ số khác nhau ở mức α = 0.05, thấy 1 chỉ số đạt p-value = 0.03 liền tuyên bố thắng — có nên tung tính năng không?',
+          aiRole:
+            'Kiểm soát rủi ro "tung nhầm mô hình vô dụng do ăn may" (Type I Error / False Positive): càng soi nhiều chỉ số cùng lúc thì xác suất gặp ít nhất 1 báo giả càng phình to.',
+          plainSteps:
+            'Bước 1: Giả sử 2 phiên bản chẳng khác gì nhau, p-value đo xác suất dữ liệu đẹp như vậy xảy ra chỉ do ngẫu nhiên (càng nhỏ càng đáng tin). Bước 2: Khi test m chỉ số song song, áp dụng Bonferroni bằng cách lấy ngưỡng α (0.05) CHIA cho m. Ví dụ m = 20 → α_new = 0.05 ÷ 20 = 0.0025 ⇒ p = 0.03 > 0.0025 nên CHƯA ĐẠT!',
+        },
+        {
+          title: 'Chốt chặn A/B sạch: SRM & Peeking Problem',
+          formulaShort: 'Check SRM trước · Chạy đủ ngày rồi mới chốt (No Peeking)',
+          realProblem:
+            'Thử nghiệm A/B chia 50/50 nhưng sau 1 tuần nhóm A nhận 54.000 người còn nhóm B chỉ nhận 46.000 người; hoặc mới ngày đầu đã thấy p < 0.05 nên sếp giục dừng sớm — đâu là bẫy?',
+          aiRole:
+            'Là hai lớp kiểm tra chất lượng thí nghiệm bắt buộc trong AI Product: dính SRM nghĩa là hệ thống chia traffic/ghi log đang hỏng, còn nhìn trộm dừng sớm (Peeking) đẩy tỷ lệ báo giả từ 5% lên 25–30%.',
+          plainSteps:
+            'Bước 1 (SRM): So số lượng thực tế vào A và B với tỷ lệ thiết kế (50/50 trên 100.000 người phải xấp xỉ 50.000 vs 50.000; lệch tận 54.000 vs 46.000 là lỗi hệ thống ⇒ HỦY kết quả, sửa bug trước). Bước 2 (No Peeking): Tính trước cỡ mẫu n cần đủ rồi chờ hết đúng thời gian (thường 1–2 tuần đủ chu kỳ T2–CN) mới đọc p-value một lần duy nhất.',
+        },
+        {
+          title: "IQR lọc nhiễu & Nghịch lý Simpson's Paradox",
+          formulaShort: 'IQR = Q3 − Q1  |  Luôn tách phân khúc kiểm tra',
+          realProblem:
+            'Một mô hình gợi ý AI có tỷ lệ bấm cao hơn đối thủ ở CẢ nhóm Mobile lẫn nhóm Desktop, nhưng khi gộp tổng toàn công ty lại thua — tại sao có chuyện vô lý này?',
+          aiRole:
+            'Giúp kỹ sư dữ liệu không bị số liệu gộp tổng (hoặc vài giá trị ngoại lai Outlier kéo lệch Mean) đánh lừa khi ra quyết định tung sản phẩm.',
+          plainSteps:
+            'Với Outlier: tính IQR = mốc 75% (Q3) TRỪ mốc 25% (Q1); bất kỳ điểm nào nhỏ hơn Q1 − 1.5×IQR hoặc lớn hơn Q3 + 1.5×IQR là Outlier (nên dùng Median thay Mean). Với Simpson\'s Paradox: so sánh tỷ lệ theo từng phân khúc riêng thay vì gộp chung, vì nếu 90% user của nhóm A rơi vào kênh khó (Mobile) còn nhóm B toàn kênh dễ (Desktop) thì số tổng sẽ bị đảo ngược hoàn toàn.',
+        },
       ],
       quickExample: {
         problem: 'Nhóm chạy 20 chỉ số A/B cùng lúc ở mức α = 0.05 và thấy 1 chỉ số có p = 0.03 nên kết luận mô hình mới thắng. Đúng hay sai?',
@@ -439,6 +607,38 @@ export const TOPICS = [
         'Comprehension: [r["v"]*2 for r in recs if r.get("v") is not None]  |  Generator (yield): RAM O(1)',
         'Context Manager: with open(path) as f: (tránh resource leak)  |  re.compile() biên dịch sẵn Regex',
         '@dataclass tự sinh __init__, __repr__, __eq__  |  Dùng field(default_factory=list) cho trường mutable',
+      ],
+      problemBlocks: [
+        {
+          title: 'Slicing & Phân biệt Aliasing / View vs Copy',
+          formulaShort: 'a[start:end] lấy trước end  |  b = a.copy()',
+          realProblem:
+            'Trong pipeline tiền xử lý dữ liệu, làm sao cắt trích 1 đoạn danh sách và chỉnh sửa thử nghiệm mà không làm hỏng dữ liệu gốc đang dùng ở bước khác?',
+          aiRole:
+            'Truy vết chính xác vùng nhớ giúp tránh các bug âm thầm (đổi bản nháp mà làm sai luôn dữ liệu gốc) khi không có IDE nhắc lỗi trong phòng thi.',
+          plainSteps:
+            'Bước 1 (Slicing): `a[1:3]` bắt đầu từ vị trí 1 và dừng NGAY TRƯỚC vị trí 3 → lấy phần tử số 1 và số 2 (số phần tử = `end − start = 3 − 1 = 2`). Bước 2 (Copy): `b = a` chỉ gắn thêm nhãn tên lên cùng 1 danh sách (sửa `b` là `a` đổi theo); phải viết `b = a.copy()` (hoặc `copy.deepcopy(a)` nếu là danh sách lồng nhau).',
+        },
+        {
+          title: 'Generator (yield) & Context Manager xử lý file lớn',
+          formulaShort: 'with open(...) as f:  +  yield → RAM O(1)',
+          realProblem:
+            'Cần lọc lỗi từ một file log inference AI nặng 15 GB trên máy chủ chỉ còn trống 8 GB RAM mà không bị tràn bộ nhớ hay quên đóng file?',
+          aiRole:
+            'Generator sinh từng dòng một khi cần thay vì ôm toàn bộ 15 GB lên RAM như `.readlines()`, còn `with` tự động đóng file ngay cả khi giữa chừng xảy ra lỗi.',
+          plainSteps:
+            'Thay vì nạp tất cả vào list `[x for x in f]` (tốn RAM tỷ lệ thuận cỡ file = O(N)), đổi ngoặc vuông thành ngoặc tròn `(x for x in f)` hoặc dùng `yield`: tại mỗi thời điểm máy chỉ giữ đúng 1 dòng trong RAM (O(1)), xử lý xong vứt đi rồi mới đọc dòng tiếp theo.',
+        },
+        {
+          title: 'Mutable Default Argument & @dataclass an toàn',
+          formulaShort: 'buf=None  |  field(default_factory=list)',
+          realProblem:
+            'Tại sao viết hàm `def add(x, buf=[])` hay khai báo class có `tags: list = []` lại khiến dữ liệu của người dùng trước tự động dính sang người dùng sau?',
+          aiRole:
+            'Ngăn ngừa lỗi rò rỉ trạng thái chéo giữa các request trong API phục vụ mô hình AI và cấu trúc cấu hình gọn sạch bằng `@dataclass`.',
+          plainSteps:
+            'Python chỉ tạo giá trị mặc định `[]` ĐÚNG 1 LẦN lúc định nghĩa hàm, nên mọi lần gọi sau đều nhét chung vào 1 giỏ. Cách sửa 2 bước: đặt mặc định là `None`, vào thân hàm kiểm tra `if buf is None: buf = []`; còn trong `@dataclass` dùng `field(default_factory=list)` để mỗi đối tượng nhận 1 giỏ mới tinh.',
+        },
       ],
       quickExample: {
         problem: 'Đoạn code `def add(x, buf=[]): buf.append(x); return buf` khi gọi `add(1)` rồi `add(2)` trả về gì?',
@@ -537,6 +737,38 @@ export const TOPICS = [
         'pd.merge(a, b, on="id", how="left") (JOIN theo khóa)  |  pd.concat([a, b], ignore_index=True) (nối trục)',
         'df.isna().sum()  |  df.ffill() (tránh bfill trên time-series)  |  pd.to_datetime(s, errors="coerce").dt.month',
       ],
+      problemBlocks: [
+        {
+          title: 'loc vs iloc & Lọc kép nhiều điều kiện',
+          formulaShort: 'loc gồm cuối · iloc bỏ cuối · ngoặc (...) & (...)',
+          realProblem:
+            'Cần lọc nhanh nhóm khách hàng ở Hà Nội trên 25 tuổi từ bảng triệu dòng rồi gắn thêm cột phân hạng mà không bị lỗi cú pháp hay cảnh báo `SettingWithCopyWarning`?',
+          aiRole:
+            'Là thao tác lọc sạch dữ liệu đầu vào (Data Cleaning) trước khi tạo đặc trưng và huấn luyện bất kỳ mô hình học máy bảng nào.',
+          plainSteps:
+            'Bước 1: Đặt từng điều kiện trong cặp ngoặc đơn rồi nối bằng `&` (VÀ) hoặc `|` (HOẶC) — cấm dùng chữ `and`/`or`. Bước 2: Gọi `.copy()` ở cuối lệnh lọc nếu định sửa giá trị cột mới. Nhớ mẹo `loc` cắt theo tên nhãn (lấy CẢ mốc cuối: `loc[0:2]` ra 3 dòng 0, 1, 2), còn `iloc` cắt theo số thứ tự (BỎ mốc cuối: `iloc[0:2]` chỉ ra 2 dòng 0, 1).',
+        },
+        {
+          title: 'groupby().agg() vs groupby().transform()',
+          formulaShort: 'agg = thu gọn 1 dòng/nhóm  |  transform = giữ nguyên số dòng',
+          realProblem:
+            'Muốn tạo thêm cột "chênh lệch giữa doanh thu từng đơn hàng với mức trung bình của khu vực đó" để đưa vào mô hình dự đoán, dùng `agg` hay `transform`?',
+          aiRole:
+            'Giúp tạo đặc trưng theo nhóm (Group Feature Engineering) ngay trên bảng gốc mà không phải tách bảng ra rồi merge ngược lại rườm rà.',
+          plainSteps:
+            'Nếu cần bảng báo cáo tổng kết (3 khu vực → ra đúng 3 dòng): dùng `groupby("region").agg(...)`. Nếu cần giữ nguyên toàn bộ 1.000 dòng đơn hàng để trừ đi trung bình từng khu vực: dùng `df["avg"] = df.groupby("region")["rev"].transform("mean")`, sau đó lấy `df["rev"] − df["avg"]`.',
+        },
+        {
+          title: 'pd.merge() vs pd.concat() & Điền thiếu ffill()',
+          formulaShort: 'merge = ghép theo khóa  |  concat = nối chồng file  |  ffill = kéo từ quá khứ',
+          realProblem:
+            'Làm sao nối bảng giao dịch với bảng thông tin khách hàng, ghép 12 file log các tháng, và điền các ô nhiệt độ cảm biến bị mất mà không gây Data Leakage?',
+          aiRole:
+            'Chuẩn hóa quy trình tích hợp nhiều nguồn dữ liệu sạch sẽ, không mất bản ghi oan và không nhìn trộm giá trị tương lai trên chuỗi thời gian.',
+          plainSteps:
+            'Bước 1: Nối theo mã chung (`user_id`) giống SQL JOIN → dùng `pd.merge(..., how="left")` để giữ đủ mọi giao dịch; xếp chồng nhiều file cùng cột → dùng `pd.concat([...], ignore_index=True)`. Bước 2: Với chuỗi thời gian `[10, NaN, NaN, 20]`, dùng `ffill()` (lấy số 10 quá khứ kéo tới thành `[10, 10, 10, 20]`), cấm dùng `bfill()` kéo số 20 tương lai về!',
+        },
+      ],
       quickExample: {
         problem: 'Chuỗi `[10, NaN, NaN, 20]` sau `s.ffill()` ra gì? Muốn gắn trung bình `revenue` từng `region` thành cột mới cùng số dòng thì dùng `agg` hay `transform`?',
         solution:
@@ -633,6 +865,48 @@ export const TOPICS = [
         'Lookup: x in set/dict = O(1), x in list = O(n), len(d) = O(1), Binary Search = O(log n), Sort = O(n log n)',
         'Moving Average RPS cao: deque(maxlen=K) + running_sum = O(1)  |  Top-K: Min-Heap = O(n log k)',
         'Two Pointers / Sliding Window giảm vòng lặp lồng O(n²) xuống O(n); Memoization (@lru_cache) tránh đệ quy O(2^n)',
+      ],
+      problemBlocks: [
+        {
+          title: 'Quy tắc Broadcasting & Bẫy phình ma trận (3,1) − (3,)',
+          formulaShort: 'Khớp từ PHẢI sang TRÁI (= nhau hoặc = 1)',
+          realProblem:
+            'Làm sao trừ điểm dự đoán `prediction` với đáp án thật `y` cho cả bảng dữ liệu bằng 1 dòng NumPy mà không vô tình phình 3 con số thành bảng 9 số sai lệch?',
+          aiRole:
+            'Broadcasting cho phép Vectorization tính hàng triệu ô song song, nhưng chỉ cần lệch hình dáng (cột trừ hàng) là thuật toán Gradient Descent tự hỏng ngầm mà không báo lỗi.',
+          plainSteps:
+            'Bước 1: Viết 2 kích thước (shape) thẳng hàng lề PHẢI. Bước 2: So từng cột từ phải sang trái — hợp lệ nếu 2 số bằng nhau hoặc có 1 số là 1 (số 1 sẽ tự nhân bản). Ví dụ `(4, 3)` + `(3,)` → coi `(3,)` là `(1, 3)` → `3 = 3` và `1` nhân bản thành `4` ✔; còn `(3, 1)` − `(3,)` coi như `(3, 1)` − `(1, 3)` → phình thành `(3, 3)`! Phải dựng thành cột `y[:, None]` thành `(3, 1)`.',
+        },
+        {
+          title: 'axis=0 vs axis=1 & Phép nhân * vs @',
+          formulaShort: 'axis=0: tính theo CỘT  |  axis=1: tính theo HÀNG',
+          realProblem:
+            'Với bảng dữ liệu `X` (mỗi hàng là 1 khách hàng, mỗi cột là 1 đặc trưng), làm sao tính trung bình riêng của từng cột (để chuẩn hóa) hay tổng điểm của từng khách hàng mà không cộng nhầm chiều?',
+          aiRole:
+            'Đặt đúng `axis` là nền tảng của mọi bước chuẩn hóa đặc trưng (mean/std theo cột) và tính Softmax/tổng xác suất (theo từng dòng mẫu), còn `@` dùng cho nhân ma trận mạng nơ-ron.',
+          plainSteps:
+            'Mẹo nhớ chiều ép: `axis=0` là ép DỌC từ trên xuống → gộp các dòng lại để ra kết quả cho TỪNG CỘT (bảng 4×3 ra 3 số). `axis=1` là ép NGANG từ trái sang phải → gộp các cột lại để ra kết quả cho TỪNG HÀNG (bảng 4×3 ra 4 số). Còn `a * b` là nhân từng ô cùng vị trí, khác hoàn toàn `a @ b` là nhân ma trận.',
+        },
+        {
+          title: 'Tra cứu Hash Set/Dict O(1) vs List O(n) (Big-O)',
+          formulaShort: 'x in set: O(1)  vs  x in list: O(n)',
+          realProblem:
+            'Cần đối chiếu 1.000.000 `user_id` truy cập với danh sách đen 50.000 tài khoản gian lận — tại sao dùng `list` làm server treo hàng chục giây còn đổi sang `set` chỉ mất chưa tới 0.2 giây?',
+          aiRole:
+            'Chọn đúng cấu trúc dữ liệu giảm độ phức tạp từ O(N × M) xuống O(N + M), giúp pipeline tiền xử lý và bộ lọc real-time chạy mượt ở quy mô triệu bản ghi.',
+          plainSteps:
+            'Dùng `list` phải dò tuần tự từ đầu tới cuối danh sách đen: 1.000.000 × 50.000 = 50 TỶ lượt so sánh! Đổi danh sách đen sang `set` tốn 50.000 bước dựng bảng băm, sau đó mỗi lần hỏi `u in banned_set` nhảy thẳng tới đúng ô nhớ tốn đúng 1 bước → tổng cộng chỉ 1.000.000 + 50.000 = 1,05 triệu bước (nhanh gấp hàng chục nghìn lần).',
+        },
+        {
+          title: 'Deque + Running Sum O(1) & Min-Heap Top-K',
+          formulaShort: 'sum_mới = sum_cũ + số_mới − số_cũ_nhất',
+          realProblem:
+            'Hệ thống giám sát AI nhận 5.000 request/giây cần cập nhật liên tục độ trễ trung bình của 10.000 lượt gần nhất (Moving Average) — làm sao không tốn O(10.000) mỗi lượt?',
+          aiRole:
+            'Kết hợp Deque (cửa sổ trượt 2 đầu) với biến cộng dồn `running_sum` giữ tốc độ O(1) bất kể cửa sổ lớn đến đâu; còn muốn lấy Top-K sản phẩm điểm cao nhất từ N món thì dùng Min-Heap cỡ K đạt O(N log K).',
+          plainSteps:
+            'Bước 1: Lưu 10.000 số gần nhất trong `deque(maxlen=10000)`. Bước 2: Khi số mới vào làm số cũ nhất bị đẩy ra ở đầu kia, chỉ cần tính 1 phép cộng và 1 phép trừ: `running_sum = running_sum + số_mới − số_bị_đẩy_ra`. Bước 3: Lấy `running_sum ÷ độ_dài_cửa_sổ` → đúng 3 phép tính cố định O(1), không bao giờ gọi `sum(window)`!',
+        },
       ],
       quickExample: {
         problem: 'Cho `m = np.array([[1,2,3],[4,5,6],[7,8,9]])`. Chạy `sub = m[0:2, 1:]; sub[0, 0] = 99`. Giá trị `m[0, 1]` bây giờ là bao nhiêu?',
@@ -737,6 +1011,38 @@ export const TOPICS = [
         'Window: ROW_NUMBER() / RANK() / DENSE_RANK() OVER (PARTITION BY dept ORDER BY score DESC)',
         'Running Total: SUM(amt) OVER (PARTITION BY uid ORDER BY ts)  |  Partitioning + Composite Index (Leftmost Prefix)',
       ],
+      problemBlocks: [
+        {
+          title: 'Thứ tự thực thi SQL: WHERE vs HAVING & Bẫy NULL',
+          formulaShort: 'WHERE (lọc dòng) → GROUP BY → HAVING (lọc tổng)',
+          realProblem:
+            'Cần tìm những khu vực có tổng doanh thu đơn đã thanh toán vượt 100.000 và đếm chính xác bao nhiêu đơn đang thiếu mã giảm giá (`NULL`) mà không bị lỗi cú pháp hay đếm thiếu?',
+          aiRole:
+            'Nắm thứ tự chạy giúp viết câu truy vấn kéo dữ liệu huấn luyện (Dataset Extraction) đúng ngay lần đầu, không dính bẫy `col = NULL` hay đặt `SUM()` vào `WHERE`.',
+          plainSteps:
+            'Bước 1: Dùng `WHERE status = \'paid\'` để lọc từng dòng thô trước. Bước 2: Dùng `GROUP BY region` gom theo khu vực rồi mới dùng `HAVING SUM(revenue) > 100000` lọc kết quả tổng. Bước 3: Kiểm tra ô trống bắt buộc viết `IS NULL` (không viết `= NULL`), và nhớ `COUNT(*)` đếm đủ 100 dòng còn `COUNT(discount)` chỉ đếm 80 dòng không trống.',
+        },
+        {
+          title: 'Window Function: ROW_NUMBER vs RANK vs LAG',
+          formulaShort: 'CTE WITH + ROW_NUMBER / LAG OVER (PARTITION BY ...)',
+          realProblem:
+            'Làm sao lấy đúng Top-1 nhân viên doanh số cao nhất mỗi phòng ban (chỉ 1 dòng/phòng kể cả khi đồng hạng) và tính mức tăng doanh số so với tháng liền trước?',
+          aiRole:
+            'Window Function tính toán theo từng nhóm nhưng VẪN GIỮ NGUYÊN chi tiết từng dòng, là vũ khí mạnh nhất để tạo đặc trưng chuỗi thời gian (`LAG`, Running Total) ngay trong DB.',
+          plainSteps:
+            'Bước 1: Chia nhóm bằng `PARTITION BY dept` và xếp thứ tự bằng `ORDER BY rev DESC`. Bước 2: Với 3 điểm `[100, 100, 90]`, `ROW_NUMBER` tách `(1, 2, 3)` để lọc đúng 1 dòng đầu, `RANK` cho `(1, 1, 3)`, còn `LAG(rev, 1, 0)` lấy doanh số dòng ngay phía trên (dòng đầu nhóm trả `0` thay `NULL`). Bước 3: Bọc câu lệnh trong CTE `WITH` rồi mới `WHERE rn = 1` ở ngoài.',
+        },
+        {
+          title: 'Anti-Join & Table Partitioning + B-Tree Index',
+          formulaShort: 'LEFT JOIN ... WHERE b.id IS NULL  |  Partitioning + Index',
+          realProblem:
+            'Bảng `inference_logs` phình lên 500 triệu dòng khiến API kiểm tra lịch sử người dùng mất tới 3 giây (SLA yêu cầu < 200ms) — tối ưu kiến trúc DB thế nào?',
+          aiRole:
+            'Partitioning chia bảng khổng lồ thành từng mảnh nhỏ theo ngày/tháng (Partition Pruning chỉ đọc đúng mảnh cần tìm) kết hợp B-Tree Index giúp truy vấn đạt mức mili-giây bền vững.',
+          plainSteps:
+            'Với Anti-Join tìm user chưa mua hàng: lấy bảng `users` `LEFT JOIN orders` rồi giữ dòng `WHERE orders.id IS NULL`. Với bảng log 500 triệu dòng: chia Partition theo `created_at` (giảm phạm vi quét 500 triệu xuống vài triệu dòng) + tạo Composite Index đúng thứ tự cột lọc (Leftmost Prefix: cột lọc trước đặt bên trái).',
+        },
+      ],
       quickExample: {
         problem: 'Bảng điểm có `[100, 100, 90]`. Cho biết giá trị của `ROW_NUMBER()`, `RANK()`, `DENSE_RANK()` tại dòng điểm `90`?',
         solution:
@@ -837,6 +1143,48 @@ export const TOPICS = [
         'L1 (Lasso): ép trọng số về 0 (chọn feature)  |  L2 (Ridge): thu nhỏ đều trọng số',
         'Imbalance: dùng PR-AUC (thay ROC-AUC/Accuracy) · class_weight · Focal Loss · SMOTE CHỈ trên tập Train',
       ],
+      problemBlocks: [
+        {
+          title: 'Precision, Recall & F1-Score (cân bằng báo oan vs bỏ sót)',
+          formulaShort: 'Precision = TP ÷ (TP+FP)  |  Recall = TP ÷ (TP+FN)',
+          realProblem:
+            'Làm sao biết một mô hình phát hiện gian lận ngân hàng đang báo nhầm quá nhiều (làm kiệt sức đội duyệt tay) hay đang bỏ lọt quá nhiều kẻ gian?',
+          aiRole:
+            'Precision và Recall dịch lỗi toán học thành chi phí kinh doanh: báo oan tốn kém (duyệt tay, chặn thẻ oan) → ưu tiên Precision; bỏ sót nguy hiểm (ung thư, gian lận lớn) → ưu tiên Recall.',
+          plainSteps:
+            'Giả sử ngoài đời có 100 ca gian lận; AI hô lên 80 lần, trong đó bắt trúng 60 kẻ gian thật (TP = 60), báo oan 20 khách vô tội (FP = 20) và bỏ sót 40 kẻ gian (FN = 40). Bước 1 (Precision — độ đáng tin mỗi lần hô): lấy 60 ÷ (60 + 20) = 75%. Bước 2 (Recall — độ bắt đủ): lấy 60 ÷ (60 + 40) = 60%. Bước 3 (F1 — trung bình điều hòa): lấy (2 × 0.75 × 0.60) ÷ (0.75 + 0.60) ≈ 66.7%.',
+        },
+        {
+          title: 'PR-AUC vs Accuracy trên tập cực lệch lớp (0.1% gian lận)',
+          formulaShort: 'Lớp hiếm 0.1% ⇒ Gạch Accuracy, chọn PR-AUC',
+          realProblem:
+            'Mô hình phát hiện gian lận (chỉ 1 giao dịch gian lận trên 1.000 giao dịch) đạt Accuracy = 99.9% — vì sao con số nhìn cực đẹp này lại hoàn toàn vô dụng?',
+          aiRole:
+            'PR-AUC loại bỏ hoàn toàn số lượng khổng lồ các ca bình thường (True Negative) khỏi phép tính, phơi bày thẳng chất lượng bắt lớp hiếm và tỷ lệ báo động giả.',
+          plainSteps:
+            'Nếu tạo một mô hình "lười" luôn đoán 100% là "Không gian lận": đúng 999 ca bình thường, sai 1 ca gian lận → Accuracy = 999 ÷ 1.000 = 99.9% nhưng Recall = 0 ÷ 1 = 0% (không bắt được ai!). ROC-AUC cũng dễ bị đẹp giả tạo vì mẫu số FPR có 999 ca TN; chỉ PR-AUC (chỉ nhìn Precision & Recall) mới chấm điểm trung thực.',
+        },
+        {
+          title: 'Chống Data Leakage & Dùng SMOTE đúng quy trình',
+          formulaShort: 'Chia Train/Test TRƯỚC → fit Scaler / SMOTE CHỈ trên Train',
+          realProblem:
+            'Mô hình dự đoán hỏng ổ cứng đạt 99% điểm khi test trên máy cá nhân nhưng đưa ra phục vụ thực tế lại dự đoán sai hàng loạt — lỗi nằm ở đâu?',
+          aiRole:
+            'Chặn đứng Data Leakage ("nhìn lén đáp án đề thi"): đảm bảo mô hình chỉ học từ quá khứ/tập Train và được chấm điểm công bằng trên dữ liệu hoàn toàn mới.',
+          plainSteps:
+            'Bước 1: Tách dữ liệu TRƯỚC MỌI BƯỚC XỬ LÝ (nếu có cột thời gian thì cắt theo mốc ngày: tháng 1–8 Train, tháng 9–10 Test, cấm trộn ngẫu nhiên). Bước 2: Đóng gói `StandardScaler`, `Imputer`, và `SMOTE` vào `Pipeline` để chỉ `.fit()` trên tập Train. Bước 3: Tập Test chỉ gọi `.transform()` bằng thông số của Train (tuyệt đối không chạy SMOTE lên tập Test!).',
+        },
+        {
+          title: 'Overfitting, Regularization (L1/L2) & Bagging vs Boosting',
+          formulaShort: 'Train 99% / Val 60% = Overfit  |  L1 chọn cột · L2 nén đều',
+          realProblem:
+            'Mô hình đạt 99% trên tập học (Train) nhưng sang tập kiểm tra (Val) tụt thê thảm xuống 60% — làm sao trị bệnh "học vẹt" (Overfitting) và chọn đúng nhóm thuật toán?',
+          aiRole:
+            'Regularization (L1/L2) cộng thêm "tiền phạt" vào hàm mất mát nếu trọng số quá lớn giúp mô hình đơn giản lại; Bagging giảm biến động (Variance), còn Boosting giảm sai số hệ thống (Bias).',
+          plainSteps:
+            'Cơ chế phạt: `Loss_mới = Sai_số_dự_đoán + λ × (Độ_lớn_trọng_số)`. Với L1 (Lasso): cộng tổng trị tuyệt đối `|w|` → ép các cột vô dụng về đúng `0` (tự lọc bỏ feature thừa). Với L2 (Ridge): cộng tổng bình phương `w²` → nén đều tất cả trọng số nhỏ lại cho mượt. Cần giảm Overfit mạnh → Random Forest (Bagging); cần độ chính xác cao nhất trên dữ liệu bảng → XGBoost/LightGBM (Boosting).',
+        },
+      ],
       quickExample: {
         problem: 'Dự đoán ổ cứng hỏng theo chỉ số SMART hàng ngày: trộn ngẫu nhiên 80/20 đạt 99% nhưng ra thực tế rất tệ. Tại sao?',
         solution:
@@ -935,6 +1283,38 @@ export const TOPICS = [
         'Chunking chuẩn: 300–800 token, overlap 10–15%, cắt theo tiêu đề + gắn Metadata (version, quyền RBAC)',
         'Chẩn đoán RAG: Recall@k thấp ⇒ lỗi Truy xuất; Recall cao mà Faithfulness thấp ⇒ lỗi Sinh/Prompt',
         'ReAct Agent: Thought → Action (Tool) → Observation  |  Tool đọc tự chạy, Tool ghi buộc HITL + max_steps',
+      ],
+      problemBlocks: [
+        {
+          title: 'Self-Attention O(N²) & Temperature Sampling',
+          formulaShort: 'Dài gấp 2 ⇒ Tính gấp 4 (N²)  |  Temp 0–0.2 cho RAG',
+          realProblem:
+            'Tại sao nhét nguyên quyển tài liệu dài vào khung chat LLM lại chậm và tốn tài nguyên tăng vọt theo cấp số nhân, và chỉnh Temperature bao nhiêu để chatbot tra cứu quy định không bịa?',
+          aiRole:
+            'Self-Attention giúp mỗi từ "ngó" sang mọi từ khác trong câu để hiểu ngữ cảnh (nên 2 lần độ dài = 4 lần phép tính), còn Temperature kiểm soát độ "liều" khi chọn từ tiếp theo.',
+          plainSteps:
+            'Bước 1 (Chi phí N²): Câu 1.000 token cần 1.000 × 1.000 = 1 triệu cặp so sánh; tăng lên 4.000 token thành 4.000 × 4.000 = 16 triệu cặp (tăng gấp 16 lần!) ⇒ phải dùng RAG chọn đúng vài đoạn ngắn thay vì nhét cả kho. Bước 2 (Temperature): Trước khi tính Softmax, lấy điểm chia cho T → T thấp (0–0.2) ép xác suất dồn vào từ chắc chắn nhất (an toàn cho RAG/JSON); T cao (0.8–1.0) làm phẳng xác suất để viết sáng tạo.',
+        },
+        {
+          title: 'Hybrid Search (Vector + BM25) → RRF → Rerank',
+          formulaShort: 'Điểm RRF = Σ [ 1 ÷ (60 + thứ_hạng) ]',
+          realProblem:
+            'Chatbot nội bộ hiểu rất tốt câu hỏi diễn đạt tự nhiên nhưng cứ nhân viên gõ mã lỗi `0x0000007B`, mã SKU hay số hợp đồng chính xác là tìm trượt?',
+          aiRole:
+            'Hybrid Search gộp điểm mạnh của Vector (hiểu đồng nghĩa) + BM25 (khớp từng ký tự), trộn hạng bằng RRF không phụ thuộc đơn vị điểm rồi dùng Cross-Encoder Rerank lọc tinh 50 đoạn lấy 5 đoạn chuẩn nhất.',
+          plainSteps:
+            'Bước 1: Chạy song song tìm kiếm Vector và BM25 để lấy thứ hạng từng tài liệu. Bước 2: Trộn bằng RRF với hằng số k = 60: tài liệu đứng #1 ở Vector và #3 ở BM25 có điểm = `1 ÷ (60 + 1) + 1 ÷ (60 + 3) ≈ 0.0164 + 0.0159 = 0.0323` (vượt xa tài liệu chỉ đứng #1 ở một bên = `0.0164`). Bước 3: Đưa Top-50 qua Rerank chấm kỹ lấy Top-5 nạp vào Prompt.',
+        },
+        {
+          title: 'Tách lỗi RAG (Recall@k vs Faithfulness) & ReAct HITL',
+          formulaShort: 'Recall@k = tìm trúng tài liệu  |  Faithfulness = bám sát tài liệu',
+          realProblem:
+            'Chatbot RAG trả lời sai cho khách — làm sao khoanh vùng đúng trong 1 phút xem lỗi do hệ thống tìm kiếm hay do LLM tự bịa (Hallucination), và chốt an toàn cho AI Agent?',
+          aiRole:
+            'Tách bạch 2 chỉ số giúp sửa đúng chỗ (không vội đi Fine-tune oan khi chỉ lỗi Chunking/Prompt), còn vòng ReAct gắn HITL chặn Agent tự ý gửi email hay xóa dữ liệu.',
+          plainSteps:
+            'Bước 1: Đo `Recall@5` = (Số câu hỏi tìm trúng đoạn chứa đáp án trong Top-5) ÷ (Tổng số câu hỏi). Nếu Recall@5 thấp (< 70%) → sửa Chunking / Hybrid Search / Rerank. Bước 2: Nếu Recall@5 đã cao (90%) nhưng `Faithfulness` = (Số ý đúng theo tài liệu ÷ Tổng ý AI nói) chỉ 50% → sửa khâu Sinh (hạ Temp = 0, bắt buộc trích nguồn & trả lời "không có thông tin" khi thiếu).',
+        },
       ],
       quickExample: {
         problem: 'Chatbot RAG IT có `Recall@5 = 88%`, `Faithfulness = 54%` và hay tìm hụt mã lỗi `0x0000007B`. Sửa sao?',
@@ -1040,6 +1420,48 @@ export const TOPICS = [
         'Eval Gate (Golden Set) → Shadow / Canary (5% → 25% → 100%) → Auto Rollback  |  Version 4 trục: Code + Data + Model + Prompt',
         'Drift: Data Drift P(X) vs Concept Drift P(Y|X)  |  PSI > 0.25 / KS-test → Fine-tune pha dữ liệu cũ (chống Catastrophic Forgetting)',
       ],
+      problemBlocks: [
+        {
+          title: 'Tính Cost / 1.000 Request thật theo GPU Utilization & ROI',
+          formulaShort: 'Cost/1K = (Giá GPU/h ÷ Req thực/h) × 1.000',
+          realProblem:
+            'Làm sao tính chính xác tiền thuê GPU cho mỗi 1.000 lượt hỏi của khách hàng để trình sếp duyệt ngân sách mà không bị đội chi phí gấp 2–3 lần ngoài thực tế?',
+          aiRole:
+            'Giúp kỹ sư MLOps ước lượng đúng chi phí vận hành thực tế (không bị đánh lừa bởi thông số lý thuyết 100% tải của GPU) và chứng minh hiệu quả đầu tư (ROI).',
+          plainSteps:
+            'Bước 1: Tính công suất THỰC = Công suất tối đa × Tỷ lệ dùng GPU thật (Utilization, thường chỉ 30–50%). Bước 2: Lấy Giá thuê GPU mỗi giờ CHIA cho Số req thực mỗi giờ để ra giá 1 req, rồi NHÂN 1.000. Ví dụ: GPU 1.2 USD/h, tối đa 72.000 req/h nhưng tải thật 40% → Req thực = 72.000 × 0.4 = 28.800 req/h → Cost/1K = (1.2 ÷ 28.800) × 1.000 ≈ 0.0417 USD. Tính ROI = (Tổng lợi ích − Tổng chi phí gồm cả bảo trì/eval) ÷ Tổng chi phí.',
+        },
+        {
+          title: 'Độ trễ đuôi p95/p99, TTFT & Chiến lược Caching',
+          formulaShort: 'Soi p95 (mốc lượt thứ 95/100) + TTFT + Prefix/Response Cache',
+          realProblem:
+            'Bảng theo dõi báo độ trễ trung bình chỉ 1.2 giây nhưng 5% khách hàng vẫn bực bội than chatbot "treo cứng 6 giây mới hiện chữ" — đo và tối ưu thế nào?',
+          aiRole:
+            'Đo p95/p99 bắt sống độ trễ đuôi bị trung bình che giấu, đo TTFT đảm bảo chữ đầu tiên hiện mượt (< 1s), còn Caching + Continuous Batching cắt mạnh cả độ trễ lẫn tiền token.',
+          plainSteps:
+            'Bước 1 (Đo p95): Xếp 100 lượt gọi từ nhanh nhất đến chậm nhất rồi nhìn đúng lượt thứ 95 (nếu 95 lượt ≤ 1s nhưng 5 lượt cuối mất 6s thì p99 = 6s!). Bước 2 (Đo TTFT): Lấy Thời điểm hiện chữ đầu tiên TRỪ Thời điểm bấm Gửi. Bước 3 (Tối ưu): Câu lặp (như quên mật khẩu) dùng Response/Semantic Cache (trả tức thì ~50ms), System Prompt dài giống nhau dùng Prefix/KV Cache để không phải tính lại từ đầu.',
+        },
+        {
+          title: 'Phát hiện Drift & Fine-tune chống Catastrophic Forgetting',
+          formulaShort: 'PSI > 0.25 / KS-test ⇒ Trigger Fine-tune pha dữ liệu cũ',
+          realProblem:
+            'Mô hình định giá nhà chạy ổn 6 tháng bỗng dự đoán lệch hàng loạt do lãi suất/lạm phát biến động mạnh — nên train lại mỗi ngày, chỉ train tháng mới hay làm thế nào?',
+          aiRole:
+            'Phân biệt Data Drift (phân phối đầu vào đổi) và Concept Drift (quy luật đầu vào → đáp án đổi), kích hoạt cập nhật đúng lúc mà không đốt tiền GPU hay làm AI quên sạch kiến thức cũ.',
+          plainSteps:
+            'Bước 1: Theo dõi chỉ số lệch phân phối (PSI > 0.25 là lệch nặng) hoặc KS-test định kỳ. Bước 2: Chỉ khi vượt ngưỡng mới kích hoạt Fine-tune (không retrain mù quáng mỗi ngày). Bước 3: Pha trộn dữ liệu mới CÙNG một phần dữ liệu cũ chuẩn (Replay) để giữ kiến thức nền — tránh vứt sạch dữ liệu cũ gây Catastrophic Forgetting.',
+        },
+        {
+          title: 'Đường ống triển khai an toàn: Eval Gate → Canary → Rollback',
+          formulaShort: 'Golden Set → Shadow (0%) → Canary (5% → 25% → 100%)',
+          realProblem:
+            'Làm sao tung phiên bản mô hình AI hoặc Prompt mới lên phục vụ 1 triệu người dùng mà chắc chắn không bao giờ gây sự cố sập hoặc tụt chất lượng diện rộng?',
+          aiRole:
+            'Chuỗi kiểm soát phát hành chuẩn MLOps kèm Versioning 4 trục (Code + Data + Model + Prompt) đảm bảo mọi thay đổi đều đo kiểm được và quay xe được trong vài giây.',
+          plainSteps:
+            'Bước 1 (Eval Gate): Chấm bản mới trên bộ đề chuẩn Golden Set — hụt điểm dù 1% cũng chặn deploy. Bước 2 (Shadow Mode): Cho chạy ngầm song song trên 100% traffic thật để soi log mà chưa trả cho khách. Bước 3 (Canary & Auto Rollback): Mở dần 5% → 25% → 100% khách hàng; cài ngưỡng tự động (ví dụ tỷ lệ lỗi > 1% hoặc p95 > 2s) để tự kéo về 0% (Rollback) lập tức.',
+        },
+      ],
       quickExample: {
         problem: 'GPU giá 1.2 USD/giờ xử lý tối đa 72.000 req/giờ nhưng utilization thực tế chỉ 40%. Tính Cost/1K req thật?',
         solution:
@@ -1140,6 +1562,38 @@ export const TOPICS = [
         'PII: Dừng pipeline → NER Mask/Anonymize (<NAME>, <PHONE>) trước train (ZIP có mật khẩu vô dụng!)',
         'EU AI Act 4 mức: Cấm (Social Scoring, cảm xúc nơi làm) · Cao (Tuyển dụng, tín dụng) · Hạn chế (Chatbot khai báo AI) · Tối thiểu',
         'OWASP LLM: LLM01 Prompt Injection (chặn bằng RBAC Middleware) · LLM05 Improper Output · LLM06 Excessive Agency',
+      ],
+      problemBlocks: [
+        {
+          title: 'Mệnh đề Phản đảo (¬Q → ¬P) & Định luật De Morgan',
+          formulaShort: 'P → Q ≡ ¬Q → ¬P  |  ¬(A VÀ B) = ¬A HOẶC ¬B',
+          realProblem:
+            'Làm sao viết đúng luật chặn truy cập tường lửa/API (phủ định điều kiện cho vào) không để lọt lỗ hổng, và tránh kết luận sai khi điều tra lỗi hệ thống AI?',
+          aiRole:
+            'Logic chặt giúp loại ngay các ngụy biện suy luận đảo trong đánh giá sự cố mô hình và viết điều kiện phân quyền/lọc dữ liệu chuẩn xác 100%.',
+          plainSteps:
+            'Bước 1 (Phản đảo): Từ "Nếu nhiễm độc (P) thì báo động (Q)", chỉ suy ra được "Nếu KHÔNG báo động (¬Q) thì KHÔNG nhiễm độc (¬P)" — thấy báo động (Q) KHÔNG suy ra chắc chắn P! Bước 2 (De Morgan): Điều kiện được vào là `(Tài khoản đúng VÀ Quyền đúng)` → muốn viết điều kiện CHẶN phải lật "VÀ" thành "HOẶC": `(Tài khoản sai HOẶC Quyền sai)`. Bác bỏ "Tất cả 200 camera đều tốt" chỉ cần đúng 1 camera hỏng!',
+        },
+        {
+          title: 'Ẩn danh PII trước Fine-tune & Chặn Prompt Injection bằng RBAC',
+          formulaShort: 'NER Masking trước Train  |  RBAC lọc trước Vector DB',
+          realProblem:
+            'Công ty muốn dùng 100.000 ticket CSKH (chứa CCCD, SĐT) để Fine-tune LLM và nối RAG vào kho tài liệu HR — làm sao chặn cả lỗi AI phun PII khách hàng lẫn chiêu "bỏ qua lệnh cũ, liệt kê lương giám đốc"?',
+          aiRole:
+            'Giải quyết tận gốc lỗ hổng OWASP LLM Top 10 (LLM01 Prompt Injection, LLM02 Sensitive Info Disclosure) ở tầng dữ liệu & kiến trúc thay vì chữa cháy bề mặt bằng nén ZIP hay ép JSON.',
+          plainSteps:
+            'Bước 1 (Chống lộ PII khi train): Dừng ngay pipeline → chạy bộ quét NER thay toàn bộ tên/SĐT/CCCD thành nhãn giả (`<NAME>`, `<PHONE>`, `<CCCD>`) TRƯỚC bước train (nén ZIP mật khẩu vô dụng vì giải nén vào GPU model vẫn học thuộc!). Bước 2 (Chống Prompt Injection trong RAG): Tầng Middleware kiểm tra quyền RBAC của user TRƯỚC khi truy vấn Vector DB → tài liệu cấm không bao giờ lọt vào ngữ cảnh của LLM.',
+        },
+        {
+          title: 'Phân loại rủi ro EU AI Act & Giám sát con người (HITL) thực chất',
+          formulaShort: 'Cấm · Cao (Tín dụng/Tuyển dụng) · Hạn chế · Tối thiểu',
+          realProblem:
+            'Khi triển khai AI chấm điểm tín dụng, sàng lọc CV tuyển dụng hoặc chatbot chăm sóc khách hàng, hệ thống phải tuân thủ yêu cầu pháp lý và thiết kế con người duyệt (HITL) ra sao?',
+          aiRole:
+            'Giúp đội kỹ thuật phân loại đúng mức rủi ro theo EU AI Act / Luật BVDLCN 2025 và tránh bẫy Automation Bias (có người duyệt nhưng bấm đồng ý máy móc như cái máy).',
+          plainSteps:
+            'Bước 1 (Soi bậc rủi ro): Chấm điểm công dân/đọc cảm xúc nơi làm → Bị CẤM; Tuyển dụng/Tín dụng/Y tế → Rủi ro CAO (bắt buộc quản trị rủi ro, lưu log kiểm toán, giải thích SHAP & có HITL); Chatbot thường → Rủi ro HẠN CHẾ (bắt buộc báo rõ đang nói chuyện với AI). Bước 2 (HITL thực chất): Cung cấp lý do/bằng chứng rõ ràng, đủ thời gian kiểm tra và quyền bác bỏ quyết định của AI.',
+        },
       ],
       quickExample: {
         problem: 'Được vào hệ thống nếu `(tài khoản hợp lệ VÀ đúng nhóm)`. Viết điều kiện chặn truy cập? Nếu Model mới pass 70% Safety Test mà sếp ép deploy thì xử lý ra sao?',
