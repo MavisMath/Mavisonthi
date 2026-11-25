@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ôn Thi Câu 03: Autograd, Detach &amp; Gradient Cộng Dồn (Cho Non-tech)</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            cream: {
+              50: '#FFFDF9',
+              100: '#FDF7EE',
+              200: '#F7EBD9',
+            },
+            cocoa: {
+              700: '#5C4636',
+              800: '#453326',
+              900: '#2E2118',
+            },
+          },
+        },
+      },
+    };
+  </script>
+</head>
+<body class="bg-cream-50 text-cocoa-800 font-sans antialiased selection:bg-rose-100 selection:text-rose-900 min-h-screen flex flex-col">
+
+  <!-- Sticky Header & 4 Navigation Tabs -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-amber-200/70 shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-rose-400 to-amber-400 text-white flex items-center justify-center font-extrabold text-lg shadow-sm shrink-0">
+            03
+          </div>
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <h1 class="text-lg sm:text-xl font-extrabold text-cocoa-900 tracking-tight">
+                Autograd, Detach &amp; Gradient Cộng Dồn
+              </h1>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-700 border border-rose-200">
+                Bản cho Non-tech
+              </span>
+            </div>
+            <p class="text-xs sm:text-sm text-cocoa-700/80">
+              PyTorch Autograd • Cắt dây <code class="font-mono text-xs bg-amber-100/80 px-1 rounded">detach()</code> • Bẫy quên xóa <code class="font-mono text-xs bg-amber-100/80 px-1 rounded">a.grad</code>
+            </p>
+          </div>
+        </div>
+        <div class="hidden md:flex items-center gap-2 text-xs font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3.5 py-1.5 rounded-2xl">
+          <span>🎯</span>
+          <span>Đáp án chuẩn đề thi: <strong>Câu D</strong></span>
+        </div>
+      </div>
+
+      <!-- 4 Main Navigation Tabs -->
+      <nav aria-label="Điều hướng chính" class="grid grid-cols-2 lg:grid-cols-4 gap-2">
+        <button
+          id="tab-btn-1"
+          data-tab="1"
+          class="tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer border"
+        >
+          <span>💡</span>
+          <span>1. Hiểu bản chất</span>
+        </button>
+        <button
+          id="tab-btn-2"
+          data-tab="2"
+          class="tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer border"
+        >
+          <span>🔍</span>
+          <span>2. Giải thích từng dòng</span>
+        </button>
+        <button
+          id="tab-btn-3"
+          data-tab="3"
+          class="tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer border"
+        >
+          <span>✂️</span>
+          <span>3. Trực quan bẫy</span>
+        </button>
+        <button
+          id="tab-btn-4"
+          data-tab="4"
+          class="tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer border"
+        >
+          <span>⚡</span>
+          <span>4. Mẹo 15s &amp; Quiz</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
+
+    <!-- ===================================================================== -->
+    <!-- TAB 1: HIỂU BẢN CHẤT (NON-TECH)                                       -->
+    <!-- ===================================================================== -->
+    <section id="tab-panel-1" class="tab-panel space-y-6">
+      <!-- Summary Banner -->
+      <div class="bg-gradient-to-r from-rose-400 via-amber-400 to-orange-300 text-white rounded-3xl p-6 sm:p-8 shadow-sm">
+        <div class="inline-flex items-center gap-2 bg-white/25 backdrop-blur px-3 py-1 rounded-full text-xs font-bold mb-3">
+          <span>📌 Tóm tắt toàn bộ Câu 03 trong 1 câu</span>
+        </div>
+        <h2 class="text-xl sm:text-2xl font-extrabold leading-snug mb-3">
+          Bài này kiểm tra 2 cái bẫy kinh điển của PyTorch: Cắt dây điện bằng <code class="bg-white/25 px-1.5 py-0.5 rounded-lg font-mono">detach()</code> và QUÊN xóa bảng điểm <code class="bg-white/25 px-1.5 py-0.5 rounded-lg font-mono">a.grad</code> khiến đạo hàm bị cộng dồn!
+        </h2>
+        <p class="text-white/95 text-sm sm:text-base leading-relaxed">
+          Đừng sợ chữ <strong>Autograd</strong> hay <strong>đạo hàm (gradient)</strong>! Hãy tưởng tượng bạn đang chơi trò <em>"Truy tìm dấu vết ngược"</em> với 4 nút bấm thần kỳ dưới đây:
+        </p>
+      </div>
+
+      <!-- 4 Core Metaphor Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Concept 1: requires_grad=True -->
+        <article class="bg-white rounded-3xl border border-amber-200/80 shadow-sm p-6 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                Khái niệm 1 • Bật máy quay
+              </span>
+              <span class="text-2xl">📹</span>
+            </div>
+            <h3 class="text-lg font-extrabold text-cocoa-900 mb-2">
+              <code class="font-mono text-amber-700">requires_grad=True</code> = Bật camera quay lại mọi phép tính
+            </h3>
+            <p class="text-sm text-cocoa-700 leading-relaxed mb-4">
+              Khi gắn <code class="font-mono bg-amber-50 px-1.5 py-0.5 rounded text-xs">requires_grad=True</code> cho <code class="font-mono font-bold">x</code>, PyTorch sẽ tự động bật "camera hành trình" ghi lại mọi phép tính xuất phát từ <code class="font-mono">x</code> (như <code class="font-mono">a = x * 2</code>, <code class="font-mono">loss1</code>...).
+            </p>
+            <div class="p-3.5 rounded-2xl bg-cream-100 border border-amber-200/80 text-xs text-cocoa-800">
+              <strong>Tác dụng:</strong> Khi bấm nút <code class="font-mono font-bold text-rose-600">.backward()</code> (tua ngược băng), máy tính sẽ tự dò ngược từ kết quả về <code class="font-mono">x</code> để tính ra đạo hàm (tốc độ thay đổi) cho bạn!
+            </div>
+          </div>
+        </article>
+
+        <!-- Concept 2: detach() -->
+        <article class="bg-white rounded-3xl border-2 border-rose-200 shadow-sm p-6 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-700 border border-rose-200">
+                Khái niệm 2 • Bẫy cắt dây 🚨
+              </span>
+              <span class="text-2xl">✂️</span>
+            </div>
+            <h3 class="text-lg font-extrabold text-cocoa-900 mb-2">
+              <code class="font-mono text-rose-600">b = a.detach()</code> = Chụp ảnh màn hình &amp; Cắt dây nối
+            </h3>
+            <p class="text-sm text-cocoa-700 leading-relaxed mb-4">
+              <code class="font-mono">b</code> vẫn giữ nguyên con số giống hệt <code class="font-mono">a</code> (nên khi tính giá trị <code class="font-mono">loss1 = 84.0</code> vẫn cộng bình thường). Nhưng <code class="font-mono">detach()</code> đã <strong>cắt đứt dây nối camera</strong>!
+            </p>
+            <div class="p-3.5 rounded-2xl bg-rose-50/80 border border-rose-200 text-xs text-rose-900">
+              <strong>Hậu quả lúc tua ngược (<code class="font-mono">backward</code>):</strong> Máy coi <code class="font-mono">b</code> là một <strong>hằng số chết</strong> (đạo hàm = 0). Do đó, nhánh <code class="font-mono">b.square()</code> KHÔNG hề truyền đạo hàm ngược về <code class="font-mono">a</code> hay <code class="font-mono">x</code>!
+            </div>
+          </div>
+        </article>
+
+        <!-- Concept 3: retain_grad() -->
+        <article class="bg-white rounded-3xl border border-emerald-200/80 shadow-sm p-6 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                Khái niệm 3 • Giữ lại tờ nháp
+              </span>
+              <span class="text-2xl">📝</span>
+            </div>
+            <h3 class="text-lg font-extrabold text-cocoa-900 mb-2">
+              <code class="font-mono text-emerald-700">a.retain_grad()</code> = Xin giữ lại nháp đạo hàm cho biến giữa đường
+            </h3>
+            <p class="text-sm text-cocoa-700 leading-relaxed mb-4">
+              Để tiết kiệm RAM, PyTorch mặc định chỉ lưu đạo hàm ở biến gốc (<code class="font-mono">x.grad</code>), còn biến trung gian (<code class="font-mono">a = x * 2</code>) tính xong là nó vứt giấy nháp đi luôn.
+            </p>
+            <div class="p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200 text-xs text-emerald-900">
+              <strong>Ý nghĩa:</strong> Gọi <code class="font-mono font-bold">a.retain_grad()</code> giống như dặn máy: <em>"Ê, đừng vứt nháp của <code class="font-mono">a</code> nha, giữ lại trong <code class="font-mono">a.grad</code> để lát tôi còn in ra xem!"</em>
+            </div>
+          </div>
+        </article>
+
+        <!-- Concept 4: zero_() and Accumulation Trap -->
+        <article class="bg-white rounded-3xl border-2 border-amber-300 shadow-sm p-6 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                Khái niệm 4 • Bẫy cộng dồn 🧮
+              </span>
+              <span class="text-2xl">🧽</span>
+            </div>
+            <h3 class="text-lg font-extrabold text-cocoa-900 mb-2">
+              <code class="font-mono text-amber-800">x.grad.zero_()</code> = Chỉ lau bảng của <code class="font-mono">x</code>, QUÊN lau bảng của <code class="font-mono">a</code>!
+            </h3>
+            <p class="text-sm text-cocoa-700 leading-relaxed mb-4">
+              Trong PyTorch, mỗi lần gọi <code class="font-mono">.backward()</code> là máy sẽ <strong>CỘNG DỒN</strong> điểm đạo hàm mới vào bảng điểm cũ (chứ không tự xóa bảng cũ).
+            </p>
+            <div class="p-3.5 rounded-2xl bg-amber-50/90 border border-amber-300 text-xs text-cocoa-900 space-y-1">
+              <p>✅ <strong><code class="font-mono">x.grad</code> ĐÃ được lau sạch về 0</strong> → Lần 2 chỉ lấy điểm mới (<code class="font-mono">8x</code>).</p>
+              <p>🚨 <strong><code class="font-mono">a.grad</code> KHÔNG được lau</strong> → Lần 2 bị cộng dồn: <code class="font-mono">cũ (1x) + mới (4x) = 5x</code>!</p>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <!-- CTA to Tab 2 -->
+      <div class="bg-white rounded-3xl border border-amber-200/80 p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center text-xl shrink-0">
+            🚀
+          </div>
+          <div>
+            <h4 class="text-sm font-bold text-cocoa-900">Quá dễ hiểu đúng không?</h4>
+            <p class="text-xs text-cocoa-700/80">Chuyển sang Tab 2 để click từng dòng code và nhìn các con số nhảy theo thời gian thực nhé!</p>
+          </div>
+        </div>
+        <button
+          onclick="switchTab('2')"
+          class="w-full sm:w-auto px-5 py-2.5 rounded-2xl bg-rose-500 hover:bg-rose-600 text-white text-sm font-bold shadow-sm transition cursor-pointer"
+        >
+          Đi tới Tab 2: Giải thích từng dòng →
+        </button>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 2: GIẢI THÍCH TỪNG DÒNG CODE                                      -->
+    <!-- ===================================================================== -->
+    <section id="tab-panel-2" class="tab-panel hidden space-y-5">
+      <div class="bg-white rounded-3xl border border-amber-200/80 p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="text-base sm:text-lg font-extrabold text-cocoa-900">Click vào từng dòng code để xem bảng giá trị biến cập nhật trực tiếp</h2>
+          <p class="text-xs sm:text-sm text-cocoa-700/80">Theo dõi kỹ hai ô <strong>x.grad</strong> và <strong>a.grad</strong> ở bước 11 (xóa nháp) và bước 13 (backward lần 2)!</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 shrink-0">
+          <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-xl bg-rose-50 text-rose-700 border border-rose-200">
+            <span class="w-2 h-2 rounded-full bg-rose-500"></span> Bẫy detach / cộng dồn
+          </span>
+          <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-xl bg-amber-50 text-amber-800 border border-amber-200">
+            <span class="w-2 h-2 rounded-full bg-amber-500"></span> Tính toán / Backward
+          </span>
+          <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Reset / In kết quả
+          </span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <!-- Left: Code Panel -->
+        <div class="lg:col-span-5 bg-cocoa-900 rounded-3xl shadow-md border border-cocoa-700 overflow-hidden">
+          <div class="flex items-center justify-between px-4 py-3 bg-cocoa-800 border-b border-cocoa-700">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-rose-400"></span>
+              <span class="w-3 h-3 rounded-full bg-amber-300"></span>
+              <span class="w-3 h-3 rounded-full bg-emerald-400"></span>
+              <span class="ml-2 text-xs font-mono text-amber-100/90">cau_03_autograd.py</span>
+            </div>
+            <span class="text-[11px] font-medium text-amber-200/70">Click từng dòng</span>
+          </div>
+          <div id="code-lines-container" class="p-3 overflow-x-auto font-mono text-xs sm:text-[13px] space-y-1">
+            <!-- JS Populated -->
+          </div>
+        </div>
+
+        <!-- Right: Explanation & Live Variables Dashboard -->
+        <div class="lg:col-span-7 lg:sticky lg:top-36">
+          <div class="bg-white rounded-3xl border border-amber-200/80 shadow-sm overflow-hidden">
+            <!-- Step Controls -->
+            <div class="flex items-center justify-between px-5 py-3.5 bg-cream-100 border-b border-amber-200/70">
+              <span id="step-counter" class="text-xs font-bold text-cocoa-700 uppercase tracking-wider">
+                Bước 1 / 14
+              </span>
+              <div class="flex items-center gap-2">
+                <button
+                  id="prev-line-btn"
+                  class="px-3.5 py-1.5 rounded-xl bg-white hover:bg-cream-50 text-cocoa-800 border border-amber-300 text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  ← Dòng trước
+                </button>
+                <button
+                  id="next-line-btn"
+                  class="px-3.5 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  Dòng tiếp theo →
+                </button>
+              </div>
+            </div>
+
+            <!-- Dynamic Step Content -->
+            <div id="line-explanation-content" class="p-5 sm:p-6 space-y-5">
+              <!-- JS Populated -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 3: TRỰC QUAN BẪY DETACH & CỘNG DỒN (SƠ ĐỒ TƯƠNG TÁC)              -->
+    <!-- ===================================================================== -->
+    <section id="tab-panel-3" class="tab-panel hidden space-y-6">
+      <!-- Interactive Step Controller -->
+      <div class="bg-white rounded-3xl border border-amber-200/80 p-5 shadow-sm space-y-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div>
+            <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-700 mb-1">
+              🎬 Mô phỏng đồ thị tính toán
+            </span>
+            <h2 class="text-lg sm:text-xl font-extrabold text-cocoa-900">
+              Bấm từng bước để xem dòng chảy đạo hàm bị cắt dây &amp; cộng dồn!
+            </h2>
+          </div>
+          <button
+            onclick="setGraphStep(0)"
+            class="px-3.5 py-2 rounded-xl bg-cream-100 hover:bg-cream-200 text-cocoa-800 border border-amber-300 text-xs font-bold transition cursor-pointer self-start md:self-auto"
+          >
+            🔄 Đặt lại từ đầu
+          </button>
+        </div>
+
+        <!-- 4 Step Buttons -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+          <button id="gstep-0" onclick="setGraphStep(0)" class="gstep-btn p-3 rounded-2xl border-2 text-left transition cursor-pointer">
+            <p class="text-[11px] font-bold uppercase opacity-80">Khởi tạo (Forward)</p>
+            <p class="text-xs sm:text-sm font-extrabold mt-0.5">Tính xuôi x → a → b</p>
+          </button>
+          <button id="gstep-1" onclick="setGraphStep(1)" class="gstep-btn p-3 rounded-2xl border-2 text-left transition cursor-pointer">
+            <p class="text-[11px] font-bold uppercase opacity-80">Bước 1</p>
+            <p class="text-xs sm:text-sm font-extrabold mt-0.5">loss1.backward()</p>
+          </button>
+          <button id="gstep-2" onclick="setGraphStep(2)" class="gstep-btn p-3 rounded-2xl border-2 text-left transition cursor-pointer">
+            <p class="text-[11px] font-bold uppercase opacity-80">Bước 2 (Cái bẫy!)</p>
+            <p class="text-xs sm:text-sm font-extrabold mt-0.5">x.grad.zero_()</p>
+          </button>
+          <button id="gstep-3" onclick="setGraphStep(3)" class="gstep-btn p-3 rounded-2xl border-2 text-left transition cursor-pointer">
+            <p class="text-[11px] font-bold uppercase opacity-80">Bước 3 (Kết quả)</p>
+            <p class="text-xs sm:text-sm font-extrabold mt-0.5">loss2.backward()</p>
+          </button>
+        </div>
+      </div>
+
+      <!-- Status Explanation Banner -->
+      <div id="graph-narration" class="rounded-3xl p-5 border-2 shadow-sm transition-all">
+        <!-- JS Populated -->
+      </div>
+
+      <!-- Interactive Computation Graph Diagram -->
+      <div class="bg-white rounded-3xl border border-amber-200/80 p-5 sm:p-6 shadow-sm">
+        <div class="grid grid-cols-1 lg:grid-cols-11 gap-4 items-center">
+
+          <!-- Node X -->
+          <div id="node-x" class="lg:col-span-3 rounded-2xl border-2 p-4 transition-all">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-mono font-extrabold text-sm text-cocoa-900">x (Biến gốc)</span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">📹 Quay phim</span>
+            </div>
+            <p class="font-mono text-xs text-cocoa-700 mb-3">giá trị: <strong>[1., -2., 3.]</strong></p>
+            <div id="box-xgrad" class="p-2.5 rounded-xl border font-mono text-xs transition-all">
+              <!-- JS -->
+            </div>
+          </div>
+
+          <!-- Arrow X <-> A -->
+          <div class="lg:col-span-1 flex flex-col items-center justify-center text-center">
+            <span class="text-[11px] font-mono font-bold text-cocoa-700">× 2</span>
+            <span id="arrow-xa" class="text-2xl font-extrabold transition-all">→</span>
+            <span id="arrow-xa-lbl" class="text-[10px] font-bold"></span>
+          </div>
+
+          <!-- Node A -->
+          <div id="node-a" class="lg:col-span-3 rounded-2xl border-2 p-4 transition-all">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-mono font-extrabold text-sm text-cocoa-900">a = x * 2</span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">📝 retain_grad</span>
+            </div>
+            <p class="font-mono text-xs text-cocoa-700 mb-3">giá trị: <strong>[2., -4., 6.]</strong></p>
+            <div id="box-agrad" class="p-2.5 rounded-xl border font-mono text-xs transition-all">
+              <!-- JS -->
+            </div>
+          </div>
+
+          <!-- Branches to B, Loss1, Loss2 -->
+          <div class="lg:col-span-4 space-y-3">
+            <!-- Branch B (Detached) -->
+            <div id="node-b" class="rounded-2xl border-2 border-dashed p-3.5 transition-all">
+              <div class="flex items-center justify-between gap-2 mb-1">
+                <span class="font-mono font-bold text-xs text-rose-800">✂️ b = a.detach()</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700">BỊ CẮT DÂY!</span>
+              </div>
+              <p class="font-mono text-[11px] text-cocoa-700">giá trị: [2., -4., 6.] • <span class="text-rose-600 font-bold">Đạo hàm đi qua = 0</span></p>
+            </div>
+
+            <!-- Loss 1 -->
+            <div id="node-loss1" class="rounded-2xl border-2 p-3.5 transition-all">
+              <div class="flex items-center justify-between gap-2 mb-1">
+                <span class="font-mono font-extrabold text-xs">loss1 = (a*x + b²).sum()</span>
+                <span class="font-mono font-extrabold text-xs px-2 py-0.5 rounded-lg bg-amber-100 text-amber-900">84.0</span>
+              </div>
+              <p id="loss1-detail" class="text-[11px] text-cocoa-700">Chỉ tính đạo hàm phần <code class="font-mono font-bold">a*x</code> (bỏ qua <code class="font-mono">b²</code> vì đã detach).</p>
+            </div>
+
+            <!-- Loss 2 -->
+            <div id="node-loss2" class="rounded-2xl border-2 p-3.5 transition-all">
+              <div class="flex items-center justify-between gap-2 mb-1">
+                <span class="font-mono font-extrabold text-xs">loss2 = a.square().sum()</span>
+                <span class="font-mono font-extrabold text-xs px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-900">56.0</span>
+              </div>
+              <p id="loss2-detail" class="text-[11px] text-cocoa-700">Truyền đạo hàm mới: <code class="font-mono">+4x</code> vào <code class="font-mono">a.grad</code> và <code class="font-mono">+8x</code> vào <code class="font-mono">x.grad</code>.</p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Comparison Summary Strip -->
+        <div class="mt-6 pt-5 border-t border-cream-200 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200">
+            <p class="text-xs font-extrabold text-emerald-900 mb-1">✅ Số phận của <code class="font-mono">x.grad</code> (ĐÃ xóa về 0):</p>
+            <p class="text-xs text-cocoa-800 leading-relaxed">
+              Lần 1: <code class="font-mono font-bold">4x = [4, -8, 12]</code> → Xóa về <code class="font-mono font-bold">[0, 0, 0]</code> → Lần 2 cộng <code class="font-mono font-bold">8x</code> → Chốt: <strong class="font-mono text-emerald-800">[8.0, -16.0, 24.0]</strong>.
+            </p>
+          </div>
+          <div class="p-4 rounded-2xl bg-rose-50/70 border border-rose-200">
+            <p class="text-xs font-extrabold text-rose-900 mb-1">🚨 Số phận của <code class="font-mono">a.grad</code> (QUÊN xóa về 0):</p>
+            <p class="text-xs text-cocoa-800 leading-relaxed">
+              Lần 1: <code class="font-mono font-bold">1x = [1, -2, 3]</code> → <em>Không xóa!</em> → Lần 2 cộng dồn thêm <code class="font-mono font-bold">4x</code> → Chốt: <strong class="font-mono text-rose-800">5x = [5.0, -10.0, 15.0]</strong>.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 4: MẸO 15 GIÂY & MINI-QUIZ                                        -->
+    <!-- ===================================================================== -->
+    <section id="tab-panel-4" class="tab-panel hidden space-y-8">
+      <!-- 15-Second Elimination Strategy -->
+      <div class="bg-white rounded-3xl border border-amber-200/80 p-5 sm:p-6 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+          <div>
+            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-700 mb-1">
+              ⚡ Chiến thuật phòng thi
+            </span>
+            <h2 class="text-lg sm:text-xl font-extrabold text-cocoa-900">
+              Loại nhanh B → A → C trong 15 giây để chốt ngay Đáp án D!
+            </h2>
+          </div>
+          <button
+            onclick="toggleExamHints()"
+            class="px-4 py-2 rounded-xl bg-cream-100 hover:bg-cream-200 text-cocoa-800 text-xs font-bold border border-amber-300 transition cursor-pointer self-start sm:self-auto"
+          >
+            👁️ Ẩn/Hiện phân tích loại trừ
+          </button>
+        </div>
+
+        <!-- 3-Step Checklist -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+          <div class="p-4 rounded-2xl bg-rose-50 border border-rose-200">
+            <p class="text-xs font-extrabold text-rose-800">Bước 1 (4 giây): Soi g1 (Bẫy detach)</p>
+            <p class="text-xs text-cocoa-700 mt-1">Có <code class="font-mono">detach()</code> nên bỏ qua <code class="font-mono">b²</code> → <code class="font-mono">g1 = 4x = [4, -8, 12]</code> (không thể là <code class="font-mono">12x</code>) → <strong>Loại ngay B!</strong></p>
+          </div>
+          <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200">
+            <p class="text-xs font-extrabold text-amber-800">Bước 2 (5 giây): Soi ga_total (Bẫy cộng dồn)</p>
+            <p class="text-xs text-cocoa-700 mt-1">Quên xóa <code class="font-mono">a.grad</code> nên phải cộng dồn <code class="font-mono">1x + 4x = 5x = [5, -10, 15]</code> → <strong>Loại ngay A!</strong></p>
+          </div>
+          <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200">
+            <p class="text-xs font-extrabold text-emerald-800">Bước 3 (6 giây): Soi g2 (Đã zero_)</p>
+            <p class="text-xs text-cocoa-700 mt-1"><code class="font-mono">x.grad</code> ĐÃ được xóa về 0 → <code class="font-mono">g2 = 8x = [8, -16, 24]</code> (không cộng dồn thành <code class="font-mono">12x</code>) → <strong>Loại C! Chọn D!</strong></p>
+          </div>
+        </div>
+
+        <!-- 4 Options Cards -->
+        <div class="space-y-4">
+          <!-- Option A -->
+          <div class="rounded-2xl border border-amber-200/80 bg-cream-50/50 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-amber-200/70 text-cocoa-900 font-extrabold text-sm flex items-center justify-center">A</span>
+                <span class="text-sm font-bold text-cocoa-900">Phương án A</span>
+              </div>
+              <span class="exam-hint-badge px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-700 border border-rose-200">
+                ❌ LOẠI (Tưởng a.grad cũng bị xóa về 0)
+              </span>
+            </div>
+            <pre class="bg-white rounded-xl p-3 border border-amber-200/70 text-[11px] sm:text-xs font-mono text-cocoa-800 overflow-x-auto leading-relaxed">loss: [84.0, 56.0]
+g1: [4.0, -8.0, 12.0]
+ga1: [1.0, -2.0, 3.0]
+g2: [8.0, -16.0, 24.0]
+ga_total: <span class="bg-rose-200 text-rose-900 font-bold px-1 rounded">[4.0, -8.0, 12.0]</span></pre>
+            <p class="exam-hint-text text-xs text-rose-700 mt-2 font-medium">
+              🚫 <strong>Lý do loại:</strong> Dòng cuối ghi <code class="font-mono">4x</code> thay vì <code class="font-mono">5x</code>. Code chỉ xóa <code class="font-mono">x.grad.zero_()</code> chứ KHÔNG xóa <code class="font-mono">a.grad</code>!
+            </p>
+          </div>
+
+          <!-- Option B -->
+          <div class="rounded-2xl border border-amber-200/80 bg-cream-50/50 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-amber-200/70 text-cocoa-900 font-extrabold text-sm flex items-center justify-center">B</span>
+                <span class="text-sm font-bold text-cocoa-900">Phương án B</span>
+              </div>
+              <span class="exam-hint-badge px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-700 border border-rose-200">
+                ❌ LOẠI (Quên bẫy detach() ở biến b)
+              </span>
+            </div>
+            <pre class="bg-white rounded-xl p-3 border border-amber-200/70 text-[11px] sm:text-xs font-mono text-cocoa-800 overflow-x-auto leading-relaxed">loss: [84.0, 56.0]
+g1: <span class="bg-rose-200 text-rose-900 font-bold px-1 rounded">[12.0, -24.0, 36.0]</span>
+ga1: <span class="bg-rose-200 text-rose-900 font-bold px-1 rounded">[5.0, -10.0, 15.0]</span>
+g2: [8.0, -16.0, 24.0]
+ga_total: [9.0, -18.0, 27.0]</pre>
+            <p class="exam-hint-text text-xs text-rose-700 mt-2 font-medium">
+              🚫 <strong>Lý do loại:</strong> Tính luôn đạo hàm của <code class="font-mono">b.square()</code> khiến <code class="font-mono">g1 = 12x</code>. Thực tế <code class="font-mono">b = a.detach()</code> đã cắt đứt dây nối nên <code class="font-mono">g1</code> chỉ là <code class="font-mono">4x</code>.
+            </p>
+          </div>
+
+          <!-- Option C -->
+          <div class="rounded-2xl border border-amber-200/80 bg-cream-50/50 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-amber-200/70 text-cocoa-900 font-extrabold text-sm flex items-center justify-center">C</span>
+                <span class="text-sm font-bold text-cocoa-900">Phương án C</span>
+              </div>
+              <span class="exam-hint-badge px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-700 border border-rose-200">
+                ❌ LOẠI (Quên rằng x.grad đã bị xóa về 0)
+              </span>
+            </div>
+            <pre class="bg-white rounded-xl p-3 border border-amber-200/70 text-[11px] sm:text-xs font-mono text-cocoa-800 overflow-x-auto leading-relaxed">loss: [84.0, 56.0]
+g1: [4.0, -8.0, 12.0]
+ga1: [1.0, -2.0, 3.0]
+g2: <span class="bg-rose-200 text-rose-900 font-bold px-1 rounded">[12.0, -24.0, 36.0]</span>
+ga_total: [5.0, -10.0, 15.0]</pre>
+            <p class="exam-hint-text text-xs text-rose-700 mt-2 font-medium">
+              🚫 <strong>Lý do loại:</strong> Cộng dồn luôn cả <code class="font-mono">x.grad</code> thành <code class="font-mono">4x + 8x = 12x</code>. Nhưng dòng 11 đã có lệnh <code class="font-mono">x.grad.zero_()</code> xóa sạch <code class="font-mono">x.grad</code> rồi!
+            </p>
+          </div>
+
+          <!-- Option D (CORRECT) -->
+          <div class="rounded-2xl border-2 border-emerald-400 bg-emerald-50/50 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-emerald-600 text-white font-extrabold text-sm flex items-center justify-center">D</span>
+                <span class="text-sm font-bold text-emerald-900">Phương án D</span>
+              </div>
+              <span class="exam-hint-badge px-3 py-1 rounded-full text-xs font-bold bg-emerald-600 text-white">
+                ✅ ĐÁP ÁN ĐÚNG
+              </span>
+            </div>
+            <pre class="bg-white rounded-xl p-3 border border-emerald-300 text-[11px] sm:text-xs font-mono text-cocoa-900 overflow-x-auto leading-relaxed">loss: [84.0, 56.0]
+g1: <span class="bg-emerald-100 text-emerald-900 font-bold px-1 rounded">[4.0, -8.0, 12.0]</span>
+ga1: [1.0, -2.0, 3.0]
+g2: <span class="bg-emerald-100 text-emerald-900 font-bold px-1 rounded">[8.0, -16.0, 24.0]</span>
+ga_total: <span class="bg-emerald-100 text-emerald-900 font-bold px-1 rounded">[5.0, -10.0, 15.0]</span></pre>
+            <p class="exam-hint-text text-xs text-emerald-800 mt-2 font-medium">
+              🎯 <strong>Chuẩn cả 3 tiêu chí:</strong> <code class="font-mono">detach()</code> ngắt đạo hàm qua <code class="font-mono">b</code> (<code class="font-mono">g1 = 4x</code>), <code class="font-mono">x.grad</code> được reset (<code class="font-mono">g2 = 8x</code>), và <code class="font-mono">a.grad</code> bị cộng dồn (<code class="font-mono">ga_total = 5x</code>).
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mini-Quiz -->
+      <div class="bg-white rounded-3xl border border-amber-200/80 p-5 sm:p-6 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-5 border-b border-cream-200">
+          <div>
+            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 mb-1">
+              📝 Kiểm tra nhanh kiến thức
+            </span>
+            <h3 class="text-lg font-extrabold text-cocoa-900">
+              Mini-Quiz 3 câu chốt hạ Câu 03
+            </h3>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="px-3.5 py-1.5 rounded-xl bg-rose-50 border border-rose-200 text-sm font-bold text-rose-800">
+              Điểm: <span id="quiz-score">0</span> / 3
+            </div>
+            <button
+              onclick="resetQuiz()"
+              class="px-3.5 py-1.5 rounded-xl bg-cream-100 hover:bg-cream-200 text-cocoa-800 text-xs font-bold border border-amber-300 transition cursor-pointer"
+            >
+              🔄 Làm lại
+            </button>
+          </div>
+        </div>
+
+        <div id="quiz-container" class="space-y-5">
+          <!-- JS Populated -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-amber-200/70 py-4 mt-8">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 text-center text-xs text-cocoa-700/70">
+      Ứng dụng ôn thi Câu 03: Autograd, Detach &amp; Gradient Cộng Dồn • Thiết kế dễ hiểu cho người không chuyên kỹ thuật (Non-tech)
+    </div>
+  </footer>
+
+  <script>
+    // =========================================================================
+    // 1. TAB 2 DATA: LINE-BY-LINE EXPLANATION + LIVE VARIABLE SNAPSHOTS
+    // =========================================================================
+    const codeSteps = [
+      {
+        lines: '1-2',
+        code: 'import torch\ntorch.set_default_dtype(torch.float64)',
+        badge: 'Khởi động',
+        theme: 'neutral',
+        title: 'Mở thư viện PyTorch và chọn độ chính xác số thập phân cao',
+        vocab: 'torch = thư viện AI PyTorch • float64 = kiểu số thực chính xác cao (64-bit)',
+        everyday: 'Giống như mở phần mềm tính toán AI và bật chế độ máy tính cầm tay hiện nhiều số lẻ để tính cho chuẩn, không bị sai số vặt.',
+        tip: 'Hai dòng này chỉ là cài đặt ban đầu, chưa tạo biến số nào.',
+        vars: { x: '—', a: '—', b: '—', xgrad: '—', agrad: '—', loss1: '—', loss2: '—', hl: [] }
+      },
+      {
+        lines: '3',
+        code: 'x = torch.tensor([1., -2., 3.], requires_grad=True)',
+        badge: '📹 Bật camera',
+        theme: 'amber',
+        title: 'Tạo biến gốc x = [1, -2, 3] và bật camera theo dõi đạo hàm',
+        vocab: 'tensor = mảng số của PyTorch • requires_grad=True = bật theo dõi để tính đạo hàm',
+        everyday: 'Khởi tạo 3 con số đầu vào là 1, -2, 3. Gắn requires_grad=True để báo cho máy: "Lát nữa tôi sẽ cần tính đạo hàm theo x đấy nhé!"',
+        tip: 'Nhớ bộ 3 số gốc này: [1, -2, 3]. Mọi kết quả đạo hàm phía sau đều là bội số của bộ 3 này (4x, 1x, 8x, 5x)!',
+        vars: { x: '[1.0, -2.0, 3.0]', a: '—', b: '—', xgrad: 'None', agrad: '—', loss1: '—', loss2: '—', hl: ['x'] }
+      },
+      {
+        lines: '4',
+        code: 'a = x * 2',
+        badge: 'Tính xuôi',
+        theme: 'neutral',
+        title: 'Tạo biến trung gian a bằng cách nhân đôi x',
+        vocab: 'a = biến trung gian (không phải biến gốc)',
+        everyday: 'Lấy từng số trong x nhân với 2: [1, -2, 3] × 2 = [2, -4, 6]. Vì x đang bật camera nên a cũng tự động được nối dây vào camera.',
+        tip: 'Vì a = 2x nên đạo hàm của a theo x bằng 2 (da/dx = 2).',
+        vars: { x: '[1.0, -2.0, 3.0]', a: '[2.0, -4.0, 6.0]', b: '—', xgrad: 'None', agrad: 'chưa giữ', loss1: '—', loss2: '—', hl: ['a'] }
+      },
+      {
+        lines: '5',
+        code: 'a.retain_grad()',
+        badge: '📝 Giữ tờ nháp',
+        theme: 'emerald',
+        title: 'Dặn PyTorch giữ lại kết quả đạo hàm cho biến trung gian a',
+        vocab: 'retain = giữ lại • grad = gradient (đạo hàm)',
+        everyday: 'Bình thường máy tính xong đạo hàm ở a là vứt giấy nháp đi ngay. Dòng này dặn máy giữ lại giá trị trong a.grad để cuối bài còn in ra.',
+        tip: 'Chính vì a.grad được giữ lại nhưng lát nữa QUÊN xóa về 0 nên mới sinh ra bẫy cộng dồn!',
+        vars: { x: '[1.0, -2.0, 3.0]', a: '[2.0, -4.0, 6.0]', b: '—', xgrad: 'None', agrad: 'None (sẽ lưu)', loss1: '—', loss2: '—', hl: ['agrad'] }
+      },
+      {
+        lines: '6',
+        code: 'b = a.detach()',
+        badge: '✂️ BẪY DETACH',
+        theme: 'rose',
+        title: 'Cắt đứt dây nối camera: b có số giống a nhưng là HẰNG SỐ TĨNH!',
+        vocab: 'detach = tách rời / tháo ra khỏi đồ thị tính toán',
+        everyday: 'Giống như chụp ảnh màn hình biến a rồi dán sang b. Giá trị của b vẫn là [2, -4, 6], nhưng lúc tua ngược backward(), máy coi b là hằng số chết (đạo hàm = 0).',
+        tip: 'Nhờ dòng này mà nhánh b.square() KHÔNG truyền đạo hàm về a và x → Loại ngay đáp án B!',
+        vars: { x: '[1.0, -2.0, 3.0]', a: '[2.0, -4.0, 6.0]', b: '[2.0, -4.0, 6.0] ✂️', xgrad: 'None', agrad: 'None (sẽ lưu)', loss1: '—', loss2: '—', hl: ['b'] }
+      },
+      {
+        lines: '7',
+        code: 'loss1 = (a * x + b.square()).sum()',
+        badge: 'Tính Loss 1',
+        theme: 'amber',
+        title: 'Tính tổng sai số đầu tiên: loss1 = 84.0',
+        vocab: 'square() = bình phương (mũ 2) • sum() = cộng tổng tất cả các số lại',
+        everyday: 'Tính a*x = [2, 8, 18] (tổng = 28) và b² = [4, 16, 36] (tổng = 56). Cộng lại: 28 + 56 = 84.0. Lưu ý: tuy b bị detach nhưng giá trị số 56 vẫn được cộng vào loss1 bình thường!',
+        tip: 'Giá trị loss1 = 84.0 ở cả 4 đáp án A, B, C, D đều giống nhau.',
+        vars: { x: '[1.0, -2.0, 3.0]', a: '[2.0, -4.0, 6.0]', b: '[2.0, -4.0, 6.0] ✂️', xgrad: 'None', agrad: 'None (sẽ lưu)', loss1: '84.0', loss2: '—', hl: ['loss1'] }
+      },
+      {
+        lines: '8',
+        code: 'loss1.backward(retain_graph=True)',
+        badge: '⏪ Tua ngược lần 1',
+        theme: 'rose',
+        title: 'Tính đạo hàm ngược từ loss1 (nhánh b² bị chặn về 0!)',
+        vocab: 'backward() = lan truyền ngược tính đạo hàm • retain_graph=True = giữ lại sơ đồ để lát backward thêm lần 2',
+        everyday: 'Vì b bị cắt dây nên đạo hàm chỉ đi qua phần a*x = 2x². Đạo hàm theo a là x = [1, -2, 3]. Đạo hàm theo x là 4x = [4, -8, 12].',
+        tip: 'Chốt mốc 1: x.grad = 4x = [4, -8, 12] và a.grad = 1x = [1, -2, 3].',
+        vars: { x: '[1.0, -2.0, 3.0]', a: '[2.0, -4.0, 6.0]', b: '[2.0, -4.0, 6.0] ✂️', xgrad: '[4.0, -8.0, 12.0]', agrad: '[1.0, -2.0, 3.0]', loss1: '84.0', loss2: '—', hl: ['xgrad', 'agrad'] }
+      },
+      {
+        lines: '9-10',
+        code: 'g1 = x.grad.clone()\nga1 = a.grad.clone()',
+        badge: 'Chụp ảnh lưu lại',
+        theme: 'neutral',
+        title: 'Photocopy giá trị đạo hàm lần 1 sang biến g1 và ga1',
+        vocab: 'clone() = tạo bản sao độc lập để không bị thay đổi khi xóa/cộng dồn ở sau',
+        everyday: 'Lưu riêng g1 = [4, -8, 12] và ga1 = [1, -2, 3] vào 2 ngăn kéo riêng để cuối bài in ra so sánh.',
+        tip: 'g1 và ga1 đã chốt cố định từ đây, không bao giờ đổi nữa.',
+        vars: { x: '[1.0, -2.0, 3.0]', a: '[2.0, -4.0, 6.0]', b: '[2.0, -4.0, 6.0] ✂️', xgrad: '[4.0, -8.0, 12.0]', agrad: '[1.0, -2.0, 3.0]', loss1: '84.0', loss2: '—', hl: [] }
+      },
+      {
+        lines: '11',
+        code: 'x.grad.zero_()',
+        badge: '🧽 BẪY XÓA THIẾU',
+        theme: 'emerald',
+        title: 'CHỈ xóa bảng điểm x.grad về 0 — QUÊN xóa a.grad!',
+        vocab: 'zero_() = gán toàn bộ về 0 ngay tại chỗ (dấu gạch dưới _ nghĩa là sửa trực tiếp)',
+        everyday: 'Bạn lấy giẻ lau sạch bảng điểm của x.grad về [0, 0, 0]. Nhưng bảng điểm của a.grad vẫn còn nguyên con số cũ [1, -2, 3] chưa hề bị lau!',
+        tip: 'Đây là bước mấu chốt nhất: x.grad về 0 (loại C), còn a.grad vẫn giữ [1, -2, 3] (loại A)!',
+        vars: { x: '[1.0, -2.0, 3.0]', a: '[2.0, -4.0, 6.0]', b: '[2.0, -4.0, 6.0] ✂️', xgrad: '[0.0, 0.0, 0.0] 🧽', agrad: '[1.0, -2.0, 3.0] ⚠️', loss1: '84.0', loss2: '—', hl: ['xgrad', 'agrad'] }
+      },
+      {
+        lines: '12',
+        code: 'loss2 = a.square().sum()',
+        badge: 'Tính Loss 2',
+        theme: 'amber',
+        title: 'Tính sai số lần 2 từ a: loss2 = 56.0',
+        vocab: 'a.square().sum() = lấy bình phương từng số trong a rồi cộng lại',
+        everyday: 'a = [2, -4, 6] → bình phương ra [4, 16, 36] → cộng tổng lại bằng 56.0. Lần này dùng trực tiếp a (chứ không phải b bị detach) nên đạo hàm sẽ chảy thông suốt!',
+        tip: 'Vì a = 2x nên a² = 4x².',
+        vars: { x: '[1.0, -2.0, 3.0]', a: '[2.0, -4.0, 6.0]', b: '[2.0, -4.0, 6.0] ✂️', xgrad: '[0.0, 0.0, 0.0]', agrad: '[1.0, -2.0, 3.0] ⚠️', loss1: '84.0', loss2: '56.0', hl: ['loss2'] }
+      },
+      {
+        lines: '13',
+        code: 'loss2.backward()',
+        badge: '🧮 CỘNG DỒN!',
+        theme: 'rose',
+        title: 'Tua ngược lần 2: x.grad ra 8x, còn a.grad CỘNG DỒN thành 5x!',
+        vocab: 'Đạo hàm mới của loss2: theo a là 2a = 4x; theo x là 8x',
+        everyday: 'PyTorch cộng điểm mới vào bảng cũ: x.grad đang 0 + 8x = [8, -16, 24]. Còn a.grad đang còn dư 1x + 4x mới = 5x = [5, -10, 15]!',
+        tip: 'Chốt mốc 2: g2 = [8, -16, 24] và ga_total = [5, -10, 15].',
+        vars: { x: '[1.0, -2.0, 3.0]', a: '[2.0, -4.0, 6.0]', b: '[2.0, -4.0, 6.0] ✂️', xgrad: '[8.0, -16.0, 24.0]', agrad: '[5.0, -10.0, 15.0] 🔥', loss1: '84.0', loss2: '56.0', hl: ['xgrad', 'agrad'] }
+      },
+      {
+        lines: '14-18',
+        code: 'print("loss:", [loss1.item(), loss2.item()])\nprint("g1:", g1.tolist())\nprint("ga1:", ga1.tolist())\nprint("g2:", x.grad.tolist())\nprint("ga_total:", a.grad.tolist())',
+        badge: '✅ In đáp án D',
+        theme: 'emerald',
+        title: 'In 5 dòng kết quả cuối cùng — Khớp 100% Phương án D!',
+        vocab: '.item() = rút ra 1 con số Python thường • .tolist() = đổi mảng sang danh sách [...] để in đẹp',
+        everyday: 'In toàn bộ kết quả đã tính: loss [84.0, 56.0], g1 [4, -8, 12], ga1 [1, -2, 3], g2 [8, -16, 24], ga_total [5, -10, 15].',
+        tip: 'Khớp từng con số với Đáp án D!',
+        vars: { x: '[1.0, -2.0, 3.0]', a: '[2.0, -4.0, 6.0]', b: '[2.0, -4.0, 6.0] ✂️', xgrad: '[8.0, -16.0, 24.0]', agrad: '[5.0, -10.0, 15.0]', loss1: '84.0', loss2: '56.0', hl: ['xgrad', 'agrad', 'loss1', 'loss2'] }
+      }
+    ];
+
+    let activeStepIdx = 0;
+
+    // =========================================================================
+    // TAB NAVIGATION
+    // =========================================================================
+    function switchTab(tabNum) {
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        const isTarget = btn.getAttribute('data-tab') === String(tabNum);
+        btn.className = isTarget
+          ? 'tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer border bg-rose-500 text-white border-rose-500 shadow-sm'
+          : 'tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer border bg-white text-cocoa-700 border-amber-200 hover:bg-cream-100';
+      });
+      document.querySelectorAll('.tab-panel').forEach((panel) => {
+        panel.classList.toggle('hidden', panel.id !== `tab-panel-${tabNum}`);
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // =========================================================================
+    // TAB 2 RENDERING
+    // =========================================================================
+    function renderCodeList() {
+      const container = document.getElementById('code-lines-container');
+      container.innerHTML = codeSteps.map((step, idx) => {
+        const isActive = idx === activeStepIdx;
+        const activeClass = isActive
+          ? 'bg-rose-500/25 border-l-4 border-rose-400 text-white'
+          : 'border-l-4 border-transparent text-amber-100/80 hover:bg-cocoa-800';
+        const safeCode = step.code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return `
+          <button
+            type="button"
+            onclick="selectCodeStep(${idx})"
+            class="w-full text-left flex items-start gap-2.5 px-2.5 py-2 rounded-xl transition cursor-pointer ${activeClass}"
+          >
+            <span class="w-9 text-right text-amber-200/50 select-none shrink-0 text-[11px] pt-0.5">${step.lines}</span>
+            <pre class="whitespace-pre font-mono leading-relaxed text-xs">${safeCode}</pre>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function renderVarCard(key, label, value, hlList, isDanger) {
+      const isHl = hlList.includes(key);
+      let cls = 'bg-cream-50 border-amber-200/80 text-cocoa-800';
+      if (isHl) {
+        cls = isDanger
+          ? 'bg-rose-50 border-rose-400 text-rose-900 ring-2 ring-rose-200 font-bold'
+          : 'bg-amber-50 border-amber-400 text-cocoa-900 ring-2 ring-amber-200 font-bold';
+      }
+      return `
+        <div class="p-2.5 rounded-xl border transition ${cls}">
+          <p class="text-[10px] font-bold uppercase tracking-wider opacity-70 mb-0.5">${label}</p>
+          <p class="font-mono text-xs truncate" title="${value}">${value}</p>
+        </div>
+      `;
+    }
+
+    function renderLineExplanation() {
+      const step = codeSteps[activeStepIdx];
+      document.getElementById('step-counter').textContent = `Bước ${activeStepIdx + 1} / ${codeSteps.length} (Dòng ${step.lines})`;
+      document.getElementById('prev-line-btn').disabled = activeStepIdx === 0;
+      document.getElementById('next-line-btn').disabled = activeStepIdx === codeSteps.length - 1;
+
+      const badgeColor = {
+        rose: 'bg-rose-100 text-rose-700 border-rose-200',
+        amber: 'bg-amber-100 text-amber-800 border-amber-200',
+        emerald: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+        neutral: 'bg-cream-200 text-cocoa-800 border-amber-300'
+      }[step.theme];
+
+      const v = step.vars;
+      const isDangerStep = step.theme === 'rose';
+
+      document.getElementById('line-explanation-content').innerHTML = `
+        <div>
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border ${badgeColor} mb-2">
+            ${step.badge}
+          </span>
+          <h3 class="text-base sm:text-lg font-extrabold text-cocoa-900 leading-snug">${step.title}</h3>
+        </div>
+
+        <div class="p-3 rounded-2xl bg-amber-50/70 border border-amber-200/80 text-xs text-cocoa-800">
+          <span class="font-bold text-amber-900">📖 Dịch từ khóa:</span> ${step.vocab}
+        </div>
+
+        <p class="text-sm text-cocoa-800 leading-relaxed">${step.everyday}</p>
+
+        <!-- Real-time Variable Dashboard -->
+        <div class="space-y-2.5">
+          <p class="text-xs font-bold text-cocoa-700/70 uppercase tracking-wider">📊 Bảng giá trị các biến tại bước này</p>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            ${renderVarCard('x', 'x (biến gốc)', v.x, v.hl, false)}
+            ${renderVarCard('a', 'a = x * 2', v.a, v.hl, false)}
+            ${renderVarCard('b', 'b = a.detach()', v.b, v.hl, true)}
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            ${renderVarCard('xgrad', 'x.grad (đạo hàm x)', v.xgrad, v.hl, isDangerStep)}
+            ${renderVarCard('agrad', 'a.grad (đạo hàm a)', v.agrad, v.hl, true)}
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            ${renderVarCard('loss1', 'loss1', v.loss1, v.hl, false)}
+            ${renderVarCard('loss2', 'loss2', v.loss2, v.hl, false)}
+          </div>
+        </div>
+
+        <div class="bg-rose-50/70 border border-rose-200 rounded-2xl p-3.5 flex items-start gap-2.5">
+          <span class="text-base shrink-0">💡</span>
+          <p class="text-xs text-cocoa-800 leading-relaxed"><strong>Mẹo đi thi:</strong> ${step.tip}</p>
+        </div>
+      `;
+    }
+
+    function selectCodeStep(idx) {
+      if (idx < 0 || idx >= codeSteps.length) return;
+      activeStepIdx = idx;
+      renderCodeList();
+      renderLineExplanation();
+    }
+
+    // =========================================================================
+    // 2. TAB 3: INTERACTIVE COMPUTATION GRAPH SIMULATION
+    // =========================================================================
+    let currentGraphStep = 0;
+
+    function setGraphStep(step) {
+      currentGraphStep = step;
+
+      // Update button styles
+      for (let i = 0; i <= 3; i++) {
+        const btn = document.getElementById(`gstep-${i}`);
+        if (i === step) {
+          btn.className = 'gstep-btn p-3 rounded-2xl border-2 text-left transition cursor-pointer bg-rose-500 text-white border-rose-600 shadow-sm';
+        } else {
+          btn.className = 'gstep-btn p-3 rounded-2xl border-2 text-left transition cursor-pointer bg-cream-50 text-cocoa-800 border-amber-200 hover:bg-cream-100';
+        }
+      }
+
+      const narration = document.getElementById('graph-narration');
+      const nodeX = document.getElementById('node-x');
+      const nodeA = document.getElementById('node-a');
+      const nodeB = document.getElementById('node-b');
+      const nodeL1 = document.getElementById('node-loss1');
+      const nodeL2 = document.getElementById('node-loss2');
+      const boxXGrad = document.getElementById('box-xgrad');
+      const boxAGrad = document.getElementById('box-agrad');
+      const arrowXA = document.getElementById('arrow-xa');
+      const arrowXALbl = document.getElementById('arrow-xa-lbl');
+
+      if (step === 0) {
+        narration.className = 'rounded-3xl p-5 border-2 shadow-sm bg-amber-50/80 border-amber-300 text-cocoa-900';
+        narration.innerHTML = `
+          <p class="text-xs font-extrabold uppercase tracking-wider text-amber-800 mb-1">Trạng thái ban đầu (Tính xuôi Forward)</p>
+          <p class="text-sm leading-relaxed">Máy tính xuôi từ <strong>x</strong> → <strong>a = 2x</strong> → <strong>b = a.detach()</strong> (cắt dây nối camera!). Lúc này chưa gọi <code class="font-mono font-bold">backward()</code> nên cả <code class="font-mono">x.grad</code> và <code class="font-mono">a.grad</code> đều đang trống (<code class="font-mono">None</code>).</p>
+        `;
+        nodeX.className = 'lg:col-span-3 rounded-2xl border-2 p-4 bg-cream-50 border-amber-300';
+        nodeA.className = 'lg:col-span-3 rounded-2xl border-2 p-4 bg-cream-50 border-amber-300';
+        nodeB.className = 'rounded-2xl border-2 border-dashed p-3.5 bg-rose-50/50 border-rose-300';
+        nodeL1.className = 'rounded-2xl border-2 p-3.5 bg-cream-50 border-amber-200';
+        nodeL2.className = 'rounded-2xl border-2 p-3.5 bg-cream-50 border-amber-200 opacity-60';
+        boxXGrad.className = 'p-2.5 rounded-xl border font-mono text-xs bg-white border-amber-200 text-cocoa-700';
+        boxXGrad.innerHTML = 'x.grad = <strong>None</strong>';
+        boxAGrad.className = 'p-2.5 rounded-xl border font-mono text-xs bg-white border-amber-200 text-cocoa-700';
+        boxAGrad.innerHTML = 'a.grad = <strong>None</strong>';
+        arrowXA.textContent = '→';
+        arrowXA.className = 'text-2xl font-extrabold text-amber-500';
+        arrowXALbl.textContent = 'Tính xuôi';
+        arrowXALbl.className = 'text-[10px] font-bold text-amber-700';
+      } else if (step === 1) {
+        narration.className = 'rounded-3xl p-5 border-2 shadow-sm bg-rose-50 border-rose-300 text-rose-950';
+        narration.innerHTML = `
+          <p class="text-xs font-extrabold uppercase tracking-wider text-rose-700 mb-1">Bước 1: Chạy loss1.backward(retain_graph=True)</p>
+          <p class="text-sm leading-relaxed">Tín hiệu đạo hàm chạy ngược từ <strong>loss1</strong>! Vì <strong>b bị cắt dây (detach)</strong> nên nhánh <code class="font-mono">b²</code> bị chặn đứng (= 0). Chỉ nhánh <code class="font-mono">a * x</code> chạy ngược về, ghi <strong>a.grad = 1x = [1, -2, 3]</strong> và <strong>x.grad = 4x = [4, -8, 12]</strong>.</p>
+        `;
+        nodeX.className = 'lg:col-span-3 rounded-2xl border-2 p-4 bg-amber-50 border-amber-400 shadow-sm';
+        nodeA.className = 'lg:col-span-3 rounded-2xl border-2 p-4 bg-amber-50 border-amber-400 shadow-sm';
+        nodeB.className = 'rounded-2xl border-2 border-dashed p-3.5 bg-rose-100 border-rose-500 ring-2 ring-rose-200';
+        nodeL1.className = 'rounded-2xl border-2 p-3.5 bg-amber-100/70 border-amber-400 shadow-sm';
+        nodeL2.className = 'rounded-2xl border-2 p-3.5 bg-cream-50 border-amber-200 opacity-50';
+        boxXGrad.className = 'p-2.5 rounded-xl border-2 font-mono text-xs bg-white border-amber-500 text-cocoa-900';
+        boxXGrad.innerHTML = 'x.grad = <strong class="text-amber-700">[4.0, -8.0, 12.0]</strong> <span class="text-[10px]">(4x)</span>';
+        boxAGrad.className = 'p-2.5 rounded-xl border-2 font-mono text-xs bg-white border-amber-500 text-cocoa-900';
+        boxAGrad.innerHTML = 'a.grad = <strong class="text-amber-700">[1.0, -2.0, 3.0]</strong> <span class="text-[10px]">(1x)</span>';
+        arrowXA.textContent = '←';
+        arrowXA.className = 'text-2xl font-extrabold text-rose-500';
+        arrowXALbl.textContent = 'Đạo hàm ngược';
+        arrowXALbl.className = 'text-[10px] font-bold text-rose-600';
+      } else if (step === 2) {
+        narration.className = 'rounded-3xl p-5 border-2 shadow-sm bg-emerald-50 border-emerald-300 text-emerald-950';
+        narration.innerHTML = `
+          <p class="text-xs font-extrabold uppercase tracking-wider text-emerald-700 mb-1">Bước 2: Chạy x.grad.zero_() — CÁI BẪY XUẤT HIỆN!</p>
+          <p class="text-sm leading-relaxed">Lệnh này <strong>CHỈ lau sạch x.grad về [0, 0, 0]</strong>. Hãy nhìn sang ô <strong>a.grad</strong> bên cạnh: nó <strong>KHÔNG được xóa</strong> nên vẫn còn nguyên số cũ <strong>[1.0, -2.0, 3.0]</strong> nằm chờ sẵn!</p>
+        `;
+        nodeX.className = 'lg:col-span-3 rounded-2xl border-2 p-4 bg-emerald-50 border-emerald-400 shadow-sm';
+        nodeA.className = 'lg:col-span-3 rounded-2xl border-2 p-4 bg-rose-50 border-rose-400 shadow-sm';
+        nodeB.className = 'rounded-2xl border-2 border-dashed p-3.5 bg-cream-50 border-amber-200 opacity-50';
+        nodeL1.className = 'rounded-2xl border-2 p-3.5 bg-cream-50 border-amber-200 opacity-50';
+        nodeL2.className = 'rounded-2xl border-2 p-3.5 bg-cream-50 border-amber-200 opacity-60';
+        boxXGrad.className = 'p-2.5 rounded-xl border-2 font-mono text-xs bg-emerald-600 border-emerald-700 text-white';
+        boxXGrad.innerHTML = '🧽 x.grad = <strong>[0.0, 0.0, 0.0]</strong>';
+        boxAGrad.className = 'p-2.5 rounded-xl border-2 font-mono text-xs bg-rose-100 border-rose-500 text-rose-900';
+        boxAGrad.innerHTML = '⚠️ a.grad = <strong>[1.0, -2.0, 3.0]</strong> (Chưa xóa!)';
+        arrowXA.textContent = '•';
+        arrowXA.className = 'text-2xl font-extrabold text-cocoa-700/40';
+        arrowXALbl.textContent = 'Đang reset';
+        arrowXALbl.className = 'text-[10px] font-bold text-cocoa-700/60';
+      } else {
+        narration.className = 'rounded-3xl p-5 border-2 shadow-sm bg-rose-50 border-rose-400 text-rose-950';
+        narration.innerHTML = `
+          <p class="text-xs font-extrabold uppercase tracking-wider text-rose-700 mb-1">Bước 3: Chạy loss2.backward() — CHỐT ĐÁP ÁN D!</p>
+          <p class="text-sm leading-relaxed">Đạo hàm mới của <code class="font-mono">loss2 = a²</code> là <strong>+4x</strong> tại <code class="font-mono">a</code> và <strong>+8x</strong> tại <code class="font-mono">x</code>. Vì <strong>x.grad</strong> đang là 0 nên thành <strong>[8, -16, 24]</strong>. Còn <strong>a.grad</strong> bị cộng dồn: <strong>1x + 4x = 5x = [5, -10, 15]</strong>!</p>
+        `;
+        nodeX.className = 'lg:col-span-3 rounded-2xl border-2 p-4 bg-emerald-50 border-emerald-400 shadow-sm';
+        nodeA.className = 'lg:col-span-3 rounded-2xl border-2 p-4 bg-rose-50 border-rose-500 shadow-md';
+        nodeB.className = 'rounded-2xl border-2 border-dashed p-3.5 bg-cream-50 border-amber-200 opacity-40';
+        nodeL1.className = 'rounded-2xl border-2 p-3.5 bg-cream-50 border-amber-200 opacity-40';
+        nodeL2.className = 'rounded-2xl border-2 p-3.5 bg-emerald-100/80 border-emerald-500 shadow-sm';
+        boxXGrad.className = 'p-2.5 rounded-xl border-2 font-mono text-xs bg-white border-emerald-500 text-emerald-900';
+        boxXGrad.innerHTML = 'x.grad = 0 + 8x = <strong class="text-emerald-700">[8.0, -16.0, 24.0]</strong>';
+        boxAGrad.className = 'p-2.5 rounded-xl border-2 font-mono text-xs bg-rose-600 border-rose-700 text-white';
+        boxAGrad.innerHTML = '🔥 a.grad = 1x + 4x = <strong>[5.0, -10.0, 15.0]</strong>';
+        arrowXA.textContent = '←';
+        arrowXA.className = 'text-2xl font-extrabold text-emerald-600';
+        arrowXALbl.textContent = '×2 (thành 8x)';
+        arrowXALbl.className = 'text-[10px] font-bold text-emerald-700';
+      }
+    }
+
+    // =========================================================================
+    // 3. TAB 4: HINTS TOGGLE & MINI-QUIZ
+    // =========================================================================
+    let hintsVisible = true;
+    function toggleExamHints() {
+      hintsVisible = !hintsVisible;
+      document.querySelectorAll('.exam-hint-badge, .exam-hint-text').forEach((el) => {
+        el.classList.toggle('hidden', !hintsVisible);
+      });
+    }
+
+    const quizQuestions = [
+      {
+        id: 0,
+        question: 'Câu 1: Trong Câu 03, lệnh b = a.detach() gây ra tác động gì khi chạy loss1.backward()?',
+        options: [
+          'A. Làm giá trị loss1 bị giảm đi vì bỏ mất b.square()',
+          'B. Cắt dây nối đạo hàm qua b (coi b là hằng số tĩnh), nhưng giá trị số của loss1 vẫn giữ nguyên 84.0',
+          'C. Xóa sạch giá trị của biến a về 0',
+          'D. Nhân đôi đạo hàm truyền về biến x'
+        ],
+        correct: 1,
+        explanation: 'Chính xác! detach() chỉ ngắt dòng chảy đạo hàm khi backward(), còn giá trị số của b vẫn giữ nguyên nên loss1 vẫn bằng 84.0.'
+      },
+      {
+        id: 1,
+        question: 'Câu 2: Tại sao kết quả cuối cùng ga_total (tức a.grad) lại ra [5.0, -10.0, 15.0] (tức 5x) thay vì 4x?',
+        options: [
+          'A. Vì PyTorch mặc định cộng dồn gradient, mà code chỉ xóa x.grad.zero_() chứ QUÊN xóa a.grad',
+          'B. Vì loss2 = a.square().sum() tự nó có đạo hàm bằng 5x',
+          'C. Vì hàm retain_grad() tự động cộng thêm 1x vào kết quả',
+          'D. Vì b = a.detach() truyền thêm 1x vào a.grad'
+        ],
+        correct: 0,
+        explanation: 'Chuẩn luôn! Sau lần backward 1, a.grad giữ 1x. Do quên xóa a.grad, sang lần backward 2 máy cộng dồn thêm 4x thành 5x = [5.0, -10.0, 15.0].'
+      },
+      {
+        id: 2,
+        question: 'Câu 3: Khi làm trắc nghiệm Câu 03, làm sao loại ngay phương án C trong 3 giây?',
+        options: [
+          'A. Vì C tính sai loss1 và loss2',
+          'B. Vì C quên detach() nên g1 = 12x',
+          'C. Vì C cho g2 = [12.0, -24.0, 36.0] (cộng dồn 4x + 8x), quên rằng x.grad đã được xóa về 0 bằng x.grad.zero_()',
+          'D. Vì C cho ga_total = [4.0, -8.0, 12.0]'
+        ],
+        correct: 2,
+        explanation: 'Tuyệt vời! x.grad đã được lau sạch về 0 trước loss2.backward(), nên g2 bắt buộc phải là 8x = [8.0, -16.0, 24.0], không thể cộng dồn thành 12x được!'
+      }
+    ];
+
+    let quizAnswers = {};
+    function answerQuiz(qId, optIdx) {
+      quizAnswers[qId] = optIdx;
+      renderQuiz();
+    }
+    function resetQuiz() {
+      quizAnswers = {};
+      renderQuiz();
+    }
+    function renderQuiz() {
+      let score = 0;
+      quizQuestions.forEach((q) => {
+        if (quizAnswers[q.id] === q.correct) score++;
+      });
+      document.getElementById('quiz-score').textContent = String(score);
+
+      document.getElementById('quiz-container').innerHTML = quizQuestions.map((q) => {
+        const chosen = quizAnswers[q.id];
+        const hasAnswered = chosen !== undefined;
+        const isCorrect = chosen === q.correct;
+
+        const opts = q.options.map((text, idx) => {
+          let cls = 'bg-white border-amber-200 text-cocoa-800 hover:bg-cream-100';
+          if (hasAnswered) {
+            if (idx === q.correct) cls = 'bg-emerald-50 border-emerald-500 text-emerald-900 font-bold';
+            else if (idx === chosen) cls = 'bg-rose-50 border-rose-500 text-rose-900 font-bold';
+            else cls = 'bg-cream-50 border-amber-100 text-cocoa-700/40';
+          }
+          return `
+            <button type="button" onclick="answerQuiz(${q.id}, ${idx})" class="w-full text-left px-4 py-3 rounded-2xl border-2 text-xs sm:text-sm transition cursor-pointer ${cls}">
+              ${text}
+            </button>
+          `;
+        }).join('');
+
+        const fb = hasAnswered
+          ? `<div class="mt-3 p-3.5 rounded-2xl text-xs sm:text-sm border ${isCorrect ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : 'bg-rose-50 border-rose-200 text-rose-900'}">
+              <strong>${isCorrect ? '✅ Chính xác!' : '❌ Chưa đúng rồi!'}</strong> ${q.explanation}
+            </div>`
+          : '';
+
+        return `
+          <div class="p-4 sm:p-5 rounded-2xl bg-cream-50 border border-amber-200/80">
+            <p class="text-sm sm:text-base font-bold text-cocoa-900 mb-3">${q.question}</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">${opts}</div>
+            ${fb}
+          </div>
+        `;
+      }).join('');
+    }
+
+    // =========================================================================
+    // INIT
+    // =========================================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => switchTab(btn.getAttribute('data-tab')));
+      });
+      document.getElementById('prev-line-btn').addEventListener('click', () => selectCodeStep(activeStepIdx - 1));
+      document.getElementById('next-line-btn').addEventListener('click', () => selectCodeStep(activeStepIdx + 1));
+
+      switchTab('1');
+      renderCodeList();
+      renderLineExplanation();
+      setGraphStep(0);
+      renderQuiz();
+    });
+  </script>
+</body>
+</html>

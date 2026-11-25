@@ -6,6 +6,7 @@ export const STORAGE_KEYS = {
   TOPICS_PROGRESS: 'vinuni_ai_topics_progress_v1',
   CUSTOM_FLASHCARDS: 'vinuni_ai_custom_flashcards_v1',
   CUSTOM_GLOSSARY: 'vinuni_ai_custom_glossary_v1',
+  LAST_HTML_TRAP_LESSON: 'vinuni_ai_last_html_trap_lesson_v1',
 };
 
 const VALID_FLASHCARD_STATUSES = new Set(['unlearned', 'unsure', 'mastered']);
@@ -309,6 +310,30 @@ export function saveCustomGlossary(entries) {
       STORAGE_KEYS.CUSTOM_GLOSSARY,
       JSON.stringify(entries ?? [])
     );
+  } catch {
+    // Ignore storage quota or private mode errors gracefully
+  }
+}
+
+export function loadLastHtmlTrapLessonId(validIds = [], fallbackId = 'cau-01') {
+  if (typeof window === 'undefined') return fallbackId;
+  try {
+    const saved = window.localStorage.getItem(
+      STORAGE_KEYS.LAST_HTML_TRAP_LESSON
+    );
+    if (saved && (!validIds.length || validIds.includes(saved))) {
+      return saved;
+    }
+    return fallbackId;
+  } catch {
+    return fallbackId;
+  }
+}
+
+export function saveLastHtmlTrapLessonId(lessonId) {
+  if (typeof window === 'undefined' || typeof lessonId !== 'string') return;
+  try {
+    window.localStorage.setItem(STORAGE_KEYS.LAST_HTML_TRAP_LESSON, lessonId);
   } catch {
     // Ignore storage quota or private mode errors gracefully
   }

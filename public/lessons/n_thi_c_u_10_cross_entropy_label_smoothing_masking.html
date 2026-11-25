@@ -1,0 +1,1595 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ôn Thi Câu 10: Cross-Entropy, Label Smoothing &amp; Masking (Chặng Cuối 10/10)</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Quicksand, Nunito & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Nunito:wght@500;600;700;800;900&family=Quicksand:wght@600;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Nunito', 'Quicksand', 'sans-serif'],
+            display: ['Quicksand', 'Nunito', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            cream: {
+              50: '#FFFBF5',
+              100: '#FFF4E6',
+              200: '#F2E2CE',
+            },
+            pinky: {
+              50: '#FFF5F8',
+              100: '#FCE4EC',
+              300: '#FFB6C1',
+              500: '#EC6A8C',
+              600: '#D64C72',
+            },
+            butter: {
+              50: '#FFFDF0',
+              100: '#FFF8E1',
+              300: '#FFE082',
+              400: '#FFD54F',
+              500: '#E5AE2B',
+            },
+            cocoa: {
+              500: '#8D6E63',
+              700: '#6D4C41',
+              800: '#4E342E',
+              900: '#35221D',
+            },
+            mint: {
+              50: '#ECFDF5',
+              100: '#D1FAE5',
+              300: '#6EE7B7',
+              500: '#10B981',
+              600: '#059669',
+            },
+            coral: {
+              50: '#FFF1F2',
+              100: '#FFE4E6',
+              300: '#FDA4AF',
+              500: '#EF4444',
+              600: '#DC2626',
+            },
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    /* 3D Flashcard Flip */
+    .flip-card {
+      perspective: 1000px;
+    }
+    .flip-card-inner {
+      position: relative;
+      width: 100%;
+      min-height: 178px;
+      transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+      transform-style: preserve-3d;
+    }
+    .flip-card.is-flipped .flip-card-inner {
+      transform: rotateY(180deg);
+    }
+    .flip-card-face {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+    .flip-card-back {
+      transform: rotateY(180deg);
+    }
+
+    /* Celebration Floating Particles */
+    @keyframes floatCelebrate {
+      0% {
+        transform: translateY(0) rotate(0deg) scale(0.75);
+        opacity: 0;
+      }
+      15% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-96vh) rotate(360deg) scale(1.3);
+        opacity: 0;
+      }
+    }
+    .celebrate-particle {
+      position: fixed;
+      bottom: -44px;
+      pointer-events: none;
+      z-index: 9999;
+      animation: floatCelebrate 3.5s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="bg-cream-50 text-cocoa-800 font-sans antialiased selection:bg-pinky-100 selection:text-cocoa-900 min-h-screen flex flex-col">
+
+  <!-- Particle Celebration Layer (100 XP) -->
+  <div id="celebration-layer" aria-hidden="true"></div>
+
+  <!-- Sticky Gamified Header -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur border-b-2 border-cream-200 shadow-xs">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 sm:py-4 space-y-3">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+        <!-- Title & Finale Badge -->
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-pinky-500 text-white flex items-center justify-center font-black text-xl border-b-4 border-pinky-600 shadow-xs shrink-0 font-display">
+            10
+          </div>
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <h1 class="text-lg sm:text-xl font-black text-cocoa-800 tracking-tight font-display">
+                Cross-Entropy, Label Smoothing &amp; Masking
+              </h1>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-black bg-butter-300 text-cocoa-900 border border-butter-500/40">
+                🎓 CÂU 10/10 — CHẶNG CUỐI
+              </span>
+            </div>
+            <p class="text-xs sm:text-sm text-cocoa-700/80 font-semibold">
+              Làm mềm đáp án <code class="font-mono text-xs bg-butter-100 px-1.5 py-0.5 rounded-lg text-cocoa-800">0.8 + 0.2/3</code> • Che học sinh nghỉ thi <code class="font-mono text-xs bg-butter-100 px-1.5 py-0.5 rounded-lg text-cocoa-800">-1</code> • Bẫy <strong class="text-pinky-600">chia 3 vs chia 4</strong>
+            </p>
+          </div>
+        </div>
+
+        <!-- XP Progress Bar + Target Answer -->
+        <div class="flex items-center gap-3 bg-butter-100 border-2 border-butter-300/70 rounded-2xl px-3.5 py-2 self-start lg:self-auto w-full lg:w-auto">
+          <div class="text-xl shrink-0">🏆</div>
+          <div class="flex-1 lg:w-48">
+            <div class="flex items-center justify-between text-[11px] font-extrabold mb-1">
+              <span class="text-cocoa-700 uppercase tracking-wide">Tiến độ tốt nghiệp</span>
+              <span class="text-pinky-600 font-black"><span id="xp-value">0</span> / 100 XP</span>
+            </div>
+            <div class="w-full h-3 bg-white rounded-full border border-cream-200 overflow-hidden p-0.5">
+              <div
+                id="xp-bar"
+                class="h-full rounded-full bg-gradient-to-r from-butter-400 via-pinky-500 to-mint-500 transition-all duration-500"
+                style="width: 0%;"
+              ></div>
+            </div>
+          </div>
+          <div class="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-xl bg-mint-50 border border-mint-300 text-xs font-extrabold text-mint-600 shrink-0">
+            <span>🎯</span>
+            <span>Đáp án B</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4 Main Navigation Tabs (Duolingo 3D Buttons) -->
+      <nav aria-label="Điều hướng 4 phần học" class="grid grid-cols-2 lg:grid-cols-4 gap-2">
+        <button id="tab-btn-1" data-tab="1" class="tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2">
+          <span>💡</span>
+          <span>1. Bản chất &amp; Từ vựng (+20 XP)</span>
+        </button>
+        <button id="tab-btn-2" data-tab="2" class="tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2">
+          <span>🔍</span>
+          <span>2. Từng dòng code (+25 XP)</span>
+        </button>
+        <button id="tab-btn-3" data-tab="3" class="tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2">
+          <span>🧪</span>
+          <span>3. Phòng thí nghiệm (+25 XP)</span>
+        </button>
+        <button id="tab-btn-4" data-tab="4" class="tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2">
+          <span>⚡</span>
+          <span>4. Mẹo 15s &amp; Quiz (+30 XP)</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+
+    <!-- Cute Hand-Drawn Chibi Mascot ("Bé Kem" wearing a Mini Graduation Cap) -->
+    <div class="bg-white rounded-3xl border-2 border-cream-200 p-4 sm:p-5 shadow-xs flex items-center gap-4">
+      <div class="w-16 h-16 sm:w-20 sm:h-20 shrink-0 flex items-center justify-center">
+        <svg viewBox="0 0 110 110" class="w-16 h-16 sm:w-20 sm:h-20" aria-label="Bé Kem đội mũ tốt nghiệp mini">
+          <!-- Mini Graduation Cap -->
+          <polygon points="55,6 90,19 55,31 20,19" fill="#4E342E" stroke="#35221D" stroke-width="3" stroke-linejoin="round" />
+          <path d="M 35 24 L 35 35 Q 55 41 75 35 L 75 24" fill="#6D4C41" stroke="#35221D" stroke-width="2.5" />
+          <!-- Gold Tassel -->
+          <path d="M 84 21 L 91 35" stroke="#FFD54F" stroke-width="3" stroke-linecap="round" />
+          <circle cx="91" cy="37" r="4" fill="#FFD54F" stroke="#4E342E" stroke-width="1.5" />
+          <!-- Cat/Fox Ears peeking out -->
+          <polygon points="24,47 32,29 44,41" fill="#FFE082" stroke="#4E342E" stroke-width="3.2" stroke-linejoin="round" />
+          <polygon points="29,43 34,34 40,40" fill="#FFB6C1" />
+          <polygon points="86,47 78,29 66,41" fill="#FFE082" stroke="#4E342E" stroke-width="3.2" stroke-linejoin="round" />
+          <polygon points="81,43 76,34 70,40" fill="#FFB6C1" />
+          <!-- Chibi Head -->
+          <ellipse cx="55" cy="68" rx="35" ry="30" fill="#FFF8E1" stroke="#4E342E" stroke-width="3.5" />
+          <!-- Rosy Cheeks -->
+          <ellipse cx="32" cy="73" rx="6.5" ry="4" fill="#FFB6C1" opacity="0.85" />
+          <ellipse cx="78" cy="73" rx="6.5" ry="4" fill="#FFB6C1" opacity="0.85" />
+          <!-- Sparkling Eyes -->
+          <circle cx="42" cy="64" r="4.3" fill="#4E342E" />
+          <circle cx="40.5" cy="62.5" r="1.6" fill="#FFFFFF" />
+          <circle cx="68" cy="64" r="4.3" fill="#4E342E" />
+          <circle cx="66.5" cy="62.5" r="1.6" fill="#FFFFFF" />
+          <!-- Cat Whiskers -->
+          <line x1="16" y1="68" x2="26" y2="70" stroke="#6D4C41" stroke-width="2" stroke-linecap="round" />
+          <line x1="17" y1="75" x2="26" y2="75" stroke="#6D4C41" stroke-width="2" stroke-linecap="round" />
+          <line x1="94" y1="68" x2="84" y2="70" stroke="#6D4C41" stroke-width="2" stroke-linecap="round" />
+          <line x1="93" y1="75" x2="84" y2="75" stroke="#6D4C41" stroke-width="2" stroke-linecap="round" />
+          <!-- Cute Nose & Smile -->
+          <polygon points="52,69 58,69 55,72.5" fill="#EC6A8C" />
+          <path d="M 48 75 Q 51.5 79 55 75 Q 58.5 79 62 75" fill="none" stroke="#4E342E" stroke-width="2.8" stroke-linecap="round" />
+        </svg>
+      </div>
+      <div class="flex-1 bg-pinky-50 border-2 border-pinky-100 rounded-2xl px-4 py-3">
+        <p class="text-[11px] font-black uppercase tracking-wider text-pinky-600 mb-0.5">🐱🎓 Bé Kem đội mũ tốt nghiệp cổ vũ bạn:</p>
+        <p id="mascot-speech" class="text-xs sm:text-sm font-bold text-cocoa-800 leading-relaxed">
+          Chặng cuối 10/10 rồi nè! Câu 10 nghe tên dài vậy thôi chứ siêu dễ: <strong>1 học sinh nghỉ thi (nhãn -1)</strong> nên chia trung bình phải <strong>chia cho 3</strong> (không phải chia 4!), và đáp án được <strong>làm mềm thành 86.7%</strong>!
+        </p>
+      </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- TAB 1: BẢN CHẤT & TỪ VỰNG (+20 XP)                                  -->
+    <!-- =================================================================== -->
+    <section id="tab-panel-1" class="tab-panel space-y-8">
+      <!-- Warm Hero Banner -->
+      <div class="bg-gradient-to-r from-pinky-500 via-rose-400 to-butter-400 text-white rounded-3xl p-6 sm:p-8 border-b-4 border-pinky-600/50 shadow-sm">
+        <div class="inline-flex items-center gap-2 bg-white/25 backdrop-blur px-3 py-1 rounded-full text-xs font-extrabold mb-3">
+          <span>📌 Tóm tắt Câu 10 trong 1 câu chốt hạ bộ đề</span>
+        </div>
+        <h2 class="text-xl sm:text-2xl font-black leading-snug mb-3 font-display">
+          Lớp có 4 bạn nhưng 1 bạn nghỉ thi (<code class="bg-white/25 px-1.5 py-0.5 rounded-lg font-mono">labels = -1</code>): Chấm điểm trung bình chuẩn phải <strong class="underline decoration-butter-300 decoration-4">chia cho 3</strong> (<code class="bg-white/25 px-1.5 py-0.5 rounded-lg font-mono">loss = 0.5032</code>, <code class="bg-white/25 px-1.5 py-0.5 rounded-lg font-mono">grad[0] = -0.0076</code>), còn ai ngây thơ <strong class="underline decoration-white decoration-4">chia cho 4</strong> là dính bẫy ngay!
+        </h2>
+        <p class="text-white/95 text-sm sm:text-base leading-relaxed">
+          Đọc 4 câu chuyện đời thường và lật ít nhất 4 thẻ Flashcard 3D bên dưới để mở khóa <strong>+20 XP</strong> đầu tiên nhé!
+        </p>
+      </div>
+
+      <!-- 4 Everyday Metaphor Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- 1. Logits & Softmax -->
+        <article class="bg-white rounded-3xl border-2 border-cream-200 p-6 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-butter-100 text-cocoa-800 border border-butter-300">
+                Ẩn dụ 1 • Đổi điểm sang % tự tin
+              </span>
+              <span class="text-2xl">📊</span>
+            </div>
+            <h3 class="text-lg font-black text-cocoa-800 mb-2 font-display">
+              Logits &amp; Softmax (<code class="font-mono text-pinky-600">p</code>) = Đổi điểm thô sang % tự tin
+            </h3>
+            <p class="text-sm text-cocoa-700 leading-relaxed mb-3">
+              Máy chấm điểm thô (<code class="font-mono font-bold">logits</code>) cho 3 đáp án là <code class="font-mono font-bold">[2, 0, -1]</code>. Qua hàm Softmax, điểm thô biến thành <strong>% tự tin</strong> (tổng luôn bằng 100%):
+            </p>
+            <div class="p-3 rounded-2xl bg-butter-100/70 border border-butter-300 font-mono text-xs text-cocoa-900 text-center font-bold">
+              [2, 0, -1] &nbsp;→&nbsp; p = [84.4%, 11.4%, 4.2%]
+            </div>
+          </div>
+          <p class="text-xs text-cocoa-500 mt-3 font-semibold">
+            ✨ Điểm thô càng cao thì tỷ lệ % tự tin càng lớn!
+          </p>
+        </article>
+
+        <!-- 2. Label Smoothing -->
+        <article class="bg-white rounded-3xl border-2 border-pinky-300 p-6 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-pinky-100 text-pinky-600 border border-pinky-300">
+                Ẩn dụ 2 • Khiêm tốn chống học vẹt
+              </span>
+              <span class="text-2xl">🍦</span>
+            </div>
+            <h3 class="text-lg font-black text-cocoa-800 mb-2 font-display">
+              Label Smoothing (<code class="font-mono text-pinky-600">0.8 * target + 0.2/3</code>) = "Đừng tự tin thái quá!"
+            </h3>
+            <p class="text-sm text-cocoa-700 leading-relaxed mb-3">
+              Thay vì ép đáp án cứng nhắc <code class="font-mono font-bold">[100%, 0%, 0%]</code> khiến AI dễ học vẹt, thầy giáo "làm mềm" mục tiêu bằng cách chỉ giữ 80% cho lớp đúng và chia đều 20% cho cả 3 lớp:
+            </p>
+            <div class="p-3 rounded-2xl bg-pinky-50 border border-pinky-300 font-mono text-xs text-cocoa-900 space-y-1">
+              <p>• Lớp đúng: 0.8 + 0.2/3 = <strong class="text-pinky-600">86.7% (0.8667)</strong></p>
+              <p>• Hai lớp sai: 0 + 0.2/3 = <strong class="text-cocoa-700">6.7% (0.0667)</strong></p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 3. Masking -->
+        <article class="bg-white rounded-3xl border-2 border-mint-300 p-6 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-mint-50 text-mint-600 border border-mint-300">
+                Ẩn dụ 3 • Học sinh nghỉ thi
+              </span>
+              <span class="text-2xl">🚫</span>
+            </div>
+            <h3 class="text-lg font-black text-cocoa-800 mb-2 font-display">
+              Masking (<code class="font-mono text-mint-600">labels != -1</code>) = Bỏ qua học sinh vắng mặt!
+            </h3>
+            <p class="text-sm text-cocoa-700 leading-relaxed mb-3">
+              Trong 4 mẫu <code class="font-mono font-bold">[0, 1, -1, 2]</code>, Mẫu số 2 có nhãn <strong>-1</strong> (quy ước là <em>bạn này nghỉ thi / dữ liệu đệm padding</em>).
+            </p>
+            <div class="p-3 rounded-2xl bg-mint-50 border border-mint-300 text-xs text-cocoa-800 space-y-1">
+              <p>✅ <code class="font-mono font-bold">mask = [True, True, False, True]</code> → Chỉ có <strong>3 mẫu hợp lệ</strong>!</p>
+              <p>✅ Bạn nghỉ thi bị nhân với <code class="font-mono font-bold">0</code> để <strong>không chấm điểm</strong> và <strong>KHÔNG tính vào sĩ số</strong> khi chia trung bình!</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 4. Trap loss vs wrong_loss -->
+        <article class="bg-white rounded-3xl border-2 border-coral-500 p-6 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-coral-50 text-coral-600 border border-coral-300">
+                Ẩn dụ 4 • Bẫy chia sĩ số 🚨
+              </span>
+              <span class="text-2xl">⚖️</span>
+            </div>
+            <h3 class="text-lg font-black text-cocoa-800 mb-2 font-display">
+              Bẫy <code class="font-mono text-mint-600">loss</code> (Chia 3) vs <code class="font-mono text-coral-600">wrong_loss</code> (Chia 4)
+            </h3>
+            <p class="text-sm text-cocoa-700 leading-relaxed mb-3">
+              Lớp có 4 học sinh, 1 bạn nghỉ thi. Ba bạn đi thi đều bị chấm lỗi <code class="font-mono font-bold">0.5032</code>:
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono">
+              <div class="p-2.5 rounded-2xl bg-mint-50 border-2 border-mint-300">
+                <p class="font-sans font-black text-mint-600">✅ Chia 3 (mask.sum())</p>
+                <p class="text-cocoa-900 mt-1">(3×0.5032)/3 = <strong class="text-mint-600">0.5032</strong></p>
+              </div>
+              <div class="p-2.5 rounded-2xl bg-coral-50 border-2 border-coral-300">
+                <p class="font-sans font-black text-coral-600">❌ Chia 4 (.mean())</p>
+                <p class="text-cocoa-900 mt-1">(3×0.5032)/4 = <strong class="text-coral-600">0.3774</strong></p>
+              </div>
+            </div>
+            <p class="text-xs text-cocoa-500 mt-2.5 font-semibold">
+              👉 Tương tự, <code class="font-mono font-bold">grad</code> cũng PHẢI chia cho 3 (ra <code class="font-mono">-0.0076</code>), chia nhầm 4 ra <code class="font-mono">-0.0057</code> là Bẫy C!
+            </p>
+          </div>
+        </article>
+      </div>
+
+      <!-- 8 Interactive 3D Flashcards -->
+      <div class="bg-white rounded-3xl border-2 border-cream-200 p-5 sm:p-6 shadow-xs space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <span class="inline-block px-3 py-0.5 rounded-full text-xs font-extrabold bg-butter-100 text-cocoa-800 mb-1">
+              📖 Từ điển Flashcard 3D cho Non-tech (8 thẻ • Lật ≥ 4 thẻ để nhận +20 XP!)
+            </span>
+            <h3 class="text-base sm:text-lg font-black text-cocoa-800 font-display">
+              Nhấp vào từng thẻ để lật 3D xem phiên âm dễ đọc &amp; nghĩa bình dân!
+            </h3>
+          </div>
+          <div class="flex items-center gap-2 self-start sm:self-auto">
+            <span class="text-xs font-extrabold text-pinky-600 bg-pinky-50 px-3 py-1.5 rounded-xl border border-pinky-100">
+              Đã lật: <span id="vocab-count">0</span> / 8
+            </span>
+            <button onclick="flipAllVocab()" class="px-3.5 py-1.5 rounded-xl bg-butter-100 hover:bg-butter-300/60 text-cocoa-800 text-xs font-extrabold border-2 border-butter-300 border-b-4 transition cursor-pointer">
+              🔄 Lật tất cả
+            </button>
+          </div>
+        </div>
+
+        <div id="vocab-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+          <!-- JS Populated -->
+        </div>
+
+        <!-- Complete Tab 1 Strip -->
+        <div class="pt-3 border-t border-cream-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p id="tab1-xp-status" class="text-xs font-bold text-cocoa-500">
+            ✨ Lật ít nhất 4 thẻ từ vựng hoặc bấm nút bên phải để mở khóa +20 XP!
+          </p>
+          <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+            <button id="btn-complete-tab1" onclick="completeTab1()" class="flex-1 sm:flex-none px-4 py-2.5 rounded-2xl bg-mint-500 hover:bg-mint-600 text-white text-xs sm:text-sm font-extrabold border-b-4 border-mint-600 transition cursor-pointer">
+              ✅ Tôi đã hiểu bản chất (+20 XP)
+            </button>
+            <button onclick="switchTab('2')" class="flex-1 sm:flex-none px-4 py-2.5 rounded-2xl bg-pinky-500 hover:bg-pinky-600 text-white text-xs sm:text-sm font-extrabold border-b-4 border-pinky-600 transition cursor-pointer">
+              Sang Tab 2 →
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 2: TỪNG DÒNG CODE + LIVE STATE (+25 XP)                         -->
+    <!-- =================================================================== -->
+    <section id="tab-panel-2" class="tab-panel hidden space-y-5">
+      <div class="bg-white rounded-3xl border-2 border-cream-200 p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="text-base sm:text-lg font-black text-cocoa-800 font-display">Click từng dòng code (15 dòng) để xem phép tính tay &amp; Live State</h2>
+          <p class="text-xs sm:text-sm text-cocoa-500">Bấm tới dòng cuối cùng (Dòng 15) hoặc nút hoàn thành để nhận trọn <strong>+25 XP</strong>!</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 shrink-0">
+          <span class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-xl bg-butter-100 text-cocoa-800 border border-butter-300">
+            🍦 Smoothing
+          </span>
+          <span class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-xl bg-mint-50 text-mint-600 border border-mint-300">
+            ✅ Chia 3 (Đúng)
+          </span>
+          <span class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-xl bg-coral-50 text-coral-600 border border-coral-300">
+            🚨 Chia 4 (Bẫy)
+          </span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <!-- Left: All 15 Clickable Code Lines -->
+        <div class="lg:col-span-5 bg-cocoa-900 rounded-3xl shadow-md border-2 border-cocoa-700 overflow-hidden">
+          <div class="flex items-center justify-between px-4 py-3 bg-cocoa-800 border-b border-cocoa-700">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-coral-500"></span>
+              <span class="w-3 h-3 rounded-full bg-butter-300"></span>
+              <span class="w-3 h-3 rounded-full bg-mint-500"></span>
+              <span class="ml-2 text-xs font-mono text-cream-100">cau_10_cross_entropy.py</span>
+            </div>
+            <span class="text-[11px] font-semibold text-butter-300">Click từng dòng</span>
+          </div>
+          <div id="code-lines-container" class="p-3 overflow-x-auto font-mono text-xs space-y-1">
+            <!-- JS Populated -->
+          </div>
+        </div>
+
+        <!-- Right: Explanation + Hand Math + Live State Dashboard -->
+        <div class="lg:col-span-7 lg:sticky lg:top-40">
+          <div class="bg-white rounded-3xl border-2 border-cream-200 shadow-sm overflow-hidden">
+            <!-- Step Controls -->
+            <div class="flex items-center justify-between px-5 py-3.5 bg-butter-100 border-b-2 border-cream-200">
+              <span id="step-counter" class="text-xs font-black text-cocoa-700 uppercase tracking-wider">
+                Dòng 1 / 15
+              </span>
+              <div class="flex items-center gap-2">
+                <button id="prev-line-btn" class="px-3.5 py-1.5 rounded-xl bg-white hover:bg-cream-50 text-cocoa-800 border-2 border-cream-200 border-b-4 text-xs font-extrabold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+                  ⬅ Dòng trước
+                </button>
+                <button id="next-line-btn" class="px-3.5 py-1.5 rounded-xl bg-pinky-500 hover:bg-pinky-600 text-white border-b-4 border-pinky-600 text-xs font-extrabold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+                  Dòng tiếp ➡
+                </button>
+              </div>
+            </div>
+
+            <!-- Dynamic Step Body -->
+            <div id="line-explanation-content" class="p-5 sm:p-6 space-y-4">
+              <!-- JS Populated -->
+            </div>
+
+            <!-- Bottom Complete Tab 2 Strip -->
+            <div class="px-5 py-3.5 bg-cream-50 border-t-2 border-cream-200 flex flex-wrap items-center justify-between gap-2">
+              <span id="tab2-xp-status" class="text-xs font-bold text-cocoa-500">Đọc tới Dòng 15 hoặc bấm nút hoàn thành để nhận +25 XP</span>
+              <button id="btn-complete-tab2" onclick="completeTab2()" class="px-4 py-2 rounded-xl bg-mint-500 hover:bg-mint-600 text-white text-xs font-extrabold border-b-4 border-mint-600 transition cursor-pointer">
+                ✅ Hoàn thành Tab 2 (+25 XP)
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 3: PHÒNG THÍ NGHIỆM GỠ 3 BẪY (+25 XP)                           -->
+    <!-- =================================================================== -->
+    <section id="tab-panel-3" class="tab-panel hidden space-y-8">
+
+      <!-- EXPERIMENT 1: LABEL SMOOTHING SWITCH (B VS D) -->
+      <div class="bg-white rounded-3xl border-2 border-pinky-300/80 p-5 sm:p-6 shadow-xs space-y-5">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b-2 border-cream-100">
+          <div>
+            <span class="inline-block px-3 py-0.5 rounded-full text-xs font-extrabold bg-pinky-100 text-pinky-600 mb-1">
+              🍦 Thí nghiệm 1 (+9 XP)
+            </span>
+            <h2 class="text-lg font-black text-cocoa-800 font-display">
+              Công tắc Label Smoothing: Có làm mềm (Đáp án B) vs Không làm mềm (Bẫy D)
+            </h2>
+            <p class="text-xs sm:text-sm text-cocoa-500 mt-0.5">
+              So sánh trực quan biểu đồ thanh giữa dự đoán <code class="font-mono font-bold">p[0]</code> và mục tiêu để thấy ngay tại sao quên Smoothing thì <code class="font-mono">loss</code> tụt xuống <code class="font-mono">0.1698</code>!
+            </p>
+          </div>
+          <div class="inline-flex p-1.5 rounded-2xl bg-cream-100 border-2 border-cream-200 self-start lg:self-auto shrink-0">
+            <button id="sm-on-btn" onclick="setSmoothMode(true)" class="px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer">
+              ✅ Có Smoothing (Đáp án B)
+            </button>
+            <button id="sm-off-btn" onclick="setSmoothMode(false)" class="px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer">
+              🚨 Không Smoothing (Bẫy D)
+            </button>
+          </div>
+        </div>
+
+        <div id="exp1-output" class="space-y-4">
+          <!-- JS Populated -->
+        </div>
+      </div>
+
+      <!-- EXPERIMENT 2: CLASSROOM OF 4 STUDENTS & DIVIDE BY 3 VS 4 -->
+      <div class="bg-white rounded-3xl border-2 border-butter-300 p-5 sm:p-6 shadow-xs space-y-5">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b-2 border-cream-100">
+          <div>
+            <span class="inline-block px-3 py-0.5 rounded-full text-xs font-extrabold bg-butter-100 text-cocoa-800 mb-1">
+              🏫 Thí nghiệm 2 (+9 XP)
+            </span>
+            <h2 class="text-lg font-black text-cocoa-800 font-display">
+              Lớp học 4 học sinh &amp; Bẫy chia sĩ số: <code class="font-mono text-mint-600">Chia 3 (mask.sum())</code> vs <code class="font-mono text-coral-600">Chia 4 (.mean())</code>
+            </h2>
+            <p class="text-xs sm:text-sm text-cocoa-500 mt-0.5">
+              Bật công tắc bên phải để xem hậu quả của việc chia nhầm cho 4 lên cả <code class="font-mono">wrong_loss</code> lẫn <code class="font-mono">grad[0]</code> (Bẫy C)!
+            </p>
+          </div>
+          <div class="inline-flex p-1.5 rounded-2xl bg-cream-100 border-2 border-cream-200 self-start lg:self-auto shrink-0">
+            <button id="div-3-btn" onclick="setDivMode(3)" class="px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer">
+              ✅ Chia 3 — mask.sum() (Đáp án B)
+            </button>
+            <button id="div-4-btn" onclick="setDivMode(4)" class="px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer">
+              🚨 Chia 4 — .mean() (Bẫy C)
+            </button>
+          </div>
+        </div>
+
+        <!-- 4 Student Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div class="p-4 rounded-2xl bg-mint-50 border-2 border-mint-300 space-y-1">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-black text-mint-600">🎒 Mẫu 0 (Đi thi ✅)</span>
+              <span class="font-mono text-[11px] font-bold bg-white px-2 py-0.5 rounded-lg border border-mint-300">label = 0</span>
+            </div>
+            <p class="font-mono text-[11px] text-cocoa-700">logits: [2, 0, -1]</p>
+            <p class="font-mono text-sm font-black text-mint-600">per_item = 0.5032</p>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-mint-50 border-2 border-mint-300 space-y-1">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-black text-mint-600">🎒 Mẫu 1 (Đi thi ✅)</span>
+              <span class="font-mono text-[11px] font-bold bg-white px-2 py-0.5 rounded-lg border border-mint-300">label = 1</span>
+            </div>
+            <p class="font-mono text-[11px] text-cocoa-700">logits: [0, 2, -1]</p>
+            <p class="font-mono text-sm font-black text-mint-600">per_item = 0.5032</p>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-coral-50 border-2 border-dashed border-coral-300 space-y-1 opacity-90">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-black text-coral-600">😴 Mẫu 2 (Nghỉ 🚫)</span>
+              <span class="font-mono text-[11px] font-bold bg-coral-500 text-white px-2 py-0.5 rounded-lg">label = -1</span>
+            </div>
+            <p class="font-mono text-[11px] text-cocoa-500">logits: [1, 1, 1]</p>
+            <p class="font-mono text-sm font-black text-coral-600">BỊ CHE (× 0) = 0.0</p>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-mint-50 border-2 border-mint-300 space-y-1">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-black text-mint-600">🎒 Mẫu 3 (Đi thi ✅)</span>
+              <span class="font-mono text-[11px] font-bold bg-white px-2 py-0.5 rounded-lg border border-mint-300">label = 2</span>
+            </div>
+            <p class="font-mono text-[11px] text-cocoa-700">logits: [-1, 0, 2]</p>
+            <p class="font-mono text-sm font-black text-mint-600">per_item = 0.5032</p>
+          </div>
+        </div>
+
+        <div id="exp2-output">
+          <!-- JS Populated -->
+        </div>
+      </div>
+
+      <!-- EXPERIMENT 3: INSPECT p.argmax(axis=1) -->
+      <div class="bg-white rounded-3xl border-2 border-mint-300 p-5 sm:p-6 shadow-xs space-y-5">
+        <div class="pb-4 border-b-2 border-cream-100">
+          <span class="inline-block px-3 py-0.5 rounded-full text-xs font-extrabold bg-mint-50 text-mint-600 mb-1">
+            🎯 Thí nghiệm 3 (+7 XP)
+          </span>
+          <h2 class="text-lg font-black text-cocoa-800 font-display">
+            Soi <code class="font-mono text-mint-600">p.argmax(axis=1)</code> — Bấm từng hàng (đặc biệt Hàng 2 hòa nhau!)
+          </h2>
+          <p class="text-xs sm:text-sm text-cocoa-500 mt-0.5">
+            Click chọn từng hàng 0, 1, 2, 3 để xem cột nào có xác suất lớn nhất. Lưu ý: Khi cả 3 cột bằng nhau (<code class="font-mono">[1, 1, 1]</code>), NumPy <code class="font-mono">argmax</code> luôn chọn <strong>vị trí đầu tiên là 0</strong>!
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <!-- 4 Clickable Rows -->
+          <div id="exp3-rows" class="lg:col-span-6 space-y-2">
+            <!-- JS Populated -->
+          </div>
+
+          <!-- Row Argmax Inspector -->
+          <div id="exp3-inspector" class="lg:col-span-6 bg-cocoa-900 text-cream-50 rounded-3xl p-5 space-y-3 shadow-sm">
+            <!-- JS Populated -->
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 4: MẸO 15 GIÂY & MINI-QUIZ (+30 XP)                             -->
+    <!-- =================================================================== -->
+    <section id="tab-panel-4" class="tab-panel hidden space-y-8">
+      <!-- 15-Second Elimination Strategy -->
+      <div class="bg-white rounded-3xl border-2 border-cream-200 p-5 sm:p-6 shadow-xs">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+          <div>
+            <span class="inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-xs font-extrabold bg-pinky-100 text-pinky-600 mb-1">
+              ⚡ Chiến thuật khoanh 15 giây (Chốt hạ Câu 10!)
+            </span>
+            <h2 class="text-lg sm:text-xl font-black text-cocoa-800 font-display">
+              Loại nhanh D → A → C trong 3 bước, chốt chắc Đáp án B!
+            </h2>
+          </div>
+          <button onclick="toggleExamHints()" class="px-4 py-2 rounded-2xl bg-butter-100 hover:bg-butter-300/60 text-cocoa-800 text-xs font-extrabold border-2 border-butter-300 border-b-4 transition cursor-pointer self-start sm:self-auto">
+            👁️ Ẩn/Hiện đánh dấu sai
+          </button>
+        </div>
+
+        <!-- 3-Step Elimination Checklist -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+          <div class="p-4 rounded-2xl bg-coral-50 border-2 border-coral-300">
+            <p class="text-xs font-black text-coral-600">Bước 1 (4s): Loại ngay D</p>
+            <p class="text-xs text-cocoa-800 mt-1">Có Label Smoothing nên <code class="font-mono">loss</code> bị phạt thêm phần mềm, không thể quá bé (<code class="font-mono">0.1698</code> là loss khi quên smoothing) → <strong>Loại D!</strong></p>
+          </div>
+          <div class="p-4 rounded-2xl bg-butter-100 border-2 border-butter-300">
+            <p class="text-xs font-black text-cocoa-800">Bước 2 (5s): Loại ngay A</p>
+            <p class="text-xs text-cocoa-800 mt-1">Lớp đúng có <code class="font-mono">p[0,0] ≈ 84.4% &lt; smooth = 86.7%</code> ⇒ <code class="font-mono">grad[0,0] = (p − smooth)/3</code> bắt buộc <strong>ÂM</strong> → <strong>Loại A</strong> (ghi dương <code class="font-mono">+0.0146</code>)!</p>
+          </div>
+          <div class="p-4 rounded-2xl bg-mint-50 border-2 border-mint-300">
+            <p class="text-xs font-black text-mint-600">Bước 3 (6s): Soi B vs C → CHỐT B!</p>
+            <p class="text-xs text-cocoa-800 mt-1">B và C có cùng <code class="font-mono">loss = 0.5032</code>, chỉ khác mẫu số của <code class="font-mono">grad</code>: <strong>chia 3</strong> (<code class="font-mono">-0.0229 / 3 = -0.0076</code>) lớn hơn chia 4 (<code class="font-mono">-0.0057</code>) → <strong>CHỐT B!</strong></p>
+          </div>
+        </div>
+
+        <!-- 4 Options Comparison Cards -->
+        <div class="space-y-3.5">
+          <!-- Option A -->
+          <div class="rounded-2xl border-2 border-cream-200 bg-cream-50 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-cream-200 text-cocoa-900 font-black text-sm flex items-center justify-center">A</span>
+                <span class="text-sm font-extrabold text-cocoa-800">Phương án A</span>
+              </div>
+              <span class="exam-hint px-3 py-1 rounded-full text-xs font-extrabold bg-coral-50 text-coral-600 border border-coral-300">
+                ❌ LOẠI (Sai công thức smoothing → loss vọt lên 0.6698 và grad[0,0] bị dương!)
+              </span>
+            </div>
+            <pre class="bg-white rounded-xl p-3 border border-cream-200 text-[11px] sm:text-xs font-mono text-cocoa-800 overflow-x-auto"><span class="bg-coral-100 text-coral-600 font-bold px-1 rounded">[0.6698, 0.5024] [0.0146, 0.0047, -0.0193]</span> [0, 1, 0, 2]</pre>
+          </div>
+
+          <!-- Option B (CORRECT) -->
+          <div class="rounded-2xl border-2 border-mint-500 bg-mint-50 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-mint-500 text-white font-black text-sm flex items-center justify-center border-b-2 border-mint-600">B</span>
+                <span class="text-sm font-black text-mint-600">Phương án B</span>
+              </div>
+              <span class="exam-hint px-3 py-1 rounded-full text-xs font-extrabold bg-mint-500 text-white">
+                ✅ ĐÁP ÁN ĐÚNG 100%
+              </span>
+            </div>
+            <pre class="bg-white rounded-xl p-3 border-2 border-mint-300 text-[11px] sm:text-xs font-mono text-cocoa-900 overflow-x-auto"><span class="bg-mint-100 text-mint-600 font-bold px-1 rounded">[0.5032, 0.3774]</span> <span class="bg-mint-100 text-mint-600 font-bold px-1 rounded">[-0.0076, 0.0158, -0.0082]</span> <span class="bg-mint-100 text-mint-600 font-bold px-1 rounded">[0, 1, 0, 2]</span></pre>
+            <p class="exam-hint text-xs text-mint-600 mt-2 font-semibold">
+              🎯 <strong>Chuẩn cả 3 cụm:</strong> <code class="font-mono">loss = 0.5032</code> (chia 3), <code class="font-mono">wrong_loss = 0.3774</code> (chia 4); <code class="font-mono">grad[0]</code> chia cho 3 ra <code class="font-mono">[-0.0076, 0.0158, -0.0082]</code>; <code class="font-mono">argmax = [0, 1, 0, 2]</code>!
+            </p>
+          </div>
+
+          <!-- Option C -->
+          <div class="rounded-2xl border-2 border-cream-200 bg-cream-50 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-cream-200 text-cocoa-900 font-black text-sm flex items-center justify-center">C</span>
+                <span class="text-sm font-extrabold text-cocoa-800">Phương án C</span>
+              </div>
+              <span class="exam-hint px-3 py-1 rounded-full text-xs font-extrabold bg-coral-50 text-coral-600 border border-coral-300">
+                ❌ LOẠI (Bẫy chia grad cho 4 thay vì mask.sum() = 3!)
+              </span>
+            </div>
+            <pre class="bg-white rounded-xl p-3 border border-cream-200 text-[11px] sm:text-xs font-mono text-cocoa-800 overflow-x-auto">[0.5032, 0.3774] <span class="bg-coral-100 text-coral-600 font-bold px-1 rounded">[-0.0057, 0.0119, -0.0062]</span> [0, 1, 0, 2]</pre>
+          </div>
+
+          <!-- Option D -->
+          <div class="rounded-2xl border-2 border-cream-200 bg-cream-50 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-cream-200 text-cocoa-900 font-black text-sm flex items-center justify-center">D</span>
+                <span class="text-sm font-extrabold text-cocoa-800">Phương án D</span>
+              </div>
+              <span class="exam-hint px-3 py-1 rounded-full text-xs font-extrabold bg-coral-50 text-coral-600 border border-coral-300">
+                ❌ LOẠI (Bẫy quên Label Smoothing — dùng hard target [1, 0, 0]!)
+              </span>
+            </div>
+            <pre class="bg-white rounded-xl p-3 border border-cream-200 text-[11px] sm:text-xs font-mono text-cocoa-800 overflow-x-auto"><span class="bg-coral-100 text-coral-600 font-bold px-1 rounded">[0.1698, 0.1274] [-0.0521, 0.0381, 0.014]</span> [0, 1, 0, 2]</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mini-Quiz (4 Questions, +30 XP) -->
+      <div class="bg-white rounded-3xl border-2 border-cream-200 p-5 sm:p-6 shadow-xs">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-5 border-b-2 border-cream-100">
+          <div>
+            <span class="inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-xs font-extrabold bg-mint-50 text-mint-600 mb-1">
+              🎯 Mini-Quiz 4 câu (+30 XP khi đúng cả 4!)
+            </span>
+            <h3 class="text-lg font-black text-cocoa-800 font-display">
+              Hoàn thành 4 câu cuối cùng để đạt 100 XP và Tốt nghiệp bộ đề 10/10!
+            </h3>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="px-4 py-1.5 rounded-2xl bg-pinky-50 border-2 border-pinky-300 text-sm font-black text-pinky-600">
+              Điểm: <span id="quiz-score">0</span> / 4
+            </div>
+            <button onclick="resetQuiz()" class="px-3.5 py-1.5 rounded-2xl bg-butter-100 hover:bg-butter-300/60 text-cocoa-800 text-xs font-extrabold border-2 border-butter-300 border-b-4 transition cursor-pointer">
+              🔄 Làm lại
+            </button>
+          </div>
+        </div>
+
+        <div id="quiz-container" class="space-y-5">
+          <!-- JS Populated -->
+        </div>
+
+        <!-- 100 XP GRAND GRADUATION CELEBRATION BANNER -->
+        <div id="xp-win-banner" class="hidden mt-6 p-6 sm:p-7 rounded-3xl bg-gradient-to-r from-butter-400 via-pinky-500 to-mint-500 text-white text-center shadow-md border-b-4 border-cocoa-800/20">
+          <p class="text-3xl mb-2">🎓🌸⭐🦋🏆🦋⭐🌸🎓</p>
+          <p class="text-lg sm:text-2xl font-black font-display">CHÚC MỪNG TỐT NGHIỆP! HOÀN THÀNH XUẤT SẮC CÂU 10/10 (100 XP)!</p>
+          <p class="text-xs sm:text-sm text-white/95 mt-1.5 font-semibold">
+            Bé Kem tự hào về bạn quá đi! Chốt bí kíp Câu 10: <strong>Smooth = 0.8667 • 3 mẫu hợp lệ (chia 3!) • loss = 0.5032 • grad[0,0] = -0.0076 → Chọn B!</strong> Chúc bạn đi thi đạt điểm tối đa!
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t-2 border-cream-200 py-4 mt-8">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 text-center text-xs text-cocoa-500 font-semibold">
+      Ôn thi Câu 10/10: Cross-Entropy, Label Smoothing &amp; Masking • Giao diện Duolingo Pastel dành cho Non-tech
+    </div>
+  </footer>
+
+  <!-- Complete Application JavaScript -->
+  <script>
+    // =========================================================================
+    // 0. GAMIFIED XP ENGINE (0 -> 100 XP) + MASCOT SPEECH + CELEBRATION
+    // =========================================================================
+    // Budget:
+    // - Tab 1: +20 XP (flip >= 4 cards OR click complete button)
+    // - Tab 2: +25 XP (reach line 15 OR click complete button)
+    // - Tab 3: +25 XP (Exp 1: 9 XP + Exp 2: 9 XP + Exp 3: 7 XP)
+    // - Tab 4: +30 XP (4 quiz questions -> [0, 8, 15, 23, 30])
+    // Total = 100 XP
+    const xpState = {
+      tab1Done: false,
+      tab2Done: false,
+      exp1Done: false,
+      exp2Done: false,
+      exp3Done: false,
+      quizCorrectCount: 0,
+      celebrated: false,
+    };
+
+    const quizXpTable = [0, 8, 15, 23, 30];
+
+    const mascotQuotes = {
+      '1': 'Chặng cuối 10/10 rồi nè! Câu 10 nghe tên dài vậy thôi chứ siêu dễ: <strong>1 học sinh nghỉ thi (nhãn -1)</strong> nên chia trung bình phải <strong>chia cho 3</strong> (không phải chia 4!), và đáp án được <strong>làm mềm thành 86.7%</strong>!',
+      '2': 'Ở Tab 2 này, bạn hãy bấm qua 15 dòng code và để ý một bí mật cực hay: <strong>cả 3 mẫu hợp lệ (0, 1, 3) đều có cùng per_item = 0.5032</strong> vì chúng chỉ đổi chỗ bộ ba {2, 0, -1} thôi!',
+      '3': 'Phòng thí nghiệm gỡ 3 bẫy mở cửa rồi! Thử bật/tắt <strong>Label Smoothing</strong> và <strong>Chia 3 vs Chia 4</strong> để thấy tận mắt Đáp án C và D sai ở đâu nha!',
+      '4': 'Chỉ còn 1 bước cuối nữa là tốt nghiệp trọn bộ 10/10! Nhớ mẹo 3 bước loại D → A → C và trả lời đúng 4 câu Quiz để đạt <strong>100 XP</strong> nhận pháo hoa tốt nghiệp từ Bé Kem nhé!'
+    };
+
+    function launchCelebration() {
+      const layer = document.getElementById('celebration-layer');
+      if (!layer) return;
+      const icons = ['🌸', '⭐', '🦋', '🎓', '✨', '🌼', '🎉', '💖'];
+      for (let i = 0; i < 46; i++) {
+        const span = document.createElement('span');
+        span.className = 'celebrate-particle';
+        span.textContent = icons[i % icons.length];
+        span.style.left = `${Math.random() * 96 + 2}vw`;
+        span.style.fontSize = `${Math.random() * 16 + 18}px`;
+        span.style.animationDelay = `${Math.random() * 1.4}s`;
+        span.style.animationDuration = `${Math.random() * 1.6 + 2.4}s`;
+        layer.appendChild(span);
+        setTimeout(() => span.remove(), 5000);
+      }
+    }
+
+    function updateXP() {
+      try {
+        const xp1 = xpState.tab1Done ? 20 : 0;
+        const xp2 = xpState.tab2Done ? 25 : 0;
+        const xp3 = (xpState.exp1Done ? 9 : 0) + (xpState.exp2Done ? 9 : 0) + (xpState.exp3Done ? 7 : 0);
+        const xp4 = quizXpTable[xpState.quizCorrectCount] || 0;
+        const total = Math.min(100, xp1 + xp2 + xp3 + xp4);
+
+        const valEl = document.getElementById('xp-value');
+        const barEl = document.getElementById('xp-bar');
+        const winBanner = document.getElementById('xp-win-banner');
+
+        if (valEl) valEl.textContent = String(total);
+        if (barEl) barEl.style.width = `${total}%`;
+        if (winBanner) winBanner.classList.toggle('hidden', total < 100);
+
+        if (xpState.tab1Done) {
+          const s1 = document.getElementById('tab1-xp-status');
+          const b1 = document.getElementById('btn-complete-tab1');
+          if (s1) s1.innerHTML = '🎉 <strong class="text-mint-600">Đã nhận trọn +20 XP ở Tab 1!</strong>';
+          if (b1) b1.textContent = '✅ Đã hoàn thành (+20 XP)';
+        }
+        if (xpState.tab2Done) {
+          const s2 = document.getElementById('tab2-xp-status');
+          const b2 = document.getElementById('btn-complete-tab2');
+          if (s2) s2.innerHTML = '🎉 <strong class="text-mint-600">Đã nhận trọn +25 XP ở Tab 2!</strong>';
+          if (b2) b2.textContent = '✅ Đã hoàn thành (+25 XP)';
+        }
+
+        if (total === 100 && !xpState.celebrated) {
+          xpState.celebrated = true;
+          launchCelebration();
+          const speech = document.getElementById('mascot-speech');
+          if (speech) {
+            speech.innerHTML = '🎓🎉 <strong>CHÚC MỪNG TỐT NGHIỆP 100/100 XP!</strong> Bạn đã chinh phục trọn vẹn Câu 10/10 — tự tin bước vào phòng thi và khoanh ngay <strong>Đáp án B</strong> nhé!';
+          }
+        }
+      } catch (err) {
+        console.error('XP update error:', err);
+      }
+    }
+
+    function completeTab1() {
+      xpState.tab1Done = true;
+      updateXP();
+    }
+
+    function completeTab2() {
+      xpState.tab2Done = true;
+      updateXP();
+    }
+
+    // =========================================================================
+    // 1. TAB 1: 8 INTERACTIVE 3D FLASHCARDS
+    // =========================================================================
+    const vocabList = [
+      {
+        term: 'logits',
+        phonetic: '/lô-gít-x/',
+        short: 'Điểm chấm thô chưa đổi ra %',
+        meaning: 'Điểm số thô mà mô hình AI xuất ra cho từng lớp (có thể dương hoặc âm, ví dụ [2, 0, -1]) trước khi qua Softmax.',
+        tip: 'Điểm thô càng lớn → xác suất p càng cao!'
+      },
+      {
+        term: 'labels = -1',
+        phonetic: '/lây-bồ bằng trừ một/',
+        short: 'Nhãn quy ước "Nghỉ thi / Bỏ qua"',
+        meaning: 'Trong Deep Learning, -1 (hoặc -100) là nhãn đặc biệt đánh dấu mẫu đệm (padding) không được phép tính vào loss và gradient.',
+        tip: 'Mẫu số 2 có nhãn -1 → Sĩ số hợp lệ chỉ còn 3!'
+      },
+      {
+        term: 'mask',
+        phonetic: '/mát-xk/',
+        short: 'Mặt nạ Đúng/Sai lọc mẫu hợp lệ',
+        meaning: 'Mảng [True, True, False, True] (tương đương [1, 1, 0, 1]). Nhân với mask giúp triệt tiêu mẫu nghỉ thi về 0, còn mask.sum() đếm ra đúng 3 mẫu hợp lệ.',
+        tip: 'Chia trung bình PHẢI chia cho mask.sum() = 3!'
+      },
+      {
+        term: 'np.where',
+        phonetic: '/nâm-pai que/',
+        short: 'Thay thế có điều kiện (Nếu... thì...)',
+        meaning: 'np.where(mask, labels, 0): Nếu hợp lệ (True) thì giữ nguyên nhãn, nếu nghỉ thi (False, nhãn -1) thì thay tạm bằng 0 để lệnh np.eye(3)[safe] không bị lấy nhầm cột cuối!',
+        tip: 'Chỉ thay tạm để khỏi lỗi chỉ số, lát sau nhân mask vẫn về 0.'
+      },
+      {
+        term: 'shifted (trừ max)',
+        phonetic: '/síp-tịt/',
+        short: 'Mẹo trừ số lớn nhất chống tràn số',
+        meaning: 'Trừ đi số lớn nhất của mỗi hàng trước khi tính e^x để máy tính không bị tràn bộ nhớ (overflow), mà tỷ lệ xác suất Softmax vẫn giữ nguyên 100%.',
+        tip: '[2, 0, -1] trừ 2 thành [0, -2, -3] rất gọn!'
+      },
+      {
+        term: 'np.eye(3)',
+        phonetic: '/nâm-pai ai ba/',
+        short: 'Ma trận đơn vị 3×3 (tạo One-hot)',
+        meaning: 'Tạo bảng [[1,0,0], [0,1,0], [0,0,1]]. Dùng np.eye(3)[safe] là mẹo cực gọn để biến nhãn 0 → [1,0,0], nhãn 1 → [0,1,0], nhãn 2 → [0,0,1].',
+        tip: 'eye đọc giống chữ "I" (Identity matrix).'
+      },
+      {
+        term: 'label smoothing',
+        phonetic: '/lây-bồ xmu-thinh/',
+        short: 'Làm mềm đáp án chống học vẹt',
+        meaning: 'Công thức 0.8*target + 0.2/3 biến đáp án cứng [1, 0, 0] thành đáp án mềm [0.8667, 0.0667, 0.0667] giúp mô hình khiêm tốn và tổng quát hơn.',
+        tip: 'Quên bước này sẽ ra loss 0.1698 (Bẫy D)!'
+      },
+      {
+        term: 'argmax',
+        phonetic: '/ác-mắc/',
+        short: 'Vị trí (chỉ số) của số lớn nhất',
+        meaning: 'Trả về chỉ số cột (0, 1 hoặc 2) có xác suất cao nhất trên mỗi hàng. Đặc biệt nếu các số bằng nhau ([1, 1, 1]), argmax luôn chọn vị trí đầu tiên là 0!',
+        tip: 'p.argmax(axis=1) = [0, 1, 0, 2].'
+      }
+    ];
+
+    const flippedVocab = new Set();
+    function toggleVocab(idx) {
+      if (flippedVocab.has(idx)) flippedVocab.delete(idx);
+      else flippedVocab.add(idx);
+      if (flippedVocab.size >= 4) {
+        xpState.tab1Done = true;
+        updateXP();
+      }
+      renderVocab();
+    }
+    function flipAllVocab() {
+      if (flippedVocab.size === vocabList.length) {
+        flippedVocab.clear();
+      } else {
+        vocabList.forEach((_, i) => flippedVocab.add(i));
+        xpState.tab1Done = true;
+        updateXP();
+      }
+      renderVocab();
+    }
+    function renderVocab() {
+      const countEl = document.getElementById('vocab-count');
+      if (countEl) countEl.textContent = String(flippedVocab.size);
+      const grid = document.getElementById('vocab-grid');
+      if (!grid) return;
+
+      grid.innerHTML = vocabList.map((item, idx) => {
+        const isFlipped = flippedVocab.has(idx);
+        return `
+          <div class="flip-card ${isFlipped ? 'is-flipped' : ''}">
+            <button type="button" onclick="toggleVocab(${idx})" class="flip-card-inner w-full text-left cursor-pointer">
+              <!-- Front -->
+              <div class="flip-card-face p-4 rounded-2xl border-2 border-cream-200 bg-cream-50 hover:bg-butter-100/50 border-b-4 border-b-cream-200 flex flex-col justify-between">
+                <div>
+                  <span class="inline-block px-2 py-0.5 rounded-lg text-[10px] font-extrabold bg-pinky-100 text-pinky-600 mb-2">Thẻ #${idx + 1}</span>
+                  <p class="font-mono text-xs sm:text-sm font-black text-cocoa-800 break-words">${item.term}</p>
+                  <p class="text-[11px] italic text-cocoa-500 mt-0.5">${item.phonetic}</p>
+                  <p class="text-xs text-cocoa-700 mt-2 font-bold">${item.short}</p>
+                </div>
+                <span class="text-[11px] font-extrabold text-pinky-600">👆 Chạm để lật 3D →</span>
+              </div>
+              <!-- Back -->
+              <div class="flip-card-face flip-card-back p-4 rounded-2xl border-2 border-butter-400 bg-butter-100 border-b-4 border-b-butter-500 flex flex-col justify-between">
+                <div class="space-y-1.5">
+                  <p class="font-mono text-xs font-black text-pinky-600">${item.term}</p>
+                  <p class="text-xs text-cocoa-800 leading-relaxed font-semibold">${item.meaning}</p>
+                  <p class="text-[11px] bg-white/85 px-2 py-1 rounded-lg border border-butter-300 text-mint-600 font-extrabold">💡 ${item.tip}</p>
+                </div>
+                <span class="text-[10px] font-bold text-cocoa-500">👆 Chạm để úp lại</span>
+              </div>
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // =========================================================================
+    // 2. TAB 2: ALL 15 CODE LINES + HAND MATH + LIVE STATE
+    // =========================================================================
+    const codeSteps = [
+      {
+        line: 1,
+        code: 'import numpy as np',
+        badge: 'Khởi động',
+        theme: 'neutral',
+        title: 'Mở bộ công cụ bảng số NumPy',
+        everyday: 'Bật thư viện tính toán mảng NumPy (viết tắt là np) để tính Softmax, Cross-entropy và Gradient.',
+        math: 'Chưa có biến số nào được khởi tạo.',
+        state: { mask: '—', safe: '—', p0: '—', target0: '—', smooth0: '—', perItem: '—', loss: '—', wrongLoss: '—', grad0: '—', argmax: '—', hl: [] }
+      },
+      {
+        line: 2,
+        code: 'logits = np.array([[2., 0., -1.], [0., 2., -1.], [1., 1., 1.], [-1., 0., 2.]])',
+        badge: '📊 Điểm chấm thô',
+        theme: 'butter',
+        title: 'Tạo bảng điểm thô 4×3 cho 4 mẫu (mỗi mẫu có 3 lớp 0, 1, 2)',
+        everyday: 'Bí mật siêu hay giúp nhẩm nhanh: Hàng 0 [2, 0, -1], Hàng 1 [0, 2, -1] và Hàng 3 [-1, 0, 2] chỉ là HOÁN VỊ (đổi chỗ) của cùng bộ ba {2, 0, -1}! Nên cả 3 mẫu hợp lệ này sẽ có lỗi per_item giống hệt nhau!',
+        math: 'Hàng 0, 1, 3 đều có số lớn nhất là 2 nằm đúng ở vị trí nhãn đúng (0, 1, 2). Riêng Hàng 2 là [1, 1, 1].',
+        state: { mask: '—', safe: '—', p0: '—', target0: '—', smooth0: '—', perItem: '—', loss: '—', wrongLoss: '—', grad0: '—', argmax: '—', hl: [] }
+      },
+      {
+        line: 3,
+        code: 'labels = np.array([0, 1, -1, 2])',
+        badge: '🚫 Có 1 bạn nghỉ thi!',
+        theme: 'coral',
+        title: 'Nhãn đáp án thật: Mẫu 0→lớp 0, Mẫu 1→lớp 1, Mẫu 2→-1 (Nghỉ!), Mẫu 3→lớp 2',
+        everyday: 'Mẫu số 2 mang nhãn -1 là tín hiệu quy ước "bỏ qua mẫu này". Cả lớp chỉ có 3 mẫu hợp lệ (0, 1, 3)!',
+        math: 'labels = [0, 1, -1, 2] (4 phần tử, nhưng chỉ 3 hợp lệ).',
+        state: { mask: '—', safe: '—', p0: '—', target0: '—', smooth0: '—', perItem: '—', loss: '—', wrongLoss: '—', grad0: '—', argmax: '—', hl: [] }
+      },
+      {
+        line: 4,
+        code: 'mask = labels != -1',
+        badge: '✅ Tạo mặt nạ lọc',
+        theme: 'mint',
+        title: 'Tạo mặt nạ mask đánh dấu True cho học sinh đi thi, False cho bạn nghỉ thi',
+        everyday: 'So sánh từng nhãn xem có khác -1 không: ra [True, True, False, True]. Khi tính tổng mask.sum(), True tính là 1, False tính là 0 → mask.sum() = 3!',
+        math: 'mask = [True, True, False, True] ⇒ mask.sum() = 3.',
+        state: { mask: '[T, T, F, T] (sum=3)', safe: '—', p0: '—', target0: '—', smooth0: '—', perItem: '—', loss: '—', wrongLoss: '—', grad0: '—', argmax: '—', hl: ['mask'] }
+      },
+      {
+        line: 5,
+        code: 'safe = np.where(mask, labels, 0)',
+        badge: '🛡️ Nhãn an toàn',
+        theme: 'butter',
+        title: 'Đổi tạm nhãn -1 thành 0 để bước tạo ma trận One-hot không bị sai vị trí',
+        everyday: 'Nếu để nguyên -1 đưa vào np.eye(3)[-1], Python sẽ tưởng là lấy cột cuối cùng! Nên ta thay tạm chỗ False thành 0 thành [0, 1, 0, 2] (yên tâm, lát nữa nhân mask vẫn xóa sạch hàng 2 về 0).',
+        math: 'safe = [0, 1, 0, 2].',
+        state: { mask: '[T, T, F, T] (sum=3)', safe: '[0, 1, 0, 2]', p0: '—', target0: '—', smooth0: '—', perItem: '—', loss: '—', wrongLoss: '—', grad0: '—', argmax: '—', hl: ['safe'] }
+      },
+      {
+        line: 6,
+        code: 'shifted = logits - logits.max(axis=1, keepdims=True)',
+        badge: 'Ổn định số học',
+        theme: 'neutral',
+        title: 'Trừ đi số lớn nhất của từng hàng để chống tràn số khi tính e^x',
+        everyday: 'Hàng 0 là [2, 0, -1], số lớn nhất là 2 → trừ đi 2 còn [0, -2, -3]. Hàng 2 là [1, 1, 1] trừ 1 thành [0, 0, 0].',
+        math: 'shifted[0] = [0., -2., -3.] (giá trị lớn nhất luôn là 0).',
+        state: { mask: '[T, T, F, T] (sum=3)', safe: '[0, 1, 0, 2]', p0: 'Đang tính Softmax...', target0: '—', smooth0: '—', perItem: '—', loss: '—', wrongLoss: '—', grad0: '—', argmax: '—', hl: [] }
+      },
+      {
+        line: 7,
+        code: 'logp = shifted - np.log(np.exp(shifted).sum(axis=1, keepdims=True))',
+        badge: 'Log-Softmax',
+        theme: 'butter',
+        title: 'Tính log xác suất (logp) cho từng ô để lát tính Cross-Entropy',
+        everyday: 'Với hàng 0 [0, -2, -3]: tổng e^0 + e^-2 + e^-3 = 1 + 0.1353 + 0.0498 = 1.1851. Lấy ln(1.1851) = 0.1698. Trừ đi ta có logp[0]!',
+        math: 'logp[0] = [-0.1698, -2.1698, -3.1698]. (Lưu ý: -(-0.1698) = 0.1698 chính là Bẫy D nếu quên smoothing!).',
+        state: { mask: '[T, T, F, T] (sum=3)', safe: '[0, 1, 0, 2]', p0: 'logp[0] = [-0.17, -2.17, -3.17]', target0: '—', smooth0: '—', perItem: '—', loss: '—', wrongLoss: '—', grad0: '—', argmax: '—', hl: ['p0'] }
+      },
+      {
+        line: 8,
+        code: 'p = np.exp(logp)',
+        badge: '📊 Xác suất Softmax p',
+        theme: 'mint',
+        title: 'Lấy e mũ logp để thu được bảng % tự tin p (tổng mỗi hàng = 100%)',
+        everyday: 'Hàng 0 ra [0.8438, 0.1142, 0.0420] (tức máy tự tin 84.4% vào lớp 0). Hàng 2 [1,1,1] ra đều nhau [0.3333, 0.3333, 0.3333] → argmax chọn vị trí đầu là 0!',
+        math: 'p[0] = [0.8438, 0.1142, 0.0420] | p.argmax(axis=1) = [0, 1, 0, 2].',
+        state: { mask: '[T, T, F, T] (sum=3)', safe: '[0, 1, 0, 2]', p0: '[0.8438, 0.1142, 0.0420]', target0: '—', smooth0: '—', perItem: '—', loss: '—', wrongLoss: '—', grad0: '—', argmax: '[0, 1, 0, 2]', hl: ['p0', 'argmax'] }
+      },
+      {
+        line: 9,
+        code: 'target = np.eye(3)[safe]',
+        badge: 'Đáp án cứng (One-hot)',
+        theme: 'butter',
+        title: 'Đổi nhãn safe = [0, 1, 0, 2] thành các vector đáp án cứng [1, 0, 0]...',
+        everyday: 'Mỗi hàng chỉ có đúng 1 số 1 ở vị trí lớp đúng và 2 số 0 ở lớp sai. Đây là đáp án cứng 100% trước khi làm mềm.',
+        math: 'target[0] = [1.0, 0.0, 0.0] | target[1] = [0, 1, 0] | target[3] = [0, 0, 1].',
+        state: { mask: '[T, T, F, T] (sum=3)', safe: '[0, 1, 0, 2]', p0: '[0.8438, 0.1142, 0.0420]', target0: '[1.0, 0.0, 0.0]', smooth0: '—', perItem: '—', loss: '—', wrongLoss: '—', grad0: '—', argmax: '[0, 1, 0, 2]', hl: ['target0'] }
+      },
+      {
+        line: 10,
+        code: 'smooth = 0.8 * target + 0.2 / 3',
+        badge: '🍦 LABEL SMOOTHING!',
+        theme: 'pinky',
+        title: 'Làm mềm đáp án: Lớp đúng thành 0.8667 (86.7%), 2 lớp sai thành 0.0667 (6.7%)',
+        everyday: 'Thay vì ép AI đoán 100% cứng nhắc, thầy giáo làm mềm mục tiêu thành [0.8667, 0.0667, 0.0667]. Để ý: p[0,0] = 0.8438 đang NHỎ HƠN smooth = 0.8667 nên lát nữa grad[0,0] chắc chắn mang dấu ÂM!',
+        math: '0.8 + 0.2/3 = 0.8667 | 0 + 0.2/3 = 0.0667 ⇒ smooth[0] = [0.8667, 0.0667, 0.0667].',
+        state: { mask: '[T, T, F, T] (sum=3)', safe: '[0, 1, 0, 2]', p0: '[0.8438, 0.1142, 0.0420]', target0: '[1.0, 0.0, 0.0]', smooth0: '[0.8667, 0.0667, 0.0667]', perItem: '—', loss: '—', wrongLoss: '—', grad0: '—', argmax: '[0, 1, 0, 2]', hl: ['smooth0'] }
+      },
+      {
+        line: 11,
+        code: 'per_item = -(smooth * logp).sum(axis=1)',
+        badge: 'Chấm lỗi từng bạn',
+        theme: 'butter',
+        title: 'Tính lỗi Cross-Entropy riêng từng mẫu → 3 mẫu hợp lệ đều bằng 0.5032!',
+        everyday: 'Vì Hàng 0, 1, 3 đều là hoán vị của {2, 0, -1} với nhãn đúng ở số 2, nên cả 3 bạn đi thi đều có đúng 1 mức lỗi như nhau: 0.5032! (Bạn số 2 nghỉ thi có lỗi 1.0986 nhưng lát sẽ bị che về 0).',
+        math: 'per_item[0] = -(0.8667×(-0.1698) + 0.0667×(-2.1698) + 0.0667×(-3.1698))\n= 0.1472 + 0.1447 + 0.2113 = 0.5032.',
+        state: { mask: '[T, T, F, T] (sum=3)', safe: '[0, 1, 0, 2]', p0: '[0.8438, 0.1142, 0.0420]', target0: '[1.0, 0.0, 0.0]', smooth0: '[0.8667, 0.0667, 0.0667]', perItem: '[0.5032, 0.5032, 1.0986*, 0.5032]', loss: '—', wrongLoss: '—', grad0: '—', argmax: '[0, 1, 0, 2]', hl: ['perItem'] }
+      },
+      {
+        line: 12,
+        code: 'loss = (per_item * mask).sum() / mask.sum()',
+        badge: '✅ LOSS ĐÚNG (Chia 3)',
+        theme: 'mint',
+        title: 'Che mẫu nghỉ thi về 0 rồi chia cho đúng 3 mẫu hợp lệ → loss = 0.5032!',
+        everyday: 'Nhân với mask xóa sạch lỗi của mẫu 2 về 0, rồi cộng 3 mẫu hợp lệ (3 × 0.5032) chia đúng cho 3 → ra 0.5032!',
+        math: 'loss = (0.5032 + 0.5032 + 0 + 0.5032) / 3 = 0.5032.',
+        state: { mask: '[T, T, F, T] (sum=3)', safe: '[0, 1, 0, 2]', p0: '[0.8438, 0.1142, 0.0420]', target0: '[1.0, 0.0, 0.0]', smooth0: '[0.8667, 0.0667, 0.0667]', perItem: '[0.5032, 0.5032, 0.0, 0.5032]', loss: '0.5032 ✅', wrongLoss: '—', grad0: '—', argmax: '[0, 1, 0, 2]', hl: ['loss'] }
+      },
+      {
+        line: 13,
+        code: 'wrong_loss = (per_item * mask).mean()',
+        badge: '🚨 LOSS SAI (Chia 4)',
+        theme: 'coral',
+        title: 'Dùng .mean() tự động chia cho TẤT CẢ 4 mẫu → wrong_loss = 0.3774 (= 3/4 của loss)',
+        everyday: 'Hàm .mean() ngây thơ không biết bạn số 2 nghỉ thi, vẫn đem tổng điểm của 3 bạn đi chia cho sĩ số 4 → bị tụt xuống còn 3/4 của 0.5032 là 0.3774!',
+        math: 'wrong_loss = (3 × 0.5032) / 4 = 0.75 × 0.5032 = 0.3774.',
+        state: { mask: '[T, T, F, T] (sum=3)', safe: '[0, 1, 0, 2]', p0: '[0.8438, 0.1142, 0.0420]', target0: '[1.0, 0.0, 0.0]', smooth0: '[0.8667, 0.0667, 0.0667]', perItem: '[0.5032, 0.5032, 0.0, 0.5032]', loss: '0.5032 ✅', wrongLoss: '0.3774 🚨', grad0: '—', argmax: '[0, 1, 0, 2]', hl: ['wrongLoss'] }
+      },
+      {
+        line: 14,
+        code: 'grad = (p - smooth) * mask[:, None] / mask.sum()',
+        badge: '🔥 BẪY PHÂN ĐỊNH B vs C!',
+        theme: 'pinky',
+        title: 'Tính Gradient hàng 0: Lấy (p[0] - smooth[0]) CHIA CHO 3 → [-0.0076, 0.0158, -0.0082]!',
+        everyday: 'Đây là dòng quyết định Đáp án B vs C! p[0] - smooth[0] = [-0.0229, +0.0475, -0.0247]. Đem chia cho mask.sum() = 3 ta ra [-0.0076, 0.0158, -0.0082] (chọn B). Nếu chia nhầm 4 sẽ ra [-0.0057, 0.0119, -0.0062] là Bẫy C!',
+        math: '• (-0.02287) / 3 = -0.0076\n• (+0.04753) / 3 = +0.0158\n• (-0.02466) / 3 = -0.0082',
+        state: { mask: '[T, T, F, T] (sum=3)', safe: '[0, 1, 0, 2]', p0: '[0.8438, 0.1142, 0.0420]', target0: '[1.0, 0.0, 0.0]', smooth0: '[0.8667, 0.0667, 0.0667]', perItem: '[0.5032, 0.5032, 0.0, 0.5032]', loss: '0.5032 ✅', wrongLoss: '0.3774 🚨', grad0: '[-0.0076, 0.0158, -0.0082] 🎯', argmax: '[0, 1, 0, 2]', hl: ['grad0'] }
+      },
+      {
+        line: 15,
+        code: 'print(np.round([loss, wrong_loss], 4).tolist(), np.round(grad[0], 4).tolist(), p.argmax(axis=1).tolist())',
+        badge: '🎯 In Đáp án B',
+        theme: 'mint',
+        title: 'In 3 cụm kết quả cuối cùng — Khớp 100% Phương án B!',
+        everyday: 'Lệnh print in đúng 3 danh sách: (1) [loss, wrong_loss] làm tròn 4 số = [0.5032, 0.3774], (2) grad[0] làm tròn 4 số = [-0.0076, 0.0158, -0.0082], (3) dự đoán lớp lớn nhất của 4 hàng = [0, 1, 0, 2]!',
+        math: '[0.5032, 0.3774]  [-0.0076, 0.0158, -0.0082]  [0, 1, 0, 2]  ⇒  CHỐT B!',
+        state: { mask: '[T, T, F, T] (sum=3)', safe: '[0, 1, 0, 2]', p0: '[0.8438, 0.1142, 0.0420]', target0: '[1.0, 0.0, 0.0]', smooth0: '[0.8667, 0.0667, 0.0667]', perItem: '[0.5032, 0.5032, 0.0, 0.5032]', loss: '0.5032 ✅', wrongLoss: '0.3774', grad0: '[-0.0076, 0.0158, -0.0082] 🎯', argmax: '[0, 1, 0, 2]', hl: ['loss', 'wrongLoss', 'grad0', 'argmax'] }
+      }
+    ];
+
+    let activeStepIdx = 0;
+
+    function switchTab(tabNum) {
+      if (!xpState.celebrated) {
+        const speech = document.getElementById('mascot-speech');
+        if (speech && mascotQuotes[String(tabNum)]) {
+          speech.innerHTML = mascotQuotes[String(tabNum)];
+        }
+      }
+
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        const isTarget = btn.getAttribute('data-tab') === String(tabNum);
+        btn.className = isTarget
+          ? 'tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2 bg-pinky-500 text-white border-pinky-500 border-b-4 border-b-pinky-600 shadow-xs'
+          : 'tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2 bg-white text-cocoa-700 border-cream-200 hover:bg-butter-100';
+      });
+      document.querySelectorAll('.tab-panel').forEach((panel) => {
+        panel.classList.toggle('hidden', panel.id !== `tab-panel-${tabNum}`);
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderCodeList() {
+      const container = document.getElementById('code-lines-container');
+      if (!container) return;
+      container.innerHTML = codeSteps.map((step, idx) => {
+        const isActive = idx === activeStepIdx;
+        const activeClass = isActive
+          ? 'bg-pinky-500/30 border-l-4 border-butter-300 text-white'
+          : 'border-l-4 border-transparent text-cream-100/80 hover:bg-cocoa-800';
+        const safeCode = step.code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return `
+          <button type="button" onclick="selectCodeStep(${idx})"
+            class="w-full text-left flex items-start gap-2.5 px-2.5 py-1.5 rounded-xl transition cursor-pointer ${activeClass}">
+            <span class="w-5 text-right text-butter-300/60 select-none shrink-0 text-[11px] pt-0.5">${step.line}</span>
+            <pre class="whitespace-pre-wrap break-all font-mono leading-relaxed text-[11px] sm:text-xs">${safeCode}</pre>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function renderLiveChip(key, label, value, hlList, theme) {
+      const isHl = hlList.includes(key);
+      let cls = 'bg-cream-50 border-cream-200 text-cocoa-800';
+      if (isHl) {
+        cls = theme === 'coral'
+          ? 'bg-coral-50 border-coral-500 text-coral-600 ring-2 ring-coral-100 font-bold'
+          : theme === 'mint'
+            ? 'bg-mint-50 border-mint-500 text-mint-600 ring-2 ring-mint-100 font-bold'
+            : theme === 'pinky'
+              ? 'bg-pinky-50 border-pinky-500 text-pinky-600 ring-2 ring-pinky-100 font-bold'
+              : 'bg-butter-100 border-butter-400 text-cocoa-900 ring-2 ring-butter-300/60 font-bold';
+      }
+      return `
+        <div class="p-2.5 rounded-2xl border-2 transition ${cls}">
+          <p class="text-[10px] font-extrabold uppercase tracking-wider opacity-70 mb-0.5">${label}</p>
+          <p class="font-mono text-[11px] sm:text-xs break-words">${value}</p>
+        </div>
+      `;
+    }
+
+    function renderLineExplanation() {
+      const step = codeSteps[activeStepIdx];
+      document.getElementById('step-counter').textContent = `Dòng ${step.line} / 15`;
+      document.getElementById('prev-line-btn').disabled = activeStepIdx === 0;
+      document.getElementById('next-line-btn').disabled = activeStepIdx === codeSteps.length - 1;
+
+      const badgeColor = {
+        coral: 'bg-coral-50 text-coral-600 border-coral-300',
+        butter: 'bg-butter-100 text-cocoa-800 border-butter-300',
+        mint: 'bg-mint-50 text-mint-600 border-mint-300',
+        pinky: 'bg-pinky-100 text-pinky-600 border-pinky-300',
+        neutral: 'bg-cream-100 text-cocoa-800 border-cream-200'
+      }[step.theme];
+
+      const st = step.state;
+      document.getElementById('line-explanation-content').innerHTML = `
+        <div>
+          <span class="inline-flex items-center px-3 py-0.5 rounded-full text-xs font-extrabold border ${badgeColor} mb-2">
+            ${step.badge}
+          </span>
+          <h3 class="text-base sm:text-lg font-black text-cocoa-800 leading-snug font-display">${step.title}</h3>
+        </div>
+
+        <p class="text-sm text-cocoa-800 leading-relaxed">${step.everyday}</p>
+
+        <div class="p-3.5 rounded-2xl bg-butter-100/80 border-2 border-butter-300 text-xs text-cocoa-900 space-y-1">
+          <p class="font-extrabold text-cocoa-800 uppercase tracking-wider text-[11px]">🧮 Phép tính tay:</p>
+          <p class="font-mono leading-relaxed">${step.math.replace(/\n/g, '<br/>')}</p>
+        </div>
+
+        <!-- Live State Dashboard -->
+        <div class="space-y-2">
+          <p class="text-xs font-extrabold text-cocoa-500 uppercase tracking-wider">📊 Bảng trạng thái trực tiếp (Live State)</p>
+          <div class="grid grid-cols-2 gap-2">
+            ${renderLiveChip('mask', 'mask (lọc -1)', st.mask, st.hl, step.theme)}
+            ${renderLiveChip('safe', 'safe (nhãn an toàn)', st.safe, st.hl, step.theme)}
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            ${renderLiveChip('p0', 'p[0] (Softmax)', st.p0, st.hl, step.theme)}
+            ${renderLiveChip('target0', 'target[0] (cứng)', st.target0, st.hl, step.theme)}
+            ${renderLiveChip('smooth0', 'smooth[0] (mềm)', st.smooth0, st.hl, step.theme)}
+          </div>
+          ${renderLiveChip('perItem', 'per_item (lỗi 4 mẫu)', st.perItem, st.hl, step.theme)}
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            ${renderLiveChip('loss', 'loss (chia 3)', st.loss, st.hl, step.theme)}
+            ${renderLiveChip('wrongLoss', 'wrong_loss (÷4)', st.wrongLoss, st.hl, step.theme)}
+            ${renderLiveChip('argmax', 'argmax', st.argmax, st.hl, step.theme)}
+            ${renderLiveChip('grad0', 'grad[0]', st.grad0, st.hl, step.theme)}
+          </div>
+        </div>
+      `;
+    }
+
+    function selectCodeStep(idx) {
+      if (idx < 0 || idx >= codeSteps.length) return;
+      activeStepIdx = idx;
+      if (idx === codeSteps.length - 1) {
+        xpState.tab2Done = true;
+        updateXP();
+      }
+      renderCodeList();
+      renderLineExplanation();
+    }
+
+    // =========================================================================
+    // 3. TAB 3: 3 INTERACTIVE LAB EXPERIMENTS
+    // =========================================================================
+
+    // --- EXP 1: LABEL SMOOTHING SWITCH ---
+    let smoothOn = true;
+    function setSmoothMode(on, isInit = false) {
+      smoothOn = on;
+      if (!isInit) {
+        xpState.exp1Done = true;
+        updateXP();
+      }
+      renderExp1();
+    }
+
+    function renderExp1() {
+      const onBtn = document.getElementById('sm-on-btn');
+      const offBtn = document.getElementById('sm-off-btn');
+      if (smoothOn) {
+        onBtn.className = 'px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer bg-mint-500 text-white shadow-xs';
+        offBtn.className = 'px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer text-cocoa-700 hover:bg-cream-200';
+      } else {
+        offBtn.className = 'px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer bg-coral-500 text-white shadow-xs';
+        onBtn.className = 'px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer text-cocoa-700 hover:bg-cream-200';
+      }
+
+      const p0 = [84.4, 11.4, 4.2];
+      const tgt = smoothOn ? [86.7, 6.7, 6.7] : [100.0, 0.0, 0.0];
+      const tgtLabel = smoothOn ? 'smooth[0] (0.8*target + 0.2/3)' : 'target[0] (Hard Target [1, 0, 0])';
+
+      const barsHtml = [0, 1, 2].map((c) => `
+        <div class="p-3.5 rounded-2xl bg-cream-50 border-2 border-cream-200 space-y-2">
+          <div class="flex items-center justify-between text-xs font-black text-cocoa-800">
+            <span>Lớp ${c} ${c === 0 ? '⭐ (Lớp đúng)' : '(Lớp sai)'}</span>
+            <span class="font-mono text-[11px] ${p0[c] - tgt[c] < 0 ? 'text-pinky-600' : 'text-mint-600'}">
+              chênh p − mục tiêu = ${(p0[c] - tgt[c]).toFixed(1)}%
+            </span>
+          </div>
+          <!-- Bar p[0] -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-[11px] font-bold text-cocoa-700">
+              <span>Dự đoán máy p[0, ${c}]</span>
+              <span class="font-mono">${p0[c]}%</span>
+            </div>
+            <div class="w-full h-3 bg-white rounded-full border border-cream-200 overflow-hidden">
+              <div class="h-full rounded-full bg-butter-400 transition-all duration-500" style="width: ${p0[c]}%;"></div>
+            </div>
+          </div>
+          <!-- Bar target/smooth -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-[11px] font-bold ${smoothOn ? 'text-pinky-600' : 'text-coral-600'}">
+              <span>${tgtLabel}</span>
+              <span class="font-mono">${tgt[c]}%</span>
+            </div>
+            <div class="w-full h-3 bg-white rounded-full border border-cream-200 overflow-hidden">
+              <div class="h-full rounded-full ${smoothOn ? 'bg-pinky-500' : 'bg-coral-500'} transition-all duration-500" style="width: ${tgt[c]}%;"></div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      const summary = smoothOn
+        ? `
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 font-mono text-xs">
+            <div class="p-4 rounded-2xl bg-mint-50 border-2 border-mint-300">
+              <p class="font-sans font-black text-mint-600 mb-1">✅ Loss (có Smoothing — Đáp án B):</p>
+              <p class="text-cocoa-900">loss = <strong class="text-mint-600 text-sm">0.5032</strong> &nbsp;|&nbsp; wrong_loss = <strong>0.3774</strong></p>
+            </div>
+            <div class="p-4 rounded-2xl bg-mint-50 border-2 border-mint-300">
+              <p class="font-sans font-black text-mint-600 mb-1">✅ grad[0] = (p[0] − smooth[0]) / 3:</p>
+              <p class="text-cocoa-900"><strong class="text-mint-600 text-sm">[-0.0076, 0.0158, -0.0082]</strong></p>
+            </div>
+          </div>
+        `
+        : `
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 font-mono text-xs">
+            <div class="p-4 rounded-2xl bg-coral-50 border-2 border-coral-300">
+              <p class="font-sans font-black text-coral-600 mb-1">🚨 Loss khi QUÊN Smoothing (Bẫy D!):</p>
+              <p class="text-cocoa-900">loss = <strong class="text-coral-600 text-sm">0.1698</strong> &nbsp;|&nbsp; wrong_loss = <strong>0.1274</strong></p>
+            </div>
+            <div class="p-4 rounded-2xl bg-coral-50 border-2 border-coral-300">
+              <p class="font-sans font-black text-coral-600 mb-1">🚨 grad[0] = (p[0] − target[0]) / 3 (Bẫy D!):</p>
+              <p class="text-cocoa-900"><strong class="text-coral-600 text-sm">[-0.0521, 0.0381, 0.014]</strong></p>
+            </div>
+          </div>
+        `;
+
+      document.getElementById('exp1-output').innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">${barsHtml}</div>
+        ${summary}
+      `;
+    }
+
+    // --- EXP 2: DIVIDE BY 3 VS 4 ---
+    let divMode = 3;
+    function setDivMode(n, isInit = false) {
+      divMode = n;
+      if (!isInit) {
+        xpState.exp2Done = true;
+        updateXP();
+      }
+      renderExp2();
+    }
+
+    function renderExp2() {
+      const b3 = document.getElementById('div-3-btn');
+      const b4 = document.getElementById('div-4-btn');
+      if (divMode === 3) {
+        b3.className = 'px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer bg-mint-500 text-white shadow-xs';
+        b4.className = 'px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer text-cocoa-700 hover:bg-cream-200';
+      } else {
+        b4.className = 'px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer bg-coral-500 text-white shadow-xs';
+        b3.className = 'px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer text-cocoa-700 hover:bg-cream-200';
+      }
+
+      const out = document.getElementById('exp2-output');
+      if (divMode === 3) {
+        out.innerHTML = `
+          <div class="p-4 sm:p-5 rounded-3xl bg-mint-50 border-2 border-mint-300 space-y-3">
+            <p class="text-xs sm:text-sm font-black text-mint-600">✅ CHIA ĐÚNG CHO 3 HỌC SINH ĐI THI (mask.sum() = 3) — ĐÁP ÁN B:</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 font-mono text-xs">
+              <div class="p-3 rounded-2xl bg-white border border-mint-300">
+                <p class="font-sans font-bold text-cocoa-700 mb-1">Điểm trung bình chuẩn (loss):</p>
+                <p>(0.5032 + 0.5032 + 0 + 0.5032) / <strong class="text-mint-600">3</strong> = <strong class="text-mint-600 text-sm">0.5032</strong></p>
+              </div>
+              <div class="p-3 rounded-2xl bg-white border border-mint-300">
+                <p class="font-sans font-bold text-cocoa-700 mb-1">Gradient hàng 0 chuẩn (grad[0]):</p>
+                <p>[-0.0229, 0.0475, -0.0247] / <strong class="text-mint-600">3</strong> = <strong class="text-mint-600 text-sm">[-0.0076, 0.0158, -0.0082]</strong></p>
+              </div>
+            </div>
+          </div>
+        `;
+      } else {
+        out.innerHTML = `
+          <div class="p-4 sm:p-5 rounded-3xl bg-coral-50 border-2 border-coral-300 space-y-3">
+            <p class="text-xs sm:text-sm font-black text-coral-600">🚨 CHIA NHẦM CHO CẢ 4 HỌC SINH (.mean() / 4) — TẠO RA wrong_loss VÀ BẪY C:</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 font-mono text-xs">
+              <div class="p-3 rounded-2xl bg-white border border-coral-300">
+                <p class="font-sans font-bold text-cocoa-700 mb-1">wrong_loss (bị nhỏ đi còn 3/4):</p>
+                <p>(0.5032 + 0.5032 + 0 + 0.5032) / <strong class="text-coral-600">4</strong> = <strong class="text-coral-600 text-sm">0.3774</strong></p>
+              </div>
+              <div class="p-3 rounded-2xl bg-white border border-coral-300">
+                <p class="font-sans font-bold text-cocoa-700 mb-1">grad[0] nếu chia nhầm 4 (Bẫy C!):</p>
+                <p>[-0.0229, 0.0475, -0.0247] / <strong class="text-coral-600">4</strong> = <strong class="text-coral-600 text-sm">[-0.0057, 0.0119, -0.0062]</strong> ❌</p>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    // --- EXP 3: p.argmax(axis=1) INSPECTOR ---
+    const argmaxRows = [
+      { idx: 0, logits: '[2., 0., -1.]', probs: ['0.8438', '0.1142', '0.0420'], best: 0, note: 'Cột 0 cao nhất (84.4%) → argmax = 0.' },
+      { idx: 1, logits: '[0., 2., -1.]', probs: ['0.1142', '0.8438', '0.0420'], best: 1, note: 'Cột 1 cao nhất (84.4%) → argmax = 1.' },
+      { idx: 2, logits: '[1., 1., 1.]',  probs: ['0.3333', '0.3333', '0.3333'], best: 0, note: '⭐ ĐẶC BIỆT: Cả 3 cột bằng nhau 33.3%! Quy tắc NumPy argmax khi hòa nhau luôn chọn VỊ TRÍ ĐẦU TIÊN → argmax = 0!' },
+      { idx: 3, logits: '[-1., 0., 2.]', probs: ['0.0420', '0.1142', '0.8438'], best: 2, note: 'Cột 2 cao nhất (84.4%) → argmax = 2.' }
+    ];
+    let selectedArgRow = 2; // Default highlight tie row 2
+
+    function selectArgmaxRow(r, isInit = false) {
+      selectedArgRow = r;
+      if (!isInit) {
+        xpState.exp3Done = true;
+        updateXP();
+      }
+      renderExp3();
+    }
+
+    function renderExp3() {
+      const listEl = document.getElementById('exp3-rows');
+      listEl.innerHTML = argmaxRows.map((row) => {
+        const isSel = row.idx === selectedArgRow;
+        const wrapCls = isSel
+          ? 'bg-mint-50 border-mint-500 ring-2 ring-mint-100'
+          : 'bg-cream-50 border-cream-200 hover:bg-butter-100/50';
+        return `
+          <button type="button" onclick="selectArgmaxRow(${row.idx})"
+            class="w-full p-3 rounded-2xl border-2 flex items-center justify-between gap-2 transition cursor-pointer ${wrapCls}">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-black ${isSel ? 'text-mint-600' : 'text-cocoa-700'}">Hàng ${row.idx} ${row.idx === 2 ? '⭐' : ''}</span>
+              <span class="font-mono text-xs text-cocoa-500">logits: ${row.logits}</span>
+            </div>
+            <span class="px-2.5 py-1 rounded-xl font-mono text-xs font-black ${isSel ? 'bg-mint-500 text-white' : 'bg-butter-100 text-cocoa-800'}">
+              argmax = ${row.best}
+            </span>
+          </button>
+        `;
+      }).join('');
+
+      const cur = argmaxRows[selectedArgRow];
+      document.getElementById('exp3-inspector').innerHTML = `
+        <span class="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-mint-500 text-white">🎯 Đang soi Hàng ${cur.idx}</span>
+        <div class="grid grid-cols-3 gap-2 font-mono text-center">
+          ${cur.probs.map((val, c) => `
+            <div class="p-2.5 rounded-xl border-2 ${c === cur.best ? 'bg-mint-500 text-white border-butter-300 font-black scale-105' : 'bg-white/10 text-cream-100 border-white/15'}">
+              <p class="text-[10px] font-sans opacity-80">Cột ${c}</p>
+              <p class="text-xs sm:text-sm">${val}</p>
+            </div>
+          `).join('')}
+        </div>
+        <p class="text-xs sm:text-sm text-butter-100 leading-relaxed font-semibold">${cur.note}</p>
+        <p class="text-xs font-mono text-mint-300 pt-1 border-t border-white/10">⇒ p.argmax(axis=1) = <strong>[0, 1, 0, 2]</strong></p>
+      `;
+    }
+
+    // =========================================================================
+    // 4. TAB 4: HINTS TOGGLE & MINI-QUIZ (4 QUESTIONS)
+    // =========================================================================
+    let hintsVisible = true;
+    function toggleExamHints() {
+      hintsVisible = !hintsVisible;
+      document.querySelectorAll('.exam-hint').forEach((el) => {
+        el.classList.toggle('hidden', !hintsVisible);
+      });
+    }
+
+    const quizQuestions = [
+      {
+        id: 0,
+        question: 'Câu 1: Trong Câu 10, tại sao wrong_loss = (per_item * mask).mean() (0.3774) lại nhỏ hơn loss = (per_item * mask).sum() / mask.sum() (0.5032)?',
+        options: [
+          'A. Vì hàm .mean() chia cho cả 4 mẫu (kể cả mẫu nghỉ thi nhãn -1 đã bị biến thành 0), nên chỉ bằng 3/4 của loss đúng (chia cho 3)',
+          'B. Vì wrong_loss quên nhân với mask',
+          'C. Vì wrong_loss không dùng Label Smoothing',
+          'D. Vì mask.sum() bằng 4'
+        ],
+        correct: 0,
+        explanation: 'Chính xác! Lớp 4 người có 1 người nghỉ: chia đúng cho 3 ra 0.5032, còn .mean() ngây thơ chia cả 4 nên tụt xuống 0.3774!'
+      },
+      {
+        id: 1,
+        question: 'Câu 2: Công thức smooth = 0.8 * target + 0.2 / 3 biến đáp án cứng [1, 0, 0] của mẫu 0 thành vector xác suất mục tiêu nào?',
+        options: [
+          'A. [0.8, 0.1, 0.1]',
+          'B. [0.8667, 0.0667, 0.0667] (lớp đúng = 0.8 + 0.2/3, hai lớp sai = 0.2/3)',
+          'C. [1.0, 0.0, 0.0]',
+          'D. [0.5, 0.25, 0.25]'
+        ],
+        correct: 1,
+        explanation: 'Chuẩn không cần chỉnh! Lớp đúng nhận 0.8 + 0.0667 = 0.8667, hai lớp sai mỗi lớp nhận 0.0667 (tổng vẫn đúng bằng 1.0).'
+      },
+      {
+        id: 2,
+        question: 'Câu 3: Khi đi thi, giữa Đáp án B và Đáp án C (có cùng loss [0.5032, 0.3774]), tại sao ta CHỌN B và LOẠI C?',
+        options: [
+          'A. Vì grad trong code chia cho mask.sum() = 3 nên grad[0,0] = -0.0229 / 3 = -0.0076 (B), còn C chia nhầm cho 4 ra -0.0057!',
+          'B. Vì C bị sai dòng argmax',
+          'C. Vì B có số grad nhỏ hơn C',
+          'D. Vì C quên Label Smoothing'
+        ],
+        correct: 0,
+        explanation: 'Quá đỉnh! Nhớ quy tắc: mẫu số của grad là mask.sum() = 3 → -0.0076 (lớn hơn về độ lớn so với chia 4 là -0.0057) → Chốt ngay Đáp án B!'
+      },
+      {
+        id: 3,
+        question: 'Câu 4: Ở hàng 2 có logits = [1., 1., 1.] (cả 3 lớp đều có xác suất bằng nhau 0.3333), lệnh p.argmax(axis=1) chọn chỉ số nào?',
+        options: [
+          'A. Báo lỗi vì không có số lớn nhất duy nhất',
+          'B. Chọn ngẫu nhiên 0, 1 hoặc 2',
+          'C. Chọn chỉ số cuối cùng là 2',
+          'D. Luôn chọn chỉ số ĐẦU TIÊN là 0 (nên cả mảng argmax là [0, 1, 0, 2])'
+        ],
+        correct: 3,
+        explanation: 'Tuyệt vời! Trong NumPy/PyTorch, khi nhiều phần tử cùng đạt giá trị lớn nhất, argmax luôn trả về vị trí xuất hiện đầu tiên (chỉ số 0)!'
+      }
+    ];
+
+    let quizAnswers = {};
+    function answerQuiz(qId, optIdx) {
+      quizAnswers[qId] = optIdx;
+      renderQuiz();
+    }
+    function resetQuiz() {
+      quizAnswers = {};
+      xpState.celebrated = false;
+      renderQuiz();
+    }
+    function renderQuiz() {
+      let score = 0;
+      quizQuestions.forEach((q) => {
+        if (quizAnswers[q.id] === q.correct) score++;
+      });
+      xpState.quizCorrectCount = score;
+      updateXP();
+
+      document.getElementById('quiz-score').textContent = String(score);
+      const container = document.getElementById('quiz-container');
+      if (!container) return;
+
+      container.innerHTML = quizQuestions.map((q) => {
+        const chosen = quizAnswers[q.id];
+        const hasAnswered = chosen !== undefined;
+        const isCorrect = chosen === q.correct;
+
+        const opts = q.options.map((text, idx) => {
+          let cls = 'bg-white border-cream-200 border-b-4 text-cocoa-800 hover:bg-butter-100/50';
+          if (hasAnswered) {
+            if (idx === q.correct) cls = 'bg-mint-50 border-mint-500 border-b-4 border-b-mint-600 text-emerald-950 font-extrabold';
+            else if (idx === chosen) cls = 'bg-coral-50 border-coral-500 border-b-4 border-b-coral-600 text-red-950 font-extrabold';
+            else cls = 'bg-cream-50 border-cream-100 text-cocoa-500/50';
+          }
+          return `
+            <button type="button" onclick="answerQuiz(${q.id}, ${idx})"
+              class="w-full text-left px-4 py-3 rounded-2xl border-2 text-xs sm:text-sm transition cursor-pointer ${cls}">
+              ${text}
+            </button>
+          `;
+        }).join('');
+
+        const fb = hasAnswered
+          ? `<div class="mt-3 p-3.5 rounded-2xl text-xs sm:text-sm border-2 ${isCorrect ? 'bg-mint-50 border-mint-300 text-emerald-950' : 'bg-coral-50 border-coral-300 text-red-950'}">
+              <strong>${isCorrect ? '✅ Chính xác!' : '❌ Chưa đúng rồi!'}</strong> ${q.explanation}
+            </div>`
+          : '';
+
+        return `
+          <div class="p-4 sm:p-5 rounded-3xl bg-cream-50 border-2 border-cream-200">
+            <p class="text-sm sm:text-base font-black text-cocoa-800 mb-3">${q.question}</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">${opts}</div>
+            ${fb}
+          </div>
+        `;
+      }).join('');
+    }
+
+    // =========================================================================
+    // INITIALIZATION
+    // =========================================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      try {
+        document.querySelectorAll('.tab-btn').forEach((btn) => {
+          btn.addEventListener('click', () => switchTab(btn.getAttribute('data-tab')));
+        });
+        document.getElementById('prev-line-btn').addEventListener('click', () => selectCodeStep(activeStepIdx - 1));
+        document.getElementById('next-line-btn').addEventListener('click', () => selectCodeStep(activeStepIdx + 1));
+
+        switchTab('1');
+        renderVocab();
+        renderCodeList();
+        renderLineExplanation();
+        setSmoothMode(true, true);
+        setDivMode(3, true);
+        selectArgmaxRow(2, true);
+        renderQuiz();
+        updateXP();
+      } catch (err) {
+        console.error('Initialization error:', err);
+      }
+    });
+  </script>
+</body>
+</html>

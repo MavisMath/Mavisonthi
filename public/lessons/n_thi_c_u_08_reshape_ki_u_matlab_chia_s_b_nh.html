@@ -1,0 +1,1552 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ôn Thi Câu 08: Reshape Kiểu MATLAB &amp; Chia Sẻ Bộ Nhớ (Bản Non-tech)</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Quicksand, Nunito & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Nunito:wght@500;600;700;800;900&family=Quicksand:wght@600;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Nunito', 'Quicksand', 'sans-serif'],
+            display: ['Quicksand', 'Nunito', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            cream: {
+              50: '#FFFDF7',
+              100: '#FFF7E2',
+              200: '#EFE0C4',
+            },
+            blush: {
+              50: '#FFF5F8',
+              100: '#FFE4EC',
+              200: '#FBC2D4',
+              400: '#F48FB1',
+              500: '#E56B94',
+              600: '#CC4E7A',
+            },
+            sunny: {
+              100: '#FFF3CD',
+              200: '#FCE49C',
+              400: '#F6C343',
+              500: '#D9A11E',
+            },
+            cocoa: {
+              500: '#8D6E63',
+              700: '#6D4C41',
+              800: '#4A3728',
+              900: '#322419',
+            },
+            mint: {
+              50: '#E8F5E9',
+              200: '#A5D6A7',
+              500: '#4CAF50',
+              600: '#388E3C',
+            },
+            coral: {
+              50: '#FFF1F2',
+              200: '#FECDD3',
+              400: '#F87171',
+              500: '#DC2626',
+            },
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    /* 3D Flashcard Flip */
+    .flip-card {
+      perspective: 1000px;
+    }
+    .flip-card-inner {
+      position: relative;
+      width: 100%;
+      min-height: 175px;
+      transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+      transform-style: preserve-3d;
+    }
+    .flip-card.is-flipped .flip-card-inner {
+      transform: rotateY(180deg);
+    }
+    .flip-card-face {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+    .flip-card-back {
+      transform: rotateY(180deg);
+    }
+
+    /* Celebration Floating Particles */
+    @keyframes floatCelebrate {
+      0% {
+        transform: translateY(0) rotate(0deg) scale(0.75);
+        opacity: 0;
+      }
+      15% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-95vh) rotate(360deg) scale(1.25);
+        opacity: 0;
+      }
+    }
+    .celebrate-particle {
+      position: fixed;
+      bottom: -40px;
+      pointer-events: none;
+      z-index: 9999;
+      animation: floatCelebrate 3.4s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="bg-cream-50 text-cocoa-800 font-sans antialiased selection:bg-blush-100 selection:text-cocoa-900 min-h-screen flex flex-col">
+
+  <!-- Floating Particle Celebration Layer (100 XP) -->
+  <div id="celebration-layer" aria-hidden="true"></div>
+
+  <!-- Sticky Gamified Header -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur border-b-2 border-cream-200 shadow-xs">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 sm:py-4 space-y-3">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <!-- Title & Mascot Badge -->
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-blush-400 text-white flex items-center justify-center font-black text-xl border-b-4 border-blush-600 shadow-xs shrink-0 font-display">
+            08
+          </div>
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <h1 class="text-lg sm:text-xl font-black text-cocoa-800 tracking-tight font-display">
+                Reshape Kiểu MATLAB &amp; Chia Sẻ Bộ Nhớ
+              </h1>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-blush-100 text-blush-600 border border-blush-200">
+                Bản Non-tech ✨
+              </span>
+            </div>
+            <p class="text-xs sm:text-sm text-cocoa-700/80 font-semibold">
+              Xếp cột <code class="font-mono text-xs bg-sunny-100 px-1.5 py-0.5 rounded-lg text-cocoa-800">order="F"</code> • <strong class="text-blush-600">View vs Copy</strong> • Mẹo <code class="font-mono text-xs bg-sunny-100 px-1.5 py-0.5 rounded-lg text-cocoa-800">np.diag(A.T @ A)</code>
+            </p>
+          </div>
+        </div>
+
+        <!-- Duolingo XP Bar + Target Pill -->
+        <div class="flex items-center gap-3 bg-sunny-100/70 border-2 border-sunny-200 rounded-2xl px-3.5 py-2 self-start md:self-auto w-full md:w-auto">
+          <div class="text-xl shrink-0">🌟</div>
+          <div class="flex-1 md:w-44">
+            <div class="flex items-center justify-between text-[11px] font-extrabold mb-1">
+              <span class="text-cocoa-700 uppercase tracking-wide">Tiến độ ôn thi</span>
+              <span class="text-blush-600 font-black"><span id="xp-value">10</span> / 100 XP</span>
+            </div>
+            <div class="w-full h-3 bg-white rounded-full border border-cream-200 overflow-hidden p-0.5">
+              <div
+                id="xp-bar"
+                class="h-full rounded-full bg-gradient-to-r from-sunny-400 via-blush-400 to-mint-500 transition-all duration-500"
+                style="width: 10%;"
+              ></div>
+            </div>
+          </div>
+          <div class="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-xl bg-mint-50 border border-mint-200 text-xs font-extrabold text-mint-600 shrink-0">
+            <span>🎯</span>
+            <span>Đáp án D</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4 Main Navigation Tabs -->
+      <nav aria-label="Điều hướng 4 phần học" class="grid grid-cols-2 lg:grid-cols-4 gap-2">
+        <button id="tab-btn-1" data-tab="1" class="tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2">
+          <span>💡</span>
+          <span>1. Bản chất &amp; Từ vựng</span>
+        </button>
+        <button id="tab-btn-2" data-tab="2" class="tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2">
+          <span>🔍</span>
+          <span>2. Từng dòng code</span>
+        </button>
+        <button id="tab-btn-3" data-tab="3" class="tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2">
+          <span>🧪</span>
+          <span>3. Thí nghiệm Bộ nhớ</span>
+        </button>
+        <button id="tab-btn-4" data-tab="4" class="tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2">
+          <span>⚡</span>
+          <span>4. Mẹo 15s &amp; Quiz</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+
+    <!-- Cute Hand-Drawn SVG Chibi Mascot Bar -->
+    <div class="bg-white rounded-3xl border-2 border-cream-200 p-4 sm:p-5 shadow-xs flex items-center gap-4">
+      <!-- Hand-drawn Chibi Bear/Mochi Mascot SVG -->
+      <div class="w-16 h-16 sm:w-18 sm:h-18 shrink-0 flex items-center justify-center">
+        <svg viewBox="0 0 100 100" class="w-16 h-16" aria-label="Linh vật Mochi động viên học tập">
+          <!-- Ears -->
+          <circle cx="24" cy="26" r="14" fill="#F6C343" stroke="#4A3728" stroke-width="4" />
+          <circle cx="24" cy="26" r="7" fill="#FFE4EC" />
+          <circle cx="76" cy="26" r="14" fill="#F6C343" stroke="#4A3728" stroke-width="4" />
+          <circle cx="76" cy="26" r="7" fill="#FFE4EC" />
+          <!-- Head -->
+          <ellipse cx="50" cy="56" rx="37" ry="34" fill="#FFF3CD" stroke="#4A3728" stroke-width="4" />
+          <!-- Cute Rosy Cheeks -->
+          <ellipse cx="28" cy="61" rx="7" ry="4.5" fill="#F48FB1" opacity="0.7" />
+          <ellipse cx="72" cy="61" rx="7" ry="4.5" fill="#F48FB1" opacity="0.7" />
+          <!-- Eyes -->
+          <circle cx="36" cy="51" r="4.5" fill="#4A3728" />
+          <circle cx="34.5" cy="49.5" r="1.6" fill="#FFFFFF" />
+          <circle cx="64" cy="51" r="4.5" fill="#4A3728" />
+          <circle cx="62.5" cy="49.5" r="1.6" fill="#FFFFFF" />
+          <!-- Smile & Nose -->
+          <ellipse cx="50" cy="57" rx="3.2" ry="2.2" fill="#4A3728" />
+          <path d="M 43 62 Q 50 69 57 62" fill="none" stroke="#4A3728" stroke-width="3.2" stroke-linecap="round" />
+          <!-- Little Sparkle on top -->
+          <path d="M 50 10 L 52 16 L 58 18 L 52 20 L 50 26 L 48 20 L 42 18 L 48 16 Z" fill="#F48FB1" />
+        </svg>
+      </div>
+      <div class="flex-1 bg-blush-50 border-2 border-blush-100 rounded-2xl px-4 py-3 relative">
+        <p class="text-[11px] font-black uppercase tracking-wider text-blush-600 mb-0.5">🐻 Bé Mochi cổ vũ bạn:</p>
+        <p id="mascot-speech" class="text-xs sm:text-sm font-bold text-cocoa-800 leading-relaxed">
+          Chào bạn! Câu 08 nhìn dài nhưng siêu dễ ăn điểm: chỉ cần nhớ <strong>A, C, v dùng chung 1 dải bộ nhớ</strong>, còn <strong>B và w là bản photo riêng</strong> là khoanh D trong 15 giây!
+        </p>
+      </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- TAB 1: BẢN CHẤT & TỪ VỰNG (+20 XP)                                  -->
+    <!-- =================================================================== -->
+    <section id="tab-panel-1" class="tab-panel space-y-8">
+      <!-- Warm Hero Banner -->
+      <div class="bg-gradient-to-r from-blush-400 via-rose-400 to-sunny-400 text-white rounded-3xl p-6 sm:p-8 border-b-4 border-blush-600/40 shadow-sm">
+        <div class="inline-flex items-center gap-2 bg-white/25 backdrop-blur px-3 py-1 rounded-full text-xs font-extrabold mb-3">
+          <span>📌 Tóm tắt Câu 08 trong 1 câu siêu dễ nhớ</span>
+        </div>
+        <h2 class="text-xl sm:text-2xl font-black leading-snug mb-3 font-display">
+          <code class="bg-white/25 px-1.5 py-0.5 rounded-lg font-mono">order="F"</code> xếp số dọc từng cột kiểu thư pháp: <strong>C và v</strong> cùng kiểu F nên <strong>dùng chung bộ nhớ với A (View)</strong>; còn <strong>B (kiểu C) và w (flatten)</strong> phải đi photo riêng (Copy)!
+        </h2>
+        <p class="text-white/95 text-sm sm:text-base leading-relaxed">
+          Đọc 4 câu chuyện đời thường và lật thử các thẻ Flashcard 3D bên dưới để nhận ngay <strong>+20 XP</strong> đầu tiên nhé!
+        </p>
+      </div>
+
+      <!-- 4 Everyday Metaphor Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- 1. order="F" vs order="C" -->
+        <article class="bg-white rounded-3xl border-2 border-cream-200 p-6 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-sunny-100 text-cocoa-800 border border-sunny-200">
+                Ẩn dụ 1 • Cách xếp số
+              </span>
+              <span class="text-2xl">🖌️</span>
+            </div>
+            <h3 class="text-lg font-black text-cocoa-800 mb-2 font-display">
+              <code class="font-mono text-blush-600">order="F"</code> (MATLAB) vs <code class="font-mono text-cocoa-700">order="C"</code> (Mặc định)
+            </h3>
+            <p class="text-sm text-cocoa-700 leading-relaxed mb-3">
+              Cho 6 con số <code class="font-mono font-bold">[1, 2, 3, 4, 5, 6]</code> xếp vào bảng 2 hàng × 3 cột:
+            </p>
+            <div class="grid grid-cols-2 gap-2.5 text-xs">
+              <div class="p-3 rounded-2xl bg-blush-50 border-2 border-blush-200">
+                <p class="font-black text-blush-600 mb-1">order="F" (Xếp DỌC cột)</p>
+                <p class="text-cocoa-700 mb-1.5">Như viết thư pháp từ trên xuống dưới:</p>
+                <pre class="font-mono font-bold text-cocoa-900 bg-white p-2 rounded-xl border border-blush-100 text-center">[1, 3, 5]
+[2, 4, 6]</pre>
+              </div>
+              <div class="p-3 rounded-2xl bg-cream-100 border-2 border-cream-200">
+                <p class="font-black text-cocoa-800 mb-1">order="C" (Xếp NGANG hàng)</p>
+                <p class="text-cocoa-700 mb-1.5">Như viết vở từ trái sang phải:</p>
+                <pre class="font-mono font-bold text-cocoa-900 bg-white p-2 rounded-xl border border-cream-200 text-center">[1, 2, 3]
+[4, 5, 6]</pre>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- 2. View vs Copy -->
+        <article class="bg-white rounded-3xl border-2 border-blush-200 p-6 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-blush-100 text-blush-600 border border-blush-200">
+                Ẩn dụ 2 • Chung bộ nhớ vs Photo
+              </span>
+              <span class="text-2xl">🔗</span>
+            </div>
+            <h3 class="text-lg font-black text-cocoa-800 mb-2 font-display">
+              View (Google Docs dùng chung) vs Copy (Tờ giấy Photocopy)
+            </h3>
+            <div class="space-y-2.5 text-xs mt-3">
+              <div class="p-3 rounded-2xl bg-blush-50 border-2 border-blush-200">
+                <p class="font-black text-blush-600 mb-1">🔗 VIEW: <code class="font-mono">C</code> và <code class="font-mono">v</code> (Chung bộ nhớ với A!)</p>
+                <p class="text-cocoa-800">Vì <code class="font-mono">A</code> xếp theo kiểu F, nên <code class="font-mono">C = A.reshape(3,2, order="F")</code> và <code class="font-mono">v = A.ravel(order="F")</code> cùng kiểu F → dùng chung luôn bản gốc! Sửa <code class="font-mono">v[1]=20</code> hay <code class="font-mono">C[2,1]+=100</code> là <strong>A bị đổi theo ngay!</strong></p>
+              </div>
+              <div class="p-3 rounded-2xl bg-mint-50 border-2 border-mint-200">
+                <p class="font-black text-mint-600 mb-1">📄 COPY: <code class="font-mono">B</code> và <code class="font-mono">w</code> (Bản photocopy độc lập!)</p>
+                <p class="text-cocoa-800"><code class="font-mono">B = A.reshape(3,2)</code> đòi xếp ngang kiểu C khác với A (kiểu F) nên NumPy buộc phải photo bản mới! Sửa <code class="font-mono">B[0,1] = -3</code> thì <strong>A không hề hấn gì!</strong></p>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- 3. ravel() vs flatten() -->
+        <article class="bg-white rounded-3xl border-2 border-sunny-200 p-6 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-sunny-100 text-cocoa-800 border border-sunny-200">
+                Ẩn dụ 3 • Duỗi thẳng thành 1 hàng
+              </span>
+              <span class="text-2xl">📏</span>
+            </div>
+            <h3 class="text-lg font-black text-cocoa-800 mb-2 font-display">
+              <code class="font-mono text-blush-600">ravel()</code> (Tiết kiệm) vs <code class="font-mono text-mint-600">flatten()</code> (Luôn photo!)
+            </h3>
+            <p class="text-sm text-cocoa-700 leading-relaxed mb-3">
+              Cả hai lệnh đều duỗi bảng 2×3 thành 1 hàng dài 6 số <code class="font-mono">[1, 2, 3, 4, 5, 6]</code>, nhưng tính cách khác hẳn nhau:
+            </p>
+            <div class="space-y-2 text-xs">
+              <div class="p-3 rounded-2xl bg-blush-50 border border-blush-200">
+                <strong class="text-blush-600">🔗 ravel(order="F"):</strong> Biết tiết kiệm RAM → cùng chiều F nên <strong>dùng chung bộ nhớ (View)</strong>!
+              </div>
+              <div class="p-3 rounded-2xl bg-mint-50 border border-mint-200">
+                <strong class="text-mint-600">📄 flatten(order="F"):</strong> "Đại gia" luôn luôn đi photo ra bản mới (<strong>Copy 100%</strong>) → nên sau này A bị đổi thành 20 và 106, tổng <code class="font-mono font-bold">w.sum()</code> vẫn giữ nguyên <strong>1+2+3+4+5+6 = 21</strong>!
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- 4. A.T @ A & np.diag(M) + Decoy E -->
+        <article class="bg-white rounded-3xl border-2 border-mint-200 p-6 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-mint-50 text-mint-600 border border-mint-200">
+                Ẩn dụ 4 • Mẹo tính nhẩm siêu tốc ⚡
+              </span>
+              <span class="text-2xl">🎯</span>
+            </div>
+            <h3 class="text-lg font-black text-cocoa-800 mb-2 font-display">
+              <code class="font-mono text-mint-600">np.diag(A.T @ A)</code> = Tổng bình phương từng CỘT của A!
+            </h3>
+            <p class="text-sm text-cocoa-700 leading-relaxed mb-3">
+              Bạn <strong>KHÔNG CẦN</strong> nhân cả ma trận 3×3! Đường chéo chính của <code class="font-mono font-bold">M = A.T @ A</code> luôn là tổng bình phương của từng cột trong <code class="font-mono">A = [[1, 3, 5], [20, 4, 106]]</code>:
+            </p>
+            <div class="p-3 rounded-2xl bg-mint-50 border border-mint-200 font-mono text-xs text-cocoa-900 space-y-1">
+              <p>• Cột 0: 1² + 20² = <strong>401</strong> | Cột 1: 3² + 4² = <strong>25</strong></p>
+              <p>• Cột 2: 5² + 106² = 25 + 11236 = <strong>11261</strong></p>
+            </div>
+            <p class="text-xs text-cocoa-500 mt-2.5">
+              🐥 <strong>Chim mồi:</strong> Dòng <code class="font-mono font-bold">E = A.T * A.T</code> (nhân từng ô) viết ra chỉ để đánh lạc hướng — cuối bài <strong>không hề được in ra</strong>!
+            </p>
+          </div>
+        </article>
+      </div>
+
+      <!-- 8 Interactive 3D Flashcards -->
+      <div class="bg-white rounded-3xl border-2 border-cream-200 p-5 sm:p-6 shadow-xs">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+          <div>
+            <span class="inline-block px-3 py-0.5 rounded-full text-xs font-extrabold bg-sunny-100 text-cocoa-800 mb-1">
+              📖 Từ điển Flashcard 3D cho Non-tech (8 thẻ • Lật thẻ nhận +10 XP!)
+            </span>
+            <h3 class="text-base sm:text-lg font-black text-cocoa-800 font-display">
+              Nhấp vào từng thẻ để lật 3D xem nghĩa bình dân &amp; mẹo nhớ đi thi!
+            </h3>
+          </div>
+          <button onclick="flipAllVocab()" class="px-3.5 py-2 rounded-xl bg-sunny-100 hover:bg-sunny-200 text-cocoa-800 text-xs font-extrabold border-2 border-sunny-200 border-b-4 transition cursor-pointer self-start sm:self-auto">
+            🔄 Lật tất cả thẻ
+          </button>
+        </div>
+
+        <div id="vocab-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+          <!-- JS Populated -->
+        </div>
+      </div>
+
+      <!-- CTA to Tab 2 -->
+      <div class="bg-sunny-100/60 rounded-3xl border-2 border-sunny-200 p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-2xl bg-sunny-400 text-cocoa-900 flex items-center justify-center text-xl border-b-4 border-sunny-500 shrink-0">
+            🚀
+          </div>
+          <div>
+            <h4 class="text-sm font-black text-cocoa-800">Nắm xong 4 ẩn dụ &amp; 8 thẻ từ vựng?</h4>
+            <p class="text-xs text-cocoa-700/80">Chuyển sang Tab 2 để xem từng dòng code làm dải bộ nhớ <code class="font-mono">[1, 2, 3, 4, 5, 6]</code> sáng đèn đổi số nhé!</p>
+          </div>
+        </div>
+        <button onclick="switchTab('2')" class="w-full sm:w-auto px-5 py-2.5 rounded-2xl bg-blush-400 hover:bg-blush-500 active:translate-y-0.5 text-white text-sm font-extrabold border-b-4 border-blush-600 transition cursor-pointer">
+          Đi tới Tab 2: Từng dòng code →
+        </button>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 2: TỪNG DÒNG CODE + LIVE MEMORY STATE (+25 XP)                  -->
+    <!-- =================================================================== -->
+    <section id="tab-panel-2" class="tab-panel hidden space-y-5">
+      <div class="bg-white rounded-3xl border-2 border-cream-200 p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="text-base sm:text-lg font-black text-cocoa-800 font-display">Click từng dòng code để xem Dải Bộ Nhớ &amp; 5 bảng A, B, C, v, w cập nhật trực tiếp</h2>
+          <p class="text-xs sm:text-sm text-cocoa-700/80">Bấm xem ít nhất 3 dòng code để nhận trọn <strong>+25 XP</strong> ở Tab này!</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 shrink-0">
+          <span class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-xl bg-blush-100 text-blush-600 border border-blush-200">
+            🔗 VIEW (Chung bộ nhớ A)
+          </span>
+          <span class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-xl bg-mint-50 text-mint-600 border border-mint-200">
+            📄 COPY (Độc lập)
+          </span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <!-- Left: Full Code Panel -->
+        <div class="lg:col-span-5 bg-cocoa-900 rounded-3xl shadow-md border-2 border-cocoa-700 overflow-hidden">
+          <div class="flex items-center justify-between px-4 py-3 bg-cocoa-800 border-b border-cocoa-700">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-coral-400"></span>
+              <span class="w-3 h-3 rounded-full bg-sunny-400"></span>
+              <span class="w-3 h-3 rounded-full bg-mint-500"></span>
+              <span class="ml-2 text-xs font-mono text-cream-100">cau_08_matlab_reshape.py</span>
+            </div>
+            <span class="text-[11px] font-semibold text-sunny-200">Click từng dòng</span>
+          </div>
+          <div id="code-lines-container" class="p-3 overflow-x-auto font-mono text-xs sm:text-[13px] space-y-1">
+            <!-- JS Populated -->
+          </div>
+        </div>
+
+        <!-- Right: Explanation + Live Memory State -->
+        <div class="lg:col-span-7 lg:sticky lg:top-40">
+          <div class="bg-white rounded-3xl border-2 border-cream-200 shadow-sm overflow-hidden">
+            <!-- Step Controls -->
+            <div class="flex items-center justify-between px-5 py-3.5 bg-sunny-100/60 border-b-2 border-cream-200">
+              <span id="step-counter" class="text-xs font-black text-cocoa-700 uppercase tracking-wider">
+                Bước 1 / 12
+              </span>
+              <div class="flex items-center gap-2">
+                <button id="prev-line-btn" class="px-3.5 py-1.5 rounded-xl bg-white hover:bg-cream-50 text-cocoa-800 border-2 border-cream-200 border-b-4 text-xs font-extrabold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+                  ← Dòng trước
+                </button>
+                <button id="next-line-btn" class="px-3.5 py-1.5 rounded-xl bg-blush-400 hover:bg-blush-500 text-white border-b-4 border-blush-600 text-xs font-extrabold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+                  Dòng tiếp theo →
+                </button>
+              </div>
+            </div>
+
+            <!-- Dynamic Explanation + Live Memory Dashboard -->
+            <div id="line-explanation-content" class="p-5 sm:p-6 space-y-5">
+              <!-- JS Populated -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 3: PHÒNG THÍ NGHIỆM BỘ NHỚ (+25 XP)                             -->
+    <!-- =================================================================== -->
+    <section id="tab-panel-3" class="tab-panel hidden space-y-8">
+
+      <!-- EXPERIMENT 1: order="C" VS order="F" -->
+      <div class="bg-white rounded-3xl border-2 border-cream-200 p-5 sm:p-6 shadow-xs space-y-5">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b-2 border-cream-100">
+          <div>
+            <span class="inline-block px-3 py-0.5 rounded-full text-xs font-extrabold bg-sunny-100 text-cocoa-800 mb-1">
+              🖌️ Thí nghiệm 1 (+8 XP)
+            </span>
+            <h2 class="text-lg font-black text-cocoa-800 font-display">
+              So sánh xếp hàng <code class="font-mono text-cocoa-700">order="C"</code> vs xếp cột <code class="font-mono text-blush-600">order="F"</code>
+            </h2>
+            <p class="text-xs sm:text-sm text-cocoa-700/80 mt-0.5">
+              Bấm nút chuyển đổi để xem dãy <code class="font-mono font-bold">[1, 2, 3, 4, 5, 6]</code> chảy vào bảng 2×3 theo mũi tên ngang hay dọc!
+            </p>
+          </div>
+          <div class="inline-flex p-1.5 rounded-2xl bg-cream-100 border-2 border-cream-200 self-start md:self-auto">
+            <button id="ord-f-btn" onclick="setOrderMode('F')" class="px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer">
+              ⬇️ order="F" (MATLAB - Trong đề)
+            </button>
+            <button id="ord-c-btn" onclick="setOrderMode('C')" class="px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer">
+              ➡️ order="C" (Mặc định)
+            </button>
+          </div>
+        </div>
+
+        <div id="exp1-order-output" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <!-- JS Populated -->
+        </div>
+      </div>
+
+      <!-- EXPERIMENT 2: LIVE DATA BREAKING SWITCHES (VIEW VS COPY) -->
+      <div class="bg-white rounded-3xl border-2 border-blush-200 p-5 sm:p-6 shadow-xs space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b-2 border-cream-100">
+          <div>
+            <span class="inline-block px-3 py-0.5 rounded-full text-xs font-extrabold bg-blush-100 text-blush-600 mb-1">
+              🎛️ Thí nghiệm 2 (+9 XP)
+            </span>
+            <h2 class="text-lg font-black text-cocoa-800 font-display">
+              Công tắc Phá Dữ Liệu — Xem tận mắt View (A, C, v) nối dây chung nhau!
+            </h2>
+            <p class="text-xs sm:text-sm text-cocoa-700/80 mt-0.5">
+              Bật/tắt độc lập 3 lệnh sửa dữ liệu bên dưới và quan sát các bảng nhảy số theo thời gian thực.
+            </p>
+          </div>
+          <button onclick="resetExp2()" class="px-3.5 py-2 rounded-xl bg-sunny-100 hover:bg-sunny-200 text-cocoa-800 border-2 border-sunny-200 border-b-4 text-xs font-extrabold transition cursor-pointer self-start sm:self-auto">
+            🔄 Đặt lại ban đầu
+          </button>
+        </div>
+
+        <!-- 3 Independent Switches -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <button type="button" onclick="toggleExp2('v1')" id="exp2-sw-v1" class="p-3.5 rounded-2xl border-2 text-left transition cursor-pointer flex items-center justify-between gap-2">
+            <div>
+              <p class="font-mono text-xs sm:text-sm font-black">v[1] = 20</p>
+              <p class="text-[11px] opacity-80">Sửa trên VIEW → Đổi A, C, v!</p>
+            </div>
+            <span id="exp2-pill-v1" class="px-2.5 py-1 rounded-full text-[11px] font-black shrink-0"></span>
+          </button>
+
+          <button type="button" onclick="toggleExp2('b01')" id="exp2-sw-b01" class="p-3.5 rounded-2xl border-2 text-left transition cursor-pointer flex items-center justify-between gap-2">
+            <div>
+              <p class="font-mono text-xs sm:text-sm font-black">B[0, 1] = -3</p>
+              <p class="text-[11px] opacity-80">Sửa trên COPY → Chỉ đổi B!</p>
+            </div>
+            <span id="exp2-pill-b01" class="px-2.5 py-1 rounded-full text-[11px] font-black shrink-0"></span>
+          </button>
+
+          <button type="button" onclick="toggleExp2('c21')" id="exp2-sw-c21" class="p-3.5 rounded-2xl border-2 text-left transition cursor-pointer flex items-center justify-between gap-2">
+            <div>
+              <p class="font-mono text-xs sm:text-sm font-black">C[2, 1] += 100</p>
+              <p class="text-[11px] opacity-80">Sửa trên VIEW → Đổi A, C, v!</p>
+            </div>
+            <span id="exp2-pill-c21" class="px-2.5 py-1 rounded-full text-[11px] font-black shrink-0"></span>
+          </button>
+        </div>
+
+        <!-- Live Tables Display -->
+        <div id="exp2-live-boards" class="space-y-4">
+          <!-- JS Populated -->
+        </div>
+      </div>
+
+      <!-- EXPERIMENT 3: DIAGONAL OF A.T @ A -->
+      <div class="bg-white rounded-3xl border-2 border-mint-200 p-5 sm:p-6 shadow-xs space-y-5">
+        <div class="pb-4 border-b-2 border-cream-100">
+          <span class="inline-block px-3 py-0.5 rounded-full text-xs font-extrabold bg-mint-50 text-mint-600 mb-1">
+            ⚡ Thí nghiệm 3 (+8 XP)
+          </span>
+          <h2 class="text-lg font-black text-cocoa-800 font-display">
+            Soi đường chéo <code class="font-mono text-mint-600">np.diag(A.T @ A)</code> = Tổng bình phương từng CỘT của A!
+          </h2>
+          <p class="text-xs sm:text-sm text-cocoa-700/80 mt-0.5">
+            Click vào từng cột (Cột 0, Cột 1, Cột 2) của bảng <code class="font-mono font-bold">A = [[1, 3, 5], [20, 4, 106]]</code> để bung phép tính nhẩm siêu tốc!
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <!-- Clickable 3 Columns of A -->
+          <div id="exp3-cols-grid" class="lg:col-span-6 grid grid-cols-3 gap-3">
+            <!-- JS Populated -->
+          </div>
+
+          <!-- Formula Inspector -->
+          <div id="exp3-inspector" class="lg:col-span-6 bg-cocoa-900 text-cream-50 rounded-3xl p-5 space-y-3 shadow-sm">
+            <!-- JS Populated -->
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 4: MẸO 15 GIÂY & MINI-QUIZ (+30 XP)                             -->
+    <!-- =================================================================== -->
+    <section id="tab-panel-4" class="tab-panel hidden space-y-8">
+      <!-- 15-Second Strategy -->
+      <div class="bg-white rounded-3xl border-2 border-cream-200 p-5 sm:p-6 shadow-xs">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+          <div>
+            <span class="inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-xs font-extrabold bg-blush-100 text-blush-600 mb-1">
+              ⚡ Chiến thuật khoanh 15 giây
+            </span>
+            <h2 class="text-lg sm:text-xl font-black text-cocoa-800 font-display">
+              Không cần nhân ma trận! Loại sạch A → C → B trong 3 bước để chốt ngay Đáp án D!
+            </h2>
+          </div>
+          <button onclick="toggleExamHints()" class="px-4 py-2 rounded-2xl bg-sunny-100 hover:bg-sunny-200 text-cocoa-800 text-xs font-extrabold border-2 border-sunny-200 border-b-4 transition cursor-pointer self-start sm:self-auto">
+            👁️ Ẩn/Hiện đánh dấu sai
+          </button>
+        </div>
+
+        <!-- 3-Step Elimination Checklist -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+          <div class="p-4 rounded-2xl bg-coral-50 border-2 border-coral-200">
+            <p class="text-xs font-black text-coral-500">Bước 1 (4s): Nhớ flatten() LUÔN là Copy</p>
+            <p class="text-xs text-cocoa-800 mt-1"><code class="font-mono">w = A.flatten(...)</code> là bản sao độc lập → <code class="font-mono">w.sum()</code> giữ nguyên <code class="font-mono font-bold">1+2+3+4+5+6 = 21</code> → <strong>Loại ngay A (139)!</strong></p>
+          </div>
+          <div class="p-4 rounded-2xl bg-sunny-100/80 border-2 border-sunny-200">
+            <p class="text-xs font-black text-cocoa-800">Bước 2 (5s): Nhớ ravel(order="F") là View</p>
+            <p class="text-xs text-cocoa-800 mt-1"><code class="font-mono">v[1] = 20</code> đổi trực tiếp số <code class="font-mono">2</code> trong <code class="font-mono">A</code> thành <strong>20</strong> → <strong>Loại ngay C (vẫn còn số 2)!</strong></p>
+          </div>
+          <div class="p-4 rounded-2xl bg-mint-50 border-2 border-mint-200">
+            <p class="text-xs font-black text-mint-600">Bước 3 (6s): Nhớ C = reshape(..., order="F") là View</p>
+            <p class="text-xs text-cocoa-800 mt-1"><code class="font-mono">C[2, 1] += 100</code> đổi số <code class="font-mono">6</code> trong <code class="font-mono">A</code> thành <strong>106</strong> → <strong>Loại ngay B (vẫn còn số 6) → CHỐT D!</strong></p>
+          </div>
+        </div>
+
+        <!-- 4 Options Comparison Table / Cards -->
+        <div class="space-y-3.5">
+          <!-- Option A -->
+          <div class="rounded-2xl border-2 border-cream-200 bg-cream-50 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-cream-200 text-cocoa-900 font-black text-sm flex items-center justify-center">A</span>
+                <span class="text-sm font-extrabold text-cocoa-800">Phương án A</span>
+              </div>
+              <span class="exam-hint px-3 py-1 rounded-full text-xs font-extrabold bg-coral-50 text-coral-500 border border-coral-200">
+                ❌ LOẠI (Nhầm flatten() là View nên w.sum() bị tăng thành 139!)
+              </span>
+            </div>
+            <pre class="bg-white rounded-xl p-3 border border-cream-200 text-[11px] sm:text-xs font-mono text-cocoa-800 overflow-x-auto">[[1, 3, 5], [20, 4, 106]] [401, 25, 11261] 15 <span class="bg-coral-200 text-red-900 font-bold px-1 rounded">139</span></pre>
+          </div>
+
+          <!-- Option B -->
+          <div class="rounded-2xl border-2 border-cream-200 bg-cream-50 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-cream-200 text-cocoa-900 font-black text-sm flex items-center justify-center">B</span>
+                <span class="text-sm font-extrabold text-cocoa-800">Phương án B</span>
+              </div>
+              <span class="exam-hint px-3 py-1 rounded-full text-xs font-extrabold bg-coral-50 text-coral-500 border border-coral-200">
+                ❌ LOẠI (Nhầm C là Copy nên A vẫn còn số 6 và diag còn 61!)
+              </span>
+            </div>
+            <pre class="bg-white rounded-xl p-3 border border-cream-200 text-[11px] sm:text-xs font-mono text-cocoa-800 overflow-x-auto">[[1, 3, 5], [20, 4, <span class="bg-coral-200 text-red-900 font-bold px-1 rounded">6</span>]] [401, 25, <span class="bg-coral-200 text-red-900 font-bold px-1 rounded">61</span>] 15 21</pre>
+          </div>
+
+          <!-- Option C -->
+          <div class="rounded-2xl border-2 border-cream-200 bg-cream-50 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-cream-200 text-cocoa-900 font-black text-sm flex items-center justify-center">C</span>
+                <span class="text-sm font-extrabold text-cocoa-800">Phương án C</span>
+              </div>
+              <span class="exam-hint px-3 py-1 rounded-full text-xs font-extrabold bg-coral-50 text-coral-500 border border-coral-200">
+                ❌ LOẠI (Nhầm v = ravel(order="F") là Copy nên A vẫn còn số 2 và diag còn 5!)
+              </span>
+            </div>
+            <pre class="bg-white rounded-xl p-3 border border-cream-200 text-[11px] sm:text-xs font-mono text-cocoa-800 overflow-x-auto">[[1, 3, 5], [<span class="bg-coral-200 text-red-900 font-bold px-1 rounded">2</span>, 4, 106]] [<span class="bg-coral-200 text-red-900 font-bold px-1 rounded">5</span>, 25, 11261] 15 21</pre>
+          </div>
+
+          <!-- Option D (CORRECT) -->
+          <div class="rounded-2xl border-2 border-mint-500 bg-mint-50 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-mint-500 text-white font-black text-sm flex items-center justify-center border-b-2 border-mint-600">D</span>
+                <span class="text-sm font-black text-mint-600">Phương án D</span>
+              </div>
+              <span class="exam-hint px-3 py-1 rounded-full text-xs font-extrabold bg-mint-500 text-white">
+                ✅ ĐÁP ÁN ĐÚNG 100%
+              </span>
+            </div>
+            <pre class="bg-white rounded-xl p-3 border-2 border-mint-200 text-[11px] sm:text-xs font-mono text-cocoa-900 overflow-x-auto"><span class="bg-mint-50 text-mint-600 font-bold px-1 rounded">[[1, 3, 5], [20, 4, 106]]</span> <span class="bg-mint-50 text-mint-600 font-bold px-1 rounded">[401, 25, 11261]</span> <span class="bg-mint-50 text-mint-600 font-bold px-1 rounded">15</span> <span class="bg-mint-50 text-mint-600 font-bold px-1 rounded">21</span></pre>
+            <p class="exam-hint text-xs text-mint-600 mt-2 font-semibold">
+              🎯 <strong>Chuẩn cả 4 tiêu chí:</strong> <code class="font-mono">v</code> và <code class="font-mono">C</code> là View nên A có <code class="font-mono">20</code> và <code class="font-mono">106</code>; <code class="font-mono">diag(M) = [401, 25, 11261]</code>; <code class="font-mono">B.sum() = 15</code>; <code class="font-mono">w.sum() = 21</code>!
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mini-Quiz (4 Questions, +30 XP) -->
+      <div class="bg-white rounded-3xl border-2 border-cream-200 p-5 sm:p-6 shadow-xs">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-5 border-b-2 border-cream-100">
+          <div>
+            <span class="inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-xs font-extrabold bg-mint-50 text-mint-600 mb-1">
+              🎯 Mini-Quiz 4 câu (+30 XP khi đúng cả 4!)
+            </span>
+            <h3 class="text-lg font-black text-cocoa-800 font-display">
+              Chinh phục 4 câu hỏi chốt hạ để cán mốc 100 XP nhận pháo hoa chúc mừng!
+            </h3>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="px-4 py-1.5 rounded-2xl bg-blush-50 border-2 border-blush-200 text-sm font-black text-blush-600">
+              Điểm: <span id="quiz-score">0</span> / 4
+            </div>
+            <button onclick="resetQuiz()" class="px-3.5 py-1.5 rounded-2xl bg-sunny-100 hover:bg-sunny-200 text-cocoa-800 text-xs font-extrabold border-2 border-sunny-200 border-b-4 transition cursor-pointer">
+              🔄 Làm lại
+            </button>
+          </div>
+        </div>
+
+        <div id="quiz-container" class="space-y-5">
+          <!-- JS Populated -->
+        </div>
+
+        <!-- 100 XP Celebration Banner -->
+        <div id="xp-win-banner" class="hidden mt-6 p-6 rounded-3xl bg-gradient-to-r from-sunny-400 via-blush-400 to-mint-500 text-white text-center shadow-md border-b-4 border-cocoa-800/20">
+          <p class="text-3xl mb-2">🌸⭐🦋🏆🦋⭐🌸</p>
+          <p class="text-lg sm:text-xl font-black font-display">XUẤT SẮC! BẠN ĐÃ ĐẠT 100 / 100 XP!</p>
+          <p class="text-xs sm:text-sm text-white/95 mt-1 font-semibold">
+            Bé Mochi tự hào về bạn! Bí kíp Câu 08 đã thuộc lòng: <strong>A, C, v chung bộ nhớ (View) • B, w là Copy • diag(A.T @ A) = tổng bình phương từng cột → Chốt D!</strong>
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t-2 border-cream-200 py-4 mt-8">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 text-center text-xs text-cocoa-500 font-semibold">
+      Ôn thi Câu 08: Reshape Kiểu MATLAB &amp; Chia Sẻ Bộ Nhớ • Giao diện Gamified Pastel dành cho Non-tech
+    </div>
+  </footer>
+
+  <!-- Complete Application JavaScript -->
+  <script>
+    // =========================================================================
+    // 0. GAMIFIED XP ENGINE (0 -> 100 XP) + MASCOT SPEECH + PARTICLE CELEBRATION
+    // =========================================================================
+    // Exact XP Budget:
+    // - Tab 1 (+20 XP): Visit Tab 1 (10 XP) + Flip any flashcard (10 XP)
+    // - Tab 2 (+25 XP): Visit Tab 2 (10 XP) + Click/step >= 3 lines (15 XP)
+    // - Tab 3 (+25 XP): Exp 1 (8 XP) + Exp 2 (9 XP) + Exp 3 (8 XP) = 25 XP
+    // - Tab 4 (+30 XP): 4 Quiz questions -> [0, 8, 15, 23, 30]
+    // Total = 100 XP
+    const xpState = {
+      tab1Visited: true,
+      vocabFlipped: false,
+      tab2Visited: false,
+      tab2SteppedCount: 0,
+      exp1Done: false,
+      exp2Done: false,
+      exp3Done: false,
+      quizCorrectCount: 0,
+      celebrated: false,
+    };
+
+    const quizXpTable = [0, 8, 15, 23, 30];
+
+    const mascotQuotes = {
+      '1': 'Chào bạn! Câu 08 nhìn dài nhưng siêu dễ ăn điểm: chỉ cần nhớ <strong>A, C, v dùng chung 1 dải bộ nhớ</strong>, còn <strong>B và w là bản photo riêng</strong> là khoanh D trong 15 giây!',
+      '2': 'Ở Tab 2 này, bạn hãy bấm nút <strong>"Dòng tiếp theo →"</strong> và để ý dải bộ nhớ <code class="font-mono">[1, 2, 3, 4, 5, 6]</code> phía trên sáng đèn đổi số nhé!',
+      '3': 'Hoan hô! Hãy tự tay bật/tắt 3 công tắc ở Thí nghiệm 2 để tận mắt thấy <strong>A, C, v</strong> nối dây chung nhau còn <strong>B, w</strong> đứng im độc lập nha!',
+      '4': 'Chặng cuối rồi! Nhớ 3 bước loại nhanh A → C → B rồi làm 4 câu Mini-Quiz để chạm mốc <strong>100 XP</strong> nhận pháo hoa chúc mừng từ Mochi nhé!'
+    };
+
+    function launchCelebration() {
+      const layer = document.getElementById('celebration-layer');
+      if (!layer) return;
+      const icons = ['🌸', '⭐', '🦋', '✨', '🌼', '🎉', '💖'];
+      for (let i = 0; i < 42; i++) {
+        const span = document.createElement('span');
+        span.className = 'celebrate-particle';
+        span.textContent = icons[i % icons.length];
+        span.style.left = `${Math.random() * 96 + 2}vw`;
+        span.style.fontSize = `${Math.random() * 16 + 18}px`;
+        span.style.animationDelay = `${Math.random() * 1.3}s`;
+        span.style.animationDuration = `${Math.random() * 1.6 + 2.4}s`;
+        layer.appendChild(span);
+        setTimeout(() => span.remove(), 4800);
+      }
+    }
+
+    function updateXP() {
+      try {
+        const xp1 = (xpState.tab1Visited ? 10 : 0) + (xpState.vocabFlipped ? 10 : 0);
+        const xp2 = (xpState.tab2Visited ? 10 : 0) + (xpState.tab2SteppedCount >= 3 ? 15 : 0);
+        const xp3 = (xpState.exp1Done ? 8 : 0) + (xpState.exp2Done ? 9 : 0) + (xpState.exp3Done ? 8 : 0);
+        const xp4 = quizXpTable[xpState.quizCorrectCount] || 0;
+        const total = Math.min(100, xp1 + xp2 + xp3 + xp4);
+
+        const valEl = document.getElementById('xp-value');
+        const barEl = document.getElementById('xp-bar');
+        const winBanner = document.getElementById('xp-win-banner');
+
+        if (valEl) valEl.textContent = String(total);
+        if (barEl) barEl.style.width = `${total}%`;
+        if (winBanner) winBanner.classList.toggle('hidden', total < 100);
+
+        if (total === 100 && !xpState.celebrated) {
+          xpState.celebrated = true;
+          launchCelebration();
+          const speech = document.getElementById('mascot-speech');
+          if (speech) {
+            speech.innerHTML = '🎉 <strong>CHÚC MỪNG BẠN ĐẠT 100/100 XP!</strong> Bạn đã làm chủ hoàn toàn Câu 08 — vào phòng thi cứ tự tin khoanh <strong>Đáp án D</strong> nhé!';
+          }
+        }
+      } catch (err) {
+        console.error('XP update error:', err);
+      }
+    }
+
+    // =========================================================================
+    // 1. TAB 1: 8 INTERACTIVE 3D FLASHCARDS
+    // =========================================================================
+    const vocabList = [
+      {
+        term: 'order="F"',
+        phonetic: '/o-đơ ép (Fortran)/',
+        short: 'Xếp dọc từng cột (kiểu MATLAB)',
+        meaning: 'Xếp dữ liệu từ trên xuống dưới hết cột 0 rồi mới sang cột 1, cột 2. Ví dụ [1..6] vào (2,3) thành [[1,3,5], [2,4,6]].',
+        tip: 'F = Fortran / MATLAB = viết dọc từng cột!'
+      },
+      {
+        term: 'order="C"',
+        phonetic: '/o-đơ xi (ngôn ngữ C)/',
+        short: 'Xếp ngang từng hàng (mặc định)',
+        meaning: 'Kiểu mặc định của NumPy: xếp từ trái sang phải hết hàng 0 rồi mới xuống hàng 1. Không ghi order nghĩa là đang dùng order="C".',
+        tip: 'B = A.reshape(3,2) dùng order="C" khác A nên bị ép tạo Copy!'
+      },
+      {
+        term: 'View',
+        phonetic: '/viu/',
+        short: 'Cửa sổ nhìn chung bộ nhớ',
+        meaning: 'Không tạo dữ liệu mới, chỉ nhìn vào cùng 1 dải bộ nhớ gốc (như link Google Docs). Sửa trên View thì bảng gốc đổi theo ngay!',
+        tip: 'Trong Câu 08: C và v là View của A.'
+      },
+      {
+        term: 'Copy',
+        phonetic: '/cóp-pi/',
+        short: 'Bản photocopy độc lập',
+        meaning: 'Tạo một vùng nhớ mới tách biệt hoàn toàn. Sửa thoải mái trên Copy mà bảng gốc không hề bị ảnh hưởng.',
+        tip: 'Trong Câu 08: B và w là Copy độc lập.'
+      },
+      {
+        term: 'ravel()',
+        phonetic: '/ra-vồ/',
+        short: 'Duỗi thẳng 1 hàng (ưu tiên View)',
+        meaning: 'Duỗi mảng nhiều chiều thành 1 chiều. Nếu đúng chiều bộ nhớ (order="F" khớp với A) thì trả về View dùng chung bộ nhớ!',
+        tip: 'Thấy v = A.ravel(order="F") → chắc chắn là View!'
+      },
+      {
+        term: 'flatten()',
+        phonetic: '/phlát-tần/',
+        short: 'Duỗi thẳng 1 hàng (LUÔN là Copy)',
+        meaning: 'Cũng duỗi thành 1 hàng giống ravel(), nhưng LUÔN LUÔN tạo bản sao (Copy) trong mọi trường hợp.',
+        tip: 'Nhớ mẹo: flatten = Copy 100% → w.sum() = 21 (loại ngay A)!'
+      },
+      {
+        term: 'np.diag()',
+        phonetic: '/đai-ác (diagonal)/',
+        short: 'Lấy các số trên đường chéo chính',
+        meaning: 'Trích xuất các phần tử nằm trên đường chéo từ góc trên-trái xuống góc dưới-phải của ma trận vuông.',
+        tip: 'np.diag(A.T @ A) = tổng bình phương từng cột của A!'
+      },
+      {
+        term: '@ vs *',
+        phonetic: '/nhân ma trận vs nhân từng ô/',
+        short: 'Hai phép nhân hoàn toàn khác nhau',
+        meaning: 'Dấu @ là nhân ma trận chuẩn (tạo ra M = A.T @ A). Dấu * là nhân từng ô tương ứng (tạo E = A.T * A.T — chim mồi không in!).',
+        tip: 'Đề hay chèn dòng E = A.T * A.T để đánh lạc hướng, nhớ soi lệnh print!'
+      }
+    ];
+
+    const flippedVocab = new Set();
+    function toggleVocab(idx) {
+      if (flippedVocab.has(idx)) flippedVocab.delete(idx);
+      else flippedVocab.add(idx);
+      xpState.vocabFlipped = true;
+      updateXP();
+      renderVocab();
+    }
+    function flipAllVocab() {
+      if (flippedVocab.size === vocabList.length) flippedVocab.clear();
+      else vocabList.forEach((_, i) => flippedVocab.add(i));
+      xpState.vocabFlipped = true;
+      updateXP();
+      renderVocab();
+    }
+    function renderVocab() {
+      const grid = document.getElementById('vocab-grid');
+      if (!grid) return;
+      grid.innerHTML = vocabList.map((item, idx) => {
+        const isFlipped = flippedVocab.has(idx);
+        return `
+          <div class="flip-card ${isFlipped ? 'is-flipped' : ''}">
+            <button type="button" onclick="toggleVocab(${idx})" class="flip-card-inner w-full text-left cursor-pointer">
+              <!-- Front Face -->
+              <div class="flip-card-face p-4 rounded-2xl border-2 border-cream-200 bg-cream-50 hover:bg-sunny-100/40 border-b-4 border-b-cream-200 flex flex-col justify-between">
+                <div>
+                  <span class="inline-block px-2 py-0.5 rounded-lg text-[10px] font-extrabold bg-blush-100 text-blush-600 mb-2">Thẻ #${idx + 1}</span>
+                  <p class="font-mono text-sm font-black text-cocoa-800 break-words">${item.term}</p>
+                  <p class="text-[11px] italic text-cocoa-500 mt-0.5">${item.phonetic}</p>
+                  <p class="text-xs text-cocoa-700 mt-2 font-bold">${item.short}</p>
+                </div>
+                <span class="text-[11px] font-extrabold text-blush-600">👆 Chạm để lật 3D →</span>
+              </div>
+              <!-- Back Face -->
+              <div class="flip-card-face flip-card-back p-4 rounded-2xl border-2 border-sunny-400 bg-sunny-100 border-b-4 border-b-sunny-500 flex flex-col justify-between">
+                <div class="space-y-1.5">
+                  <p class="font-mono text-xs font-black text-blush-600">${item.term}</p>
+                  <p class="text-xs text-cocoa-800 leading-relaxed font-semibold">${item.meaning}</p>
+                  <p class="text-[11px] bg-white/85 px-2 py-1 rounded-lg border border-sunny-200 text-mint-600 font-extrabold">💡 ${item.tip}</p>
+                </div>
+                <span class="text-[10px] font-bold text-cocoa-500">👆 Chạm để úp lại</span>
+              </div>
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // =========================================================================
+    // 2. TAB 2: LINE-BY-LINE CODE EXPLANATION + LIVE MEMORY STATE
+    // =========================================================================
+    const codeSteps = [
+      {
+        lines: '1',
+        code: 'import numpy as np',
+        badge: 'Khởi động',
+        theme: 'neutral',
+        title: 'Mở thư viện tính toán mảng NumPy',
+        everyday: 'Giống như mở phần mềm bảng tính Excel trong Python để thao tác với ma trận.',
+        math: 'Chưa cấp phát dải bộ nhớ nào.',
+        mem: null,
+        boards: {}
+      },
+      {
+        lines: '3',
+        code: 'A = np.arange(1, 7).reshape(2, 3, order="F")',
+        badge: '🖌️ Khởi tạo A (Kiểu F)',
+        theme: 'sunny',
+        title: 'Tạo A (2×3) từ dãy [1, 2, 3, 4, 5, 6] xếp DỌC từng cột kiểu MATLAB',
+        everyday: 'Trong bộ nhớ máy tính, 6 số nằm liên tiếp [1, 2, 3, 4, 5, 6]. Vì chọn order="F", NumPy đổ đầy cột 0 (1, 2), sang cột 1 (3, 4), rồi cột 2 (5, 6)!',
+        math: 'A = [[1, 3, 5], [2, 4, 6]] (liên tục theo thứ tự Fortran).',
+        mem: { vals: [1, 2, 3, 4, 5, 6], hl: [] },
+        boards: { A: [[1, 3, 5], [2, 4, 6]] }
+      },
+      {
+        lines: '4',
+        code: 'B = A.reshape(3, 2)',
+        badge: '📄 B là COPY!',
+        theme: 'mint',
+        title: 'Đổi dáng A sang (3, 2) theo mặc định order="C" → BẮT BUỘC tạo COPY!',
+        everyday: 'Không ghi order nghĩa là mặc định order="C" (đọc ngang từng hàng của A: 1, 3, 5, 2, 4, 6). Vì thứ tự đọc bị lộn xộn so với dải bộ nhớ gốc của A, NumPy phải photo ra bản sao riêng tên B!',
+        math: 'B = [[1, 3], [5, 2], [4, 6]] (Copy độc lập — tách khỏi dải nhớ của A).',
+        mem: { vals: [1, 2, 3, 4, 5, 6], hl: [] },
+        boards: { A: [[1, 3, 5], [2, 4, 6]], B: [[1, 3], [5, 2], [4, 6]], hlB: 'all' }
+      },
+      {
+        lines: '5',
+        code: 'C = A.reshape(3, 2, order="F")',
+        badge: '🔗 C là VIEW!',
+        theme: 'blush',
+        title: 'Đổi dáng A sang (3, 2) cùng kiểu order="F" → Dùng chung bộ nhớ (VIEW)!',
+        everyday: 'C cùng kiểu F với A nên đọc thẳng dải bộ nhớ gốc [1, 2, 3, 4, 5, 6] rồi xếp dọc 3 hàng × 2 cột: cột 0 là [1, 2, 3], cột 1 là [4, 5, 6]. C nối dây trực tiếp với A!',
+        math: 'C = [[1, 4], [2, 5], [3, 6]] (View chung bộ nhớ với A).',
+        mem: { vals: [1, 2, 3, 4, 5, 6], hl: [] },
+        boards: { A: [[1, 3, 5], [2, 4, 6]], B: [[1, 3], [5, 2], [4, 6]], C: [[1, 4], [2, 5], [3, 6]], hlC: 'all' }
+      },
+      {
+        lines: '6',
+        code: 'v = A.ravel(order="F")',
+        badge: '🔗 v là VIEW!',
+        theme: 'blush',
+        title: 'Duỗi phẳng A bằng ravel(order="F") → Tạo VIEW dùng chung bộ nhớ!',
+        everyday: 'ravel() tiết kiệm bộ nhớ: thấy A đang xếp sẵn theo kiểu F nên nó trỏ thẳng vào dải [1, 2, 3, 4, 5, 6] của A luôn!',
+        math: 'v = [1, 2, 3, 4, 5, 6] (View chung bộ nhớ với A và C).',
+        mem: { vals: [1, 2, 3, 4, 5, 6], hl: [] },
+        boards: { A: [[1, 3, 5], [2, 4, 6]], B: [[1, 3], [5, 2], [4, 6]], C: [[1, 4], [2, 5], [3, 6]], v: [1, 2, 3, 4, 5, 6], hlV: 'all' }
+      },
+      {
+        lines: '7',
+        code: 'w = A.flatten(order="F")',
+        badge: '📄 w là COPY!',
+        theme: 'mint',
+        title: 'Duỗi phẳng A bằng flatten(order="F") → LUÔN LUÔN tạo bản sao (COPY)!',
+        everyday: 'Khác với ravel(), hàm flatten() luôn tạo một tờ giấy photocopy mới. Do đó w hoàn toàn tách biệt với dải bộ nhớ gốc!',
+        math: 'w = [1, 2, 3, 4, 5, 6] (Copy độc lập → w.sum() sẽ mãi mãi là 21!).',
+        mem: { vals: [1, 2, 3, 4, 5, 6], hl: [] },
+        boards: { A: [[1, 3, 5], [2, 4, 6]], B: [[1, 3], [5, 2], [4, 6]], C: [[1, 4], [2, 5], [3, 6]], v: [1, 2, 3, 4, 5, 6], w: [1, 2, 3, 4, 5, 6], hlW: 'all' }
+      },
+      {
+        lines: '9',
+        code: 'v[1] = 20',
+        badge: '💥 BẪY 1: Sửa v → A & C đổi!',
+        theme: 'blush',
+        title: 'Sửa phần tử v[1] từ 2 thành 20 → Cả A, C và v cùng đổi thành 20!',
+        everyday: 'Vì v là View dùng chung dải nhớ, khi đổi ô số 1 thành 20, dải nhớ gốc lập tức biến thành [1, 20, 3, 4, 5, 6]. A và C cùng nhìn vào đó nên cũng đổi theo! (Loại ngay Đáp án C!).',
+        math: 'Dải nhớ gốc: [1, 20, 3, 4, 5, 6] → A[1,0] = 20, C[1,0] = 20. Riêng B và w vẫn giữ số 2!',
+        mem: { vals: [1, 20, 3, 4, 5, 6], hl: [1] },
+        boards: { A: [[1, 3, 5], [20, 4, 6]], B: [[1, 3], [5, 2], [4, 6]], C: [[1, 4], [20, 5], [3, 6]], v: [1, 20, 3, 4, 5, 6], w: [1, 2, 3, 4, 5, 6], hlA: ['1,0'], hlC: ['1,0'], hlV: [1] }
+      },
+      {
+        lines: '10',
+        code: 'B[0, 1] = -3',
+        badge: '📄 An toàn: Chỉ B đổi!',
+        theme: 'mint',
+        title: 'Sửa ô B[0, 1] từ 3 thành -3 → Chỉ mình B đổi, A đứng yên!',
+        everyday: 'Vì B là bản Copy độc lập, việc đổi số 3 thành -3 chỉ xảy ra trên tờ giấy của B. Tổng của B giảm từ 21 xuống còn 21 − 6 = 15!',
+        math: 'B = [[1, -3], [5, 2], [4, 6]] → B.sum() = 1 + (-3) + 5 + 2 + 4 + 6 = 15.',
+        mem: { vals: [1, 20, 3, 4, 5, 6], hl: [] },
+        boards: { A: [[1, 3, 5], [20, 4, 6]], B: [[1, -3], [5, 2], [4, 6]], C: [[1, 4], [20, 5], [3, 6]], v: [1, 20, 3, 4, 5, 6], w: [1, 2, 3, 4, 5, 6], hlB: ['0,1'] }
+      },
+      {
+        lines: '11',
+        code: 'C[2, 1] += 100',
+        badge: '💥 BẪY 2: Sửa C → A & v đổi!',
+        theme: 'blush',
+        title: 'Cộng 100 vào C[2, 1] (ô số 6 → 106) → Cả A, C và v cùng thành 106!',
+        everyday: 'Ô C[2, 1] (hàng 2, cột 1) đang chứa số 6 ở cuối dải nhớ gốc. Cộng 100 thành 106 khiến A[1, 2] và v[5] lập tức biến thành 106! (Loại ngay Đáp án B!).',
+        math: 'Dải nhớ gốc: [1, 20, 3, 4, 5, 106] → A = [[1, 3, 5], [20, 4, 106]]. Riêng w vẫn là [1, 2, 3, 4, 5, 6]!',
+        mem: { vals: [1, 20, 3, 4, 5, 106], hl: [5] },
+        boards: { A: [[1, 3, 5], [20, 4, 106]], B: [[1, -3], [5, 2], [4, 6]], C: [[1, 4], [20, 5], [3, 106]], v: [1, 20, 3, 4, 5, 106], w: [1, 2, 3, 4, 5, 6], hlA: ['1,2'], hlC: ['2,1'], hlV: [5] }
+      },
+      {
+        lines: '13-14',
+        code: 'M = A.T @ A\nE = A.T * A.T',
+        badge: '⚡ Đường chéo M & Chim mồi E',
+        theme: 'sunny',
+        title: 'Tính M = A.T @ A (đường chéo = tổng bình phương từng cột) và chim mồi E',
+        everyday: 'Đường chéo chính của M = A.T @ A lấy bình phương từng cột của A rồi cộng lại. Còn dòng E = A.T * A.T là nhân từng ô, viết ra chỉ để làm nhiễu (cuối bài không in E!).',
+        math: '• Cột 0: 1² + 20² = 401\n• Cột 1: 3² + 4² = 25\n• Cột 2: 5² + 106² = 25 + 11236 = 11261\n⇒ np.diag(M) = [401, 25, 11261].',
+        mem: { vals: [1, 20, 3, 4, 5, 106], hl: [] },
+        boards: { A: [[1, 3, 5], [20, 4, 106]], B: [[1, -3], [5, 2], [4, 6]], C: [[1, 4], [20, 5], [3, 106]], v: [1, 20, 3, 4, 5, 106], w: [1, 2, 3, 4, 5, 6], extra: 'np.diag(M) = [401, 25, 11261]' }
+      },
+      {
+        lines: '16',
+        code: 'print(A.tolist(), np.diag(M).tolist(), B.sum(), w.sum())',
+        badge: '🎯 In Đáp án D',
+        theme: 'mint',
+        title: 'In 4 giá trị cuối cùng — Khớp 100% Phương án D!',
+        everyday: 'In lần lượt: bảng A cuối cùng, đường chéo của M, tổng của B (15) và tổng của w (21). Khớp từng con số với Đáp án D!',
+        math: '[[1, 3, 5], [20, 4, 106]]  [401, 25, 11261]  15  21',
+        mem: { vals: [1, 20, 3, 4, 5, 106], hl: [1, 5] },
+        boards: { A: [[1, 3, 5], [20, 4, 106]], B: [[1, -3], [5, 2], [4, 6]], C: [[1, 4], [20, 5], [3, 106]], v: [1, 20, 3, 4, 5, 106], w: [1, 2, 3, 4, 5, 6], extra: 'B.sum() = 15  |  w.sum() = 21  |  CHỐT D 🎯' }
+      }
+    ];
+
+    let activeStepIdx = 0;
+
+    function switchTab(tabNum) {
+      if (String(tabNum) === '2') xpState.tab2Visited = true;
+      updateXP();
+
+      // Update mascot speech if not yet 100 XP
+      if (!xpState.celebrated) {
+        const speech = document.getElementById('mascot-speech');
+        if (speech && mascotQuotes[String(tabNum)]) {
+          speech.innerHTML = mascotQuotes[String(tabNum)];
+        }
+      }
+
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        const isTarget = btn.getAttribute('data-tab') === String(tabNum);
+        btn.className = isTarget
+          ? 'tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2 bg-blush-400 text-white border-blush-400 border-b-4 border-b-blush-600 shadow-xs'
+          : 'tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2 bg-white text-cocoa-700 border-cream-200 hover:bg-sunny-100/50';
+      });
+      document.querySelectorAll('.tab-panel').forEach((panel) => {
+        panel.classList.toggle('hidden', panel.id !== `tab-panel-${tabNum}`);
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderCodeList() {
+      const container = document.getElementById('code-lines-container');
+      if (!container) return;
+      container.innerHTML = codeSteps.map((step, idx) => {
+        const isActive = idx === activeStepIdx;
+        const activeClass = isActive
+          ? 'bg-blush-400/25 border-l-4 border-sunny-400 text-white'
+          : 'border-l-4 border-transparent text-cream-100/80 hover:bg-cocoa-800';
+        const safeCode = step.code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return `
+          <button type="button" onclick="selectCodeStep(${idx})"
+            class="w-full text-left flex items-start gap-2.5 px-2.5 py-2 rounded-xl transition cursor-pointer ${activeClass}">
+            <span class="w-8 text-right text-sunny-200/60 select-none shrink-0 text-[11px] pt-0.5">${step.lines}</span>
+            <pre class="whitespace-pre font-mono leading-relaxed text-xs">${safeCode}</pre>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function renderMini2D(title, badge, data, cols, hlCells, isView) {
+      if (!data) return '';
+      const gridCols = cols === 3 ? 'grid-cols-3' : 'grid-cols-2';
+      const wrapCls = isView ? 'bg-blush-50/70 border-blush-200' : 'bg-mint-50/70 border-mint-200';
+      const badgeCls = isView ? 'bg-blush-100 text-blush-600' : 'bg-mint-200/60 text-mint-600';
+      const cells = data.map((row, r) =>
+        row.map((val, c) => {
+          const isHl = hlCells === 'all' || (Array.isArray(hlCells) && hlCells.includes(`${r},${c}`));
+          const cCls = isHl
+            ? (isView ? 'bg-blush-500 text-white border-blush-600 font-black scale-105' : 'bg-mint-500 text-white border-mint-600 font-black scale-105')
+            : 'bg-white text-cocoa-900 border-cream-200 font-bold';
+          return `<div class="py-1.5 px-1 rounded-lg border-2 font-mono text-xs text-center transition ${cCls}">${val}</div>`;
+        }).join('')
+      ).join('');
+
+      return `
+        <div class="p-3 rounded-2xl border-2 ${wrapCls}">
+          <div class="flex items-center justify-between gap-1 mb-2">
+            <span class="text-xs font-black text-cocoa-800">${title}</span>
+            <span class="px-1.5 py-0.5 rounded-md text-[9px] font-extrabold ${badgeCls}">${badge}</span>
+          </div>
+          <div class="grid ${gridCols} gap-1">${cells}</div>
+        </div>
+      `;
+    }
+
+    function renderMini1D(title, badge, arr, hlIdx, isView) {
+      if (!arr) return '';
+      const wrapCls = isView ? 'bg-blush-50/70 border-blush-200' : 'bg-mint-50/70 border-mint-200';
+      const badgeCls = isView ? 'bg-blush-100 text-blush-600' : 'bg-mint-200/60 text-mint-600';
+      const cells = arr.map((val, i) => {
+        const isHl = hlIdx === 'all' || (Array.isArray(hlIdx) && hlIdx.includes(i));
+        const cCls = isHl
+          ? (isView ? 'bg-blush-500 text-white border-blush-600 font-black' : 'bg-mint-500 text-white border-mint-600 font-black')
+          : 'bg-white text-cocoa-900 border-cream-200 font-bold';
+        return `<div class="py-1 rounded-lg border-2 font-mono text-xs text-center ${cCls}">${val}</div>`;
+      }).join('');
+      return `
+        <div class="p-2.5 rounded-2xl border-2 ${wrapCls}">
+          <div class="flex items-center justify-between gap-1 mb-1.5">
+            <span class="text-xs font-black text-cocoa-800">${title}</span>
+            <span class="px-1.5 py-0.5 rounded-md text-[9px] font-extrabold ${badgeCls}">${badge}</span>
+          </div>
+          <div class="grid grid-cols-6 gap-1">${cells}</div>
+        </div>
+      `;
+    }
+
+    function renderLineExplanation() {
+      const step = codeSteps[activeStepIdx];
+      document.getElementById('step-counter').textContent = `Bước ${activeStepIdx + 1} / ${codeSteps.length} (Dòng ${step.lines})`;
+      document.getElementById('prev-line-btn').disabled = activeStepIdx === 0;
+      document.getElementById('next-line-btn').disabled = activeStepIdx === codeSteps.length - 1;
+
+      const badgeColor = {
+        blush: 'bg-blush-100 text-blush-600 border-blush-200',
+        sunny: 'bg-sunny-100 text-cocoa-800 border-sunny-200',
+        mint: 'bg-mint-50 text-mint-600 border-mint-200',
+        neutral: 'bg-cream-100 text-cocoa-800 border-cream-200'
+      }[step.theme];
+
+      let memHtml = '';
+      if (step.mem) {
+        memHtml = `
+          <div class="p-3.5 rounded-2xl bg-cocoa-900 text-cream-50 space-y-2">
+            <div class="flex items-center justify-between text-[11px] font-extrabold">
+              <span class="text-sunny-200">🧠 Dải bộ nhớ gốc của A (order="F") — A, C, v cùng nhìn vào đây!</span>
+            </div>
+            <div class="grid grid-cols-6 gap-1.5 font-mono">
+              ${step.mem.vals.map((v, i) => {
+                const isHl = step.mem.hl.includes(i);
+                return `<div class="py-1.5 rounded-xl text-center text-xs font-black border-2 ${isHl ? 'bg-blush-400 text-white border-sunny-400 scale-105' : 'bg-white/10 text-cream-100 border-white/15'}">${v}</div>`;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      const b = step.boards || {};
+      const gridsHtml = (b.A || b.B || b.C)
+        ? `
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            ${renderMini2D('A (2×3)', 'Gốc', b.A, 3, b.hlA, true)}
+            ${renderMini2D('C (3×2)', '🔗 VIEW', b.C, 2, b.hlC, true)}
+            ${renderMini2D('B (3×2)', '📄 COPY', b.B, 2, b.hlB, false)}
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            ${renderMini1D('v (1×6)', '🔗 VIEW', b.v, b.hlV, true)}
+            ${renderMini1D('w (1×6)', '📄 COPY', b.w, b.hlW, false)}
+          </div>
+          ${b.extra ? `<div class="p-3 rounded-2xl bg-mint-50 border-2 border-mint-200 font-mono text-xs font-black text-mint-600 text-center">${b.extra}</div>` : ''}
+        `
+        : `<div class="p-4 rounded-2xl bg-cream-50 border-2 border-dashed border-cream-200 text-center text-xs text-cocoa-500 italic">Bấm "Dòng tiếp theo →" để khởi tạo dải bộ nhớ và 5 bảng A, B, C, v, w!</div>`;
+
+      document.getElementById('line-explanation-content').innerHTML = `
+        <div>
+          <span class="inline-flex items-center px-3 py-0.5 rounded-full text-xs font-extrabold border ${badgeColor} mb-2">
+            ${step.badge}
+          </span>
+          <h3 class="text-base sm:text-lg font-black text-cocoa-800 leading-snug font-display">${step.title}</h3>
+        </div>
+
+        <p class="text-sm text-cocoa-800 leading-relaxed">${step.everyday}</p>
+
+        <div class="p-3.5 rounded-2xl bg-sunny-100/70 border-2 border-sunny-200 text-xs text-cocoa-900 space-y-1">
+          <p class="font-extrabold text-cocoa-800 uppercase tracking-wider text-[11px]">🧮 Ghi chú nhanh:</p>
+          <p class="font-mono leading-relaxed">${step.math.replace(/\n/g, '<br/>')}</p>
+        </div>
+
+        <div class="space-y-3">
+          ${memHtml}
+          ${gridsHtml}
+        </div>
+      `;
+    }
+
+    function selectCodeStep(idx) {
+      if (idx < 0 || idx >= codeSteps.length) return;
+      activeStepIdx = idx;
+      xpState.tab2SteppedCount++;
+      updateXP();
+      renderCodeList();
+      renderLineExplanation();
+    }
+
+    // =========================================================================
+    // 3. TAB 3: 3 INTERACTIVE MEMORY LAB EXPERIMENTS
+    // =========================================================================
+
+    // --- EXP 1: order="F" VS order="C" ---
+    let orderMode = 'F';
+    function setOrderMode(mode, isInit = false) {
+      orderMode = mode;
+      if (!isInit) {
+        xpState.exp1Done = true;
+        updateXP();
+      }
+      renderExp1();
+    }
+
+    function renderExp1() {
+      const fBtn = document.getElementById('ord-f-btn');
+      const cBtn = document.getElementById('ord-c-btn');
+      if (orderMode === 'F') {
+        fBtn.className = 'px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer bg-blush-400 text-white shadow-xs';
+        cBtn.className = 'px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer text-cocoa-700 hover:bg-cream-200';
+      } else {
+        cBtn.className = 'px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer bg-sunny-400 text-cocoa-900 shadow-xs';
+        fBtn.className = 'px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer text-cocoa-700 hover:bg-cream-200';
+      }
+
+      const out = document.getElementById('exp1-order-output');
+      if (orderMode === 'F') {
+        out.innerHTML = `
+          <div class="lg:col-span-5 flex flex-col items-center">
+            <p class="text-xs font-black text-blush-600 mb-2">Dãy nguồn: [1, 2, 3, 4, 5, 6] → Đổ DỌC từng cột ⬇️</p>
+            <div class="grid grid-cols-3 gap-2.5 bg-blush-50 p-4 rounded-3xl border-2 border-blush-200 font-mono">
+              <div class="w-16 h-14 rounded-2xl bg-white border-2 border-blush-400 flex flex-col items-center justify-center"><span class="text-[9px] font-sans font-bold text-blush-600">Bước 1</span><strong class="text-base">1</strong></div>
+              <div class="w-16 h-14 rounded-2xl bg-white border-2 border-sunny-400 flex flex-col items-center justify-center"><span class="text-[9px] font-sans font-bold text-sunny-500">Bước 3</span><strong class="text-base">3</strong></div>
+              <div class="w-16 h-14 rounded-2xl bg-white border-2 border-mint-500 flex flex-col items-center justify-center"><span class="text-[9px] font-sans font-bold text-mint-600">Bước 5</span><strong class="text-base">5</strong></div>
+              <div class="w-16 h-14 rounded-2xl bg-white border-2 border-blush-400 flex flex-col items-center justify-center"><span class="text-[9px] font-sans font-bold text-blush-600">Bước 2 ↓</span><strong class="text-base">2</strong></div>
+              <div class="w-16 h-14 rounded-2xl bg-white border-2 border-sunny-400 flex flex-col items-center justify-center"><span class="text-[9px] font-sans font-bold text-sunny-500">Bước 4 ↓</span><strong class="text-base">4</strong></div>
+              <div class="w-16 h-14 rounded-2xl bg-white border-2 border-mint-500 flex flex-col items-center justify-center"><span class="text-[9px] font-sans font-bold text-mint-600">Bước 6 ↓</span><strong class="text-base">6</strong></div>
+            </div>
+          </div>
+          <div class="lg:col-span-7 p-5 rounded-3xl bg-blush-50/60 border-2 border-blush-200 space-y-2 text-xs sm:text-sm">
+            <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-blush-400 text-white">order="F" (Fortran / MATLAB)</span>
+            <p class="font-bold text-cocoa-800">Kết quả: <code class="font-mono text-blush-600">A = [[1, 3, 5], [2, 4, 6]]</code></p>
+            <p class="text-cocoa-700 leading-relaxed">Điền hết <strong>Cột 0</strong> (1 → 2), sang <strong>Cột 1</strong> (3 → 4), rồi <strong>Cột 2</strong> (5 → 6). Vì bộ nhớ của A nằm dọc kiểu F, nên mọi lệnh reshape/ravel có ghi <code class="font-mono font-bold">order="F"</code> đều dùng chung bộ nhớ (View)!</p>
+          </div>
+        `;
+      } else {
+        out.innerHTML = `
+          <div class="lg:col-span-5 flex flex-col items-center">
+            <p class="text-xs font-black text-cocoa-800 mb-2">Dãy nguồn: [1, 2, 3, 4, 5, 6] → Đổ NGANG từng hàng ➡️</p>
+            <div class="grid grid-cols-3 gap-2.5 bg-sunny-100/60 p-4 rounded-3xl border-2 border-sunny-200 font-mono">
+              <div class="w-16 h-14 rounded-2xl bg-white border-2 border-sunny-400 flex flex-col items-center justify-center"><span class="text-[9px] font-sans font-bold text-cocoa-700">Bước 1</span><strong class="text-base">1</strong></div>
+              <div class="w-16 h-14 rounded-2xl bg-white border-2 border-sunny-400 flex flex-col items-center justify-center"><span class="text-[9px] font-sans font-bold text-cocoa-700">Bước 2 →</span><strong class="text-base">2</strong></div>
+              <div class="w-16 h-14 rounded-2xl bg-white border-2 border-sunny-400 flex flex-col items-center justify-center"><span class="text-[9px] font-sans font-bold text-cocoa-700">Bước 3 →</span><strong class="text-base">3</strong></div>
+              <div class="w-16 h-14 rounded-2xl bg-white border-2 border-mint-500 flex flex-col items-center justify-center"><span class="text-[9px] font-sans font-bold text-mint-600">Bước 4</span><strong class="text-base">4</strong></div>
+              <div class="w-16 h-14 rounded-2xl bg-white border-2 border-mint-500 flex flex-col items-center justify-center"><span class="text-[9px] font-sans font-bold text-mint-600">Bước 5 →</span><strong class="text-base">5</strong></div>
+              <div class="w-16 h-14 rounded-2xl bg-white border-2 border-mint-500 flex flex-col items-center justify-center"><span class="text-[9px] font-sans font-bold text-mint-600">Bước 6 →</span><strong class="text-base">6</strong></div>
+            </div>
+          </div>
+          <div class="lg:col-span-7 p-5 rounded-3xl bg-sunny-100/50 border-2 border-sunny-200 space-y-2 text-xs sm:text-sm">
+            <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-sunny-400 text-cocoa-900">order="C" (Mặc định Python/C)</span>
+            <p class="font-bold text-cocoa-800">Kết quả: <code class="font-mono text-cocoa-900">[[1, 2, 3], [4, 5, 6]]</code></p>
+            <p class="text-cocoa-700 leading-relaxed">Điền hết <strong>Hàng 0</strong> (1 → 2 → 3), rồi xuống <strong>Hàng 1</strong> (4 → 5 → 6). Khi lệnh <code class="font-mono font-bold">B = A.reshape(3, 2)</code> dùng mặc định order="C" trên bảng A (kiểu F), nó phải đọc nhảy cóc nên buộc phải tạo bản sao <strong>Copy</strong>!</p>
+          </div>
+        `;
+      }
+    }
+
+    // --- EXP 2: LIVE VIEW VS COPY SWITCHES ---
+    const exp2Cfg = { v1: false, b01: false, c21: false };
+
+    function toggleExp2(key) {
+      exp2Cfg[key] = !exp2Cfg[key];
+      xpState.exp2Done = true;
+      updateXP();
+      renderExp2();
+    }
+
+    function resetExp2() {
+      exp2Cfg.v1 = false;
+      exp2Cfg.b01 = false;
+      exp2Cfg.c21 = false;
+      renderExp2();
+    }
+
+    function renderExp2() {
+      // Update 3 switch buttons
+      ['v1', 'b01', 'c21'].forEach((k) => {
+        const isOn = exp2Cfg[k];
+        const btn = document.getElementById(`exp2-sw-${k}`);
+        const pill = document.getElementById(`exp2-pill-${k}`);
+        if (btn && pill) {
+          const isCopy = k === 'b01';
+          btn.className = isOn
+            ? (isCopy
+                ? 'p-3.5 rounded-2xl border-2 text-left transition cursor-pointer flex items-center justify-between gap-2 bg-mint-50 border-mint-500 text-cocoa-900 shadow-xs'
+                : 'p-3.5 rounded-2xl border-2 text-left transition cursor-pointer flex items-center justify-between gap-2 bg-blush-100 border-blush-500 text-cocoa-900 shadow-xs')
+            : 'p-3.5 rounded-2xl border-2 text-left transition cursor-pointer flex items-center justify-between gap-2 bg-cream-50 border-cream-200 text-cocoa-700 hover:bg-cream-100';
+          pill.className = isOn
+            ? (isCopy ? 'px-2.5 py-1 rounded-full text-[11px] font-black shrink-0 bg-mint-500 text-white' : 'px-2.5 py-1 rounded-full text-[11px] font-black shrink-0 bg-blush-500 text-white')
+            : 'px-2.5 py-1 rounded-full text-[11px] font-black shrink-0 bg-cream-200 text-cocoa-700';
+          pill.textContent = isOn ? 'ĐANG BẬT' : 'TẮT';
+        }
+      });
+
+      const n1 = exp2Cfg.v1 ? 20 : 2;
+      const n5 = exp2Cfg.c21 ? 106 : 6;
+      const b01Val = exp2Cfg.b01 ? -3 : 3;
+
+      const sharedMem = [1, n1, 3, 4, 5, n5];
+      const A = [[1, 3, 5], [n1, 4, n5]];
+      const C = [[1, 4], [n1, 5], [3, n5]];
+      const v = [...sharedMem];
+      const B = [[1, b01Val], [5, 2], [4, 6]];
+      const w = [1, 2, 3, 4, 5, 6];
+
+      const bSum = 1 + b01Val + 5 + 2 + 4 + 6;
+      const wSum = 21;
+
+      const hlA = [];
+      const hlC = [];
+      const hlV = [];
+      if (exp2Cfg.v1) { hlA.push('1,0'); hlC.push('1,0'); hlV.push(1); }
+      if (exp2Cfg.c21) { hlA.push('1,2'); hlC.push('2,1'); hlV.push(5); }
+      const hlB = exp2Cfg.b01 ? ['0,1'] : [];
+
+      document.getElementById('exp2-live-boards').innerHTML = `
+        <div class="p-3.5 rounded-2xl bg-cocoa-900 text-cream-50">
+          <p class="text-[11px] font-extrabold text-sunny-200 mb-2">🧠 Dải bộ nhớ chung (A, C, v cùng nối dây vào đây):</p>
+          <div class="grid grid-cols-6 gap-2 font-mono">
+            ${sharedMem.map((val, idx) => {
+              const isChanged = (idx === 1 && exp2Cfg.v1) || (idx === 5 && exp2Cfg.c21);
+              return `<div class="py-1.5 rounded-xl text-center text-xs sm:text-sm font-black border-2 ${isChanged ? 'bg-blush-400 text-white border-sunny-400' : 'bg-white/10 text-cream-100 border-white/15'}">${val}</div>`;
+            }).join('')}
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          ${renderMini2D('A (2×3)', 'Gốc', A, 3, hlA, true)}
+          ${renderMini2D('C (3×2)', '🔗 VIEW', C, 2, hlC, true)}
+          ${renderMini2D('B (3×2)', '📄 COPY', B, 2, hlB, false)}
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          ${renderMini1D('v (1×6)', '🔗 VIEW', v, hlV, true)}
+          ${renderMini1D('w (1×6)', '📄 COPY', w, [], false)}
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 font-mono text-xs sm:text-sm">
+          <div class="p-3 rounded-2xl bg-mint-50 border-2 border-mint-200 flex items-center justify-between">
+            <span class="font-sans font-extrabold text-cocoa-800">Tổng B.sum():</span>
+            <strong class="text-mint-600 text-base">${bSum}</strong>
+          </div>
+          <div class="p-3 rounded-2xl bg-sunny-100/70 border-2 border-sunny-200 flex items-center justify-between">
+            <span class="font-sans font-extrabold text-cocoa-800">Tổng w.sum() (flatten luôn Copy!):</span>
+            <strong class="text-cocoa-900 text-base">${wSum} (Luôn giữ nguyên!)</strong>
+          </div>
+        </div>
+      `;
+    }
+
+    // --- EXP 3: DIAGONAL OF A.T @ A ---
+    const diagCols = [
+      { idx: 0, top: 1, bot: 20, sq1: 1, sq2: 400, total: 401 },
+      { idx: 1, top: 3, bot: 4, sq1: 9, sq2: 16, total: 25 },
+      { idx: 2, top: 5, bot: 106, sq1: 25, sq2: 11236, total: 11261 }
+    ];
+    let selectedDiagCol = 0;
+
+    function selectDiagCol(c, isInit = false) {
+      selectedDiagCol = c;
+      if (!isInit) {
+        xpState.exp3Done = true;
+        updateXP();
+      }
+      renderExp3();
+    }
+
+    function renderExp3() {
+      const grid = document.getElementById('exp3-cols-grid');
+      grid.innerHTML = diagCols.map((col) => {
+        const isSel = col.idx === selectedDiagCol;
+        const wrapCls = isSel
+          ? 'bg-mint-50 border-mint-500 ring-2 ring-mint-200 scale-[1.03]'
+          : 'bg-cream-50 border-cream-200 hover:bg-sunny-100/40';
+        return `
+          <button type="button" onclick="selectDiagCol(${col.idx})"
+            class="p-3 rounded-2xl border-2 flex flex-col items-center gap-2 transition cursor-pointer ${wrapCls}">
+            <span class="text-[11px] font-black ${isSel ? 'text-mint-600' : 'text-cocoa-700'}">Cột ${col.idx} 👆</span>
+            <div class="w-full py-2 rounded-xl bg-white border border-cream-200 font-mono font-black text-sm text-cocoa-900">${col.top}</div>
+            <div class="w-full py-2 rounded-xl bg-white border border-cream-200 font-mono font-black text-sm text-cocoa-900">${col.bot}</div>
+            <span class="text-xs font-extrabold ${isSel ? 'text-mint-600' : 'text-cocoa-500'}">↓ x² + y²</span>
+            <div class="w-full py-1.5 rounded-xl font-mono font-black text-xs ${isSel ? 'bg-mint-500 text-white' : 'bg-sunny-100 text-cocoa-900'}">${col.total}</div>
+          </button>
+        `;
+      }).join('');
+
+      const c = diagCols[selectedDiagCol];
+      document.getElementById('exp3-inspector').innerHTML = `
+        <span class="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-mint-500 text-white">⚡ Mẹo tính phần tử đường chéo #${c.idx}</span>
+        <p class="text-xs text-cream-200">Lấy bình phương từng số trong <strong>Cột ${c.idx}</strong> của bảng A rồi cộng lại:</p>
+        <div class="p-3.5 rounded-2xl bg-white/10 border border-white/15 font-mono text-xs sm:text-sm text-center">
+          ${c.top}² + ${c.bot}² = ${c.sq1} + ${c.sq2} = <strong class="text-sunny-400 text-lg">${c.total}</strong>
+        </div>
+        <p class="text-xs font-mono text-mint-200">⇒ np.diag(A.T @ A) = <strong>[401, 25, 11261]</strong></p>
+      `;
+    }
+
+    // =========================================================================
+    // 4. TAB 4: HINTS TOGGLE & MINI-QUIZ (4 QUESTIONS)
+    // =========================================================================
+    let hintsVisible = true;
+    function toggleExamHints() {
+      hintsVisible = !hintsVisible;
+      document.querySelectorAll('.exam-hint').forEach((el) => {
+        el.classList.toggle('hidden', !hintsVisible);
+      });
+    }
+
+    const quizQuestions = [
+      {
+        id: 0,
+        question: 'Câu 1: Lệnh A = np.arange(1, 7).reshape(2, 3, order="F") tạo ra bảng 2×3 như thế nào?',
+        options: [
+          'A. [[1, 2, 3], [4, 5, 6]] (xếp ngang từng hàng)',
+          'B. [[1, 3, 5], [2, 4, 6]] (xếp dọc từng cột kiểu MATLAB/Fortran)',
+          'C. [[6, 5, 4], [3, 2, 1]] (xếp ngược từ lớn đến nhỏ)',
+          'D. [[1, 4], [2, 5], [3, 6]] (3 hàng × 2 cột)'
+        ],
+        correct: 1,
+        explanation: 'Chính xác! order="F" đổ các số từ trên xuống dưới theo từng cột: cột 0 là [1, 2], cột 1 là [3, 4], cột 2 là [5, 6].'
+      },
+      {
+        id: 1,
+        question: 'Câu 2: Giữa v = A.ravel(order="F") và w = A.flatten(order="F"), phát biểu nào ĐÚNG?',
+        options: [
+          'A. Cả v và w đều là View dùng chung bộ nhớ với A',
+          'B. Cả v và w đều là Copy độc lập với A',
+          'C. v là View (sửa v làm đổi A), còn w = flatten() LUÔN là Copy nên w.sum() vẫn giữ nguyên 21',
+          'D. v là Copy, còn w là View'
+        ],
+        correct: 2,
+        explanation: 'Chuẩn không cần chỉnh! Chỉ cần nhớ flatten() LUÔN là Copy (w.sum() = 21) là bạn loại ngay Phương án A (139) trong 3 giây!'
+      },
+      {
+        id: 2,
+        question: 'Câu 3: Tại sao B = A.reshape(3, 2) lại tạo ra bản sao (Copy), khiến B[0, 1] = -3 không làm thay đổi A?',
+        options: [
+          'A. Vì mọi lệnh reshape trong NumPy đều luôn tạo bản sao Copy',
+          'B. Vì A đang xếp theo thứ tự Fortran (order="F"), còn B dùng mặc định order="C" nên không thể dùng chung bộ nhớ mà phải sao chép',
+          'C. Vì số -3 là số âm nên không ghi vào A được',
+          'D. Vì kích thước (3, 2) có nhiều phần tử hơn (2, 3)'
+        ],
+        correct: 1,
+        explanation: 'Tuyệt vời! Ngược lại, C = A.reshape(3, 2, order="F") giữ đúng kiểu F như A nên C là View và làm đổi số 6 trong A thành 106!'
+      },
+      {
+        id: 3,
+        question: 'Câu 4: Mẹo tính nhẩm siêu nhanh np.diag(A.T @ A) với A = [[1, 3, 5], [20, 4, 106]] là gì?',
+        options: [
+          'A. Cộng tổng từng hàng của A',
+          'B. Tính tổng bình phương từng CỘT của A: [1²+20², 3²+4², 5²+106²] = [401, 25, 11261]',
+          'C. Lấy bình phương từng ô rồi cộng tất cả lại',
+          'D. Nhân cột đầu với cột cuối của A'
+        ],
+        correct: 1,
+        explanation: 'Quá đỉnh! Mẹo tổng bình phương từng cột giúp bạn tính cực nhanh [401, 25, 11261] mà không cần nhân toàn bộ ma trận 3×3!'
+      }
+    ];
+
+    let quizAnswers = {};
+    function answerQuiz(qId, optIdx) {
+      quizAnswers[qId] = optIdx;
+      renderQuiz();
+    }
+    function resetQuiz() {
+      quizAnswers = {};
+      xpState.celebrated = false;
+      renderQuiz();
+    }
+    function renderQuiz() {
+      let score = 0;
+      quizQuestions.forEach((q) => {
+        if (quizAnswers[q.id] === q.correct) score++;
+      });
+      xpState.quizCorrectCount = score;
+      updateXP();
+
+      document.getElementById('quiz-score').textContent = String(score);
+      const container = document.getElementById('quiz-container');
+      if (!container) return;
+
+      container.innerHTML = quizQuestions.map((q) => {
+        const chosen = quizAnswers[q.id];
+        const hasAnswered = chosen !== undefined;
+        const isCorrect = chosen === q.correct;
+
+        const opts = q.options.map((text, idx) => {
+          let cls = 'bg-white border-cream-200 border-b-4 text-cocoa-800 hover:bg-sunny-100/40';
+          if (hasAnswered) {
+            if (idx === q.correct) cls = 'bg-mint-50 border-mint-500 border-b-4 border-b-mint-600 text-emerald-950 font-extrabold';
+            else if (idx === chosen) cls = 'bg-coral-50 border-coral-400 border-b-4 border-b-coral-500 text-red-950 font-extrabold';
+            else cls = 'bg-cream-50 border-cream-100 text-cocoa-500/50';
+          }
+          return `
+            <button type="button" onclick="answerQuiz(${q.id}, ${idx})"
+              class="w-full text-left px-4 py-3 rounded-2xl border-2 text-xs sm:text-sm transition cursor-pointer ${cls}">
+              ${text}
+            </button>
+          `;
+        }).join('');
+
+        const fb = hasAnswered
+          ? `<div class="mt-3 p-3.5 rounded-2xl text-xs sm:text-sm border-2 ${isCorrect ? 'bg-mint-50 border-mint-200 text-emerald-950' : 'bg-coral-50 border-coral-200 text-red-950'}">
+              <strong>${isCorrect ? '✅ Chính xác!' : '❌ Chưa đúng rồi!'}</strong> ${q.explanation}
+            </div>`
+          : '';
+
+        return `
+          <div class="p-4 sm:p-5 rounded-3xl bg-cream-50 border-2 border-cream-200">
+            <p class="text-sm sm:text-base font-black text-cocoa-800 mb-3">${q.question}</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">${opts}</div>
+            ${fb}
+          </div>
+        `;
+      }).join('');
+    }
+
+    // =========================================================================
+    // INITIALIZATION
+    // =========================================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      try {
+        document.querySelectorAll('.tab-btn').forEach((btn) => {
+          btn.addEventListener('click', () => switchTab(btn.getAttribute('data-tab')));
+        });
+        document.getElementById('prev-line-btn').addEventListener('click', () => selectCodeStep(activeStepIdx - 1));
+        document.getElementById('next-line-btn').addEventListener('click', () => selectCodeStep(activeStepIdx + 1));
+
+        switchTab('1');
+        renderVocab();
+        renderCodeList();
+        renderLineExplanation();
+        setOrderMode('F', true);
+        renderExp2();
+        selectDiagCol(0, true);
+        renderQuiz();
+        updateXP();
+      } catch (err) {
+        console.error('Initialization error:', err);
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ôn Thi Câu 07: SGD, Momentum &amp; Gradient Bằng None (Bản Non-tech)</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Nunito, Quicksand & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Nunito:wght@500;600;700;800;900&family=Quicksand:wght@600;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Nunito', 'Quicksand', 'sans-serif'],
+            display: ['Quicksand', 'Nunito', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            cream: {
+              50: '#FFFDF5',
+              100: '#FEF7E5',
+              200: '#F3E5C8',
+            },
+            blush: {
+              50: '#FFF5FA',
+              100: '#FCE7F3',
+              200: '#FBCFE8',
+              400: '#F472B6',
+              500: '#EC4899',
+              600: '#DB2777',
+            },
+            cocoa: {
+              500: '#8E6F6A',
+              700: '#6B4F4B',
+              800: '#533C39',
+              900: '#382725',
+            },
+            peach: {
+              100: '#FEF3C7',
+              200: '#FDE68A',
+              400: '#FBBF24',
+              500: '#D97706',
+            },
+            mint: {
+              50: '#ECFDF5',
+              100: '#D1FAE5',
+              300: '#6EE7B7',
+              500: '#10B981',
+              600: '#059669',
+            },
+            coral: {
+              50: '#FFF1F2',
+              200: '#FECDD3',
+              400: '#FB7185',
+              500: '#E11D48',
+            },
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    @keyframes floatCelebrate {
+      0% {
+        transform: translateY(0) rotate(0deg) scale(0.8);
+        opacity: 0;
+      }
+      15% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-95vh) rotate(360deg) scale(1.25);
+        opacity: 0;
+      }
+    }
+    .celebrate-particle {
+      position: fixed;
+      bottom: -40px;
+      pointer-events: none;
+      z-index: 9999;
+      animation: floatCelebrate 3.4s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="bg-cream-50 text-cocoa-800 font-sans antialiased selection:bg-blush-100 selection:text-cocoa-900 min-h-screen flex flex-col">
+
+  <!-- Particle Celebration Layer (100 XP) -->
+  <div id="celebration-layer" aria-hidden="true"></div>
+
+  <!-- Sticky Gamified Header with XP Bar -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur border-b-2 border-cream-200 shadow-xs">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 sm:py-4 space-y-3">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <!-- Title & Badge -->
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-blush-400 text-white flex items-center justify-center font-black text-xl border-b-4 border-blush-600 shadow-xs shrink-0 font-display">
+            07
+          </div>
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <h1 class="text-lg sm:text-xl font-black text-cocoa-900 tracking-tight font-display">
+                SGD, Momentum &amp; Gradient Bằng None
+              </h1>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-blush-100 text-blush-600 border border-blush-200">
+                Bản Non-tech ✨
+              </span>
+            </div>
+            <p class="text-xs sm:text-sm text-cocoa-500 font-semibold">
+              Lái xe xuống dốc • Quán tính <code class="font-mono text-xs bg-cream-100 px-1.5 py-0.5 rounded-lg text-cocoa-800">momentum</code> • Bẫy <strong class="text-blush-600">None vs 0</strong>
+            </p>
+          </div>
+        </div>
+
+        <!-- Duolingo XP Bar + Target Pill -->
+        <div class="flex items-center gap-3 bg-cream-100 border-2 border-cream-200 rounded-2xl px-3.5 py-2 self-start md:self-auto w-full md:w-auto">
+          <div class="text-xl shrink-0">🌟</div>
+          <div class="flex-1 md:w-44">
+            <div class="flex items-center justify-between text-[11px] font-extrabold mb-1">
+              <span class="text-cocoa-700 uppercase tracking-wide">Tiến độ ôn thi</span>
+              <span class="text-blush-600 font-black"><span id="xp-value">10</span> / 100 XP</span>
+            </div>
+            <div class="w-full h-3 bg-white rounded-full border border-cream-200 overflow-hidden p-0.5">
+              <div
+                id="xp-bar"
+                class="h-full rounded-full bg-gradient-to-r from-peach-400 via-blush-400 to-mint-500 transition-all duration-500"
+                style="width: 10%;"
+              ></div>
+            </div>
+          </div>
+          <div class="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-xl bg-mint-100 border border-mint-300 text-xs font-extrabold text-mint-600 shrink-0">
+            <span>🎯</span>
+            <span>Đáp án B</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4 Main Navigation Tabs -->
+      <nav aria-label="Điều hướng 4 phần học" class="grid grid-cols-2 lg:grid-cols-4 gap-2">
+        <button id="tab-btn-1" data-tab="1" class="tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2">
+          <span>💡</span>
+          <span>1. Bản chất &amp; Từ vựng</span>
+        </button>
+        <button id="tab-btn-2" data-tab="2" class="tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2">
+          <span>🔍</span>
+          <span>2. Từng dòng code</span>
+        </button>
+        <button id="tab-btn-3" data-tab="3" class="tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2">
+          <span>🧪</span>
+          <span>3. Gỡ Bẫy A/B/C/D</span>
+        </button>
+        <button id="tab-btn-4" data-tab="4" class="tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2">
+          <span>⚡</span>
+          <span>4. Mẹo 15s &amp; Quiz</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
+
+    <!-- =================================================================== -->
+    <!-- TAB 1: BẢN CHẤT & TỪ VỰNG (+20 XP)                                  -->
+    <!-- =================================================================== -->
+    <section id="tab-panel-1" class="tab-panel space-y-8">
+      <!-- Warm Hero Banner -->
+      <div class="bg-gradient-to-r from-blush-400 via-rose-400 to-peach-400 text-white rounded-3xl p-6 sm:p-8 border-b-4 border-blush-600/50 shadow-sm">
+        <div class="inline-flex items-center gap-2 bg-white/25 backdrop-blur px-3 py-1 rounded-full text-xs font-extrabold mb-3">
+          <span>📌 Tóm tắt Câu 07 trong 1 câu siêu dễ nhớ</span>
+        </div>
+        <h2 class="text-xl sm:text-2xl font-black leading-snug mb-3 font-display">
+          <code class="bg-white/25 px-1.5 py-0.5 rounded-lg font-mono">p.grad = None</code> là <strong>RÚT CHÌA KHÓA TẮT MÁY</strong> (xe đứng im 100%), còn <code class="bg-white/25 px-1.5 py-0.5 rounded-lg font-mono">p.grad = 0</code> là <strong>NHẢ CHÂN GA NHƯNG VẪN NỔ MÁY</strong> (xe vẫn trôi theo quán tính Momentum + phanh Weight Decay)!
+        </h2>
+        <p class="text-white/95 text-sm sm:text-base leading-relaxed">
+          Đọc 4 câu chuyện lái xe dưới đây và lật các thẻ từ điển để nhận trọn <strong>+20 XP</strong> đầu tiên nhé!
+        </p>
+      </div>
+
+      <!-- 4 Everyday Metaphor Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- 1. SGD (lr=0.1) -->
+        <article class="bg-white rounded-3xl border-2 border-cream-200 p-6 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-cream-100 text-cocoa-800 border border-cream-200">
+                Ẩn dụ 1 • Bước đi nhỏ
+              </span>
+              <span class="text-2xl">🚗</span>
+            </div>
+            <h3 class="text-lg font-black text-cocoa-900 mb-2 font-display">
+              SGD (<code class="font-mono text-blush-600">lr=0.1</code>) = Người lái xe xuống dốc
+            </h3>
+            <p class="text-sm text-cocoa-700 leading-relaxed mb-4">
+              Mục tiêu của xe là chạy xuống thung lũng (lỗi nhỏ nhất). Tham số <code class="font-mono font-bold">lr=0.1</code> (tốc độ học) giống như việc mỗi bước bạn chỉ nhích nhẹ <strong>10% độ dốc</strong> để xe xuống từ từ, không bị lao lố xuống vực.
+            </p>
+            <div class="p-3 rounded-2xl bg-cream-100 border border-cream-200 font-mono text-xs text-cocoa-900 text-center font-bold">
+              p mới = p cũ − 0.1 × đà_chạy (buffer)
+            </div>
+          </div>
+        </article>
+
+        <!-- 2. Momentum (0.5) -->
+        <article class="bg-white rounded-3xl border-2 border-peach-200 p-6 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-peach-100 text-cocoa-900 border border-peach-200">
+                Ẩn dụ 2 • Quán tính
+              </span>
+              <span class="text-2xl">💨</span>
+            </div>
+            <h3 class="text-lg font-black text-cocoa-900 mb-2 font-display">
+              Momentum (<code class="font-mono text-peach-500">0.5</code>) = Quán tính của chiếc xe
+            </h3>
+            <p class="text-sm text-cocoa-700 leading-relaxed mb-4">
+              Khi xe đang lao dốc, dù bạn có nhả chân ga (<code class="font-mono">grad = 0</code>) thì xe vẫn giữ lại <strong>50% đà chạy</strong> từ bước trước (<code class="font-mono font-bold">0.5 × buffer cũ</code>) rồi cộng thêm lực mới!
+            </p>
+            <div class="p-3 rounded-2xl bg-peach-100/70 border border-peach-200 font-mono text-xs text-cocoa-900 text-center font-bold">
+              buffer mới = 0.5 × buffer cũ + lực_hiện_tại
+            </div>
+          </div>
+        </article>
+
+        <!-- 3. Weight Decay (0.2) -->
+        <article class="bg-white rounded-3xl border-2 border-mint-100 p-6 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-mint-100 text-mint-600 border border-mint-300">
+                Ẩn dụ 3 • Lực cản nhẹ
+              </span>
+              <span class="text-2xl">🛞</span>
+            </div>
+            <h3 class="text-lg font-black text-cocoa-900 mb-2 font-display">
+              Weight Decay (<code class="font-mono text-mint-600">0.2</code>) = Lực cản / Phanh nhẹ kéo <code class="font-mono">p</code> nhỏ lại
+            </h3>
+            <p class="text-sm text-cocoa-700 leading-relaxed mb-4">
+              Để trọng số <code class="font-mono">p</code> không bị phình quá to, PyTorch luôn cộng thêm một lực phanh nhẹ bằng <strong>20% giá trị hiện tại của p</strong> (<code class="font-mono font-bold">+ 0.2 × p</code>) vào gradient trước khi tính đà chạy!
+            </p>
+            <div class="p-3 rounded-2xl bg-mint-50 border border-mint-300 font-mono text-xs text-mint-600 text-center font-bold">
+              lực_hiện_tại = p.grad + 0.2 × p
+            </div>
+          </div>
+        </article>
+
+        <!-- 4. Fatal Trap: None vs 0 -->
+        <article class="bg-white rounded-3xl border-2 border-blush-400 p-6 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-blush-100 text-blush-600 border border-blush-200">
+                Ẩn dụ 4 • Cái bẫy tử thần 🚨
+              </span>
+              <span class="text-2xl">🔑</span>
+            </div>
+            <h3 class="text-lg font-black text-cocoa-900 mb-2 font-display">
+              Phân biệt sinh tử: <code class="font-mono text-coral-500">None</code> vs <code class="font-mono text-mint-600">0</code>
+            </h3>
+            <div class="space-y-2.5 text-xs mt-3">
+              <div class="p-3 rounded-2xl bg-coral-50 border-2 border-coral-200">
+                <p class="font-black text-coral-500 mb-1">🔑 p.grad = None (Rút chìa khóa tắt máy)</p>
+                <p class="text-cocoa-800"><code class="font-mono font-bold">opt.step()</code> thấy <code class="font-mono">None</code> là <strong>BỎ QUA LUÔN</strong>! Xe đứng im phăng phắc: cả <code class="font-mono">p</code> và <code class="font-mono">buffer</code> giữ nguyên 100%!</p>
+              </div>
+              <div class="p-3 rounded-2xl bg-mint-50 border-2 border-mint-300">
+                <p class="font-black text-mint-600 mb-1">🦶 p.grad = 0 (Nhả ga nhưng vẫn nổ máy)</p>
+                <p class="text-cocoa-800"><code class="font-mono font-bold">opt.step()</code> <strong>VẪN CHẠY BÌNH THƯỜNG</strong>! Xe vừa trôi theo <strong>Momentum (0.5 × buffer cũ)</strong> vừa bị phanh <strong>Weight Decay (0.2 × p)</strong>!</p>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <!-- 8 Interactive Flashcards -->
+      <div class="bg-white rounded-3xl border-2 border-cream-200 p-5 sm:p-6 shadow-xs">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+          <div>
+            <span class="inline-block px-3 py-0.5 rounded-full text-xs font-extrabold bg-peach-100 text-cocoa-900 mb-1">
+              📖 Từ điển Anh–Việt cho Non-tech (8 thẻ • Lật thẻ để nhận +10 XP!)
+            </span>
+            <h3 class="text-base sm:text-lg font-black text-cocoa-900 font-display">
+              Nhấp vào từng thẻ để xem phiên âm dễ đọc, nghĩa bình dân &amp; ví dụ trong bài!
+            </h3>
+          </div>
+          <button onclick="flipAllVocab()" class="px-3.5 py-2 rounded-xl bg-cream-100 hover:bg-cream-200 text-cocoa-800 text-xs font-extrabold border-2 border-cream-200 border-b-4 transition cursor-pointer self-start sm:self-auto">
+            🔄 Lật tất cả thẻ
+          </button>
+        </div>
+
+        <div id="vocab-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <!-- JS Populated -->
+        </div>
+      </div>
+
+      <!-- CTA to Tab 2 -->
+      <div class="bg-cream-100 rounded-3xl border-2 border-cream-200 p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-2xl bg-peach-200 text-cocoa-900 flex items-center justify-center text-xl border-b-4 border-peach-400 shrink-0">
+            🦉
+          </div>
+          <div>
+            <h4 class="text-sm font-black text-cocoa-900">Đã nắm vững bí kíp "Tắt máy vs Nhả ga"?</h4>
+            <p class="text-xs text-cocoa-500">Sang Tab 2 để click từng dòng code và xem từng con số nhảy qua 3 lượt chạy nhé!</p>
+          </div>
+        </div>
+        <button onclick="switchTab('2')" class="w-full sm:w-auto px-5 py-2.5 rounded-2xl bg-blush-400 hover:bg-blush-500 active:translate-y-0.5 text-white text-sm font-extrabold border-b-4 border-blush-600 transition cursor-pointer">
+          Đi tới Tab 2: Từng dòng code →
+        </button>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 2: TỪNG DÒNG CODE (+25 XP)                                      -->
+    <!-- =================================================================== -->
+    <section id="tab-panel-2" class="tab-panel hidden space-y-5">
+      <div class="bg-white rounded-3xl border-2 border-cream-200 p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="text-base sm:text-lg font-black text-cocoa-900 font-display">Click từng dòng code để xem lời giải thích &amp; Live State trực tiếp</h2>
+          <p class="text-xs sm:text-sm text-cocoa-500">Duyệt qua các dòng code (từ bước khởi tạo → 3 lượt chạy → lệnh print) để nhận trọn <strong>+25 XP</strong>!</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 shrink-0">
+          <span class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-xl bg-peach-100 text-cocoa-900 border border-peach-200">
+            <span class="w-2 h-2 rounded-full bg-peach-400"></span> Lượt 1 (backward)
+          </span>
+          <span class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-xl bg-coral-50 text-coral-500 border border-coral-200">
+            <span class="w-2 h-2 rounded-full bg-coral-400"></span> Lượt 2 (none - đứng im)
+          </span>
+          <span class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-xl bg-mint-100 text-mint-600 border border-mint-300">
+            <span class="w-2 h-2 rounded-full bg-mint-500"></span> Lượt 3 (zero - vẫn chạy!)
+          </span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <!-- Left: Full Code Panel -->
+        <div class="lg:col-span-5 bg-cocoa-900 rounded-3xl shadow-md border-2 border-cocoa-700 overflow-hidden">
+          <div class="flex items-center justify-between px-4 py-3 bg-cocoa-800 border-b border-cocoa-700">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-coral-400"></span>
+              <span class="w-3 h-3 rounded-full bg-peach-400"></span>
+              <span class="w-3 h-3 rounded-full bg-mint-500"></span>
+              <span class="ml-2 text-xs font-mono text-cream-100">cau_07_sgd_momentum.py</span>
+            </div>
+            <span class="text-[11px] font-semibold text-peach-200">Click từng dòng</span>
+          </div>
+          <div id="code-lines-container" class="p-3 overflow-x-auto font-mono text-xs sm:text-[13px] space-y-1">
+            <!-- JS Populated -->
+          </div>
+        </div>
+
+        <!-- Right: Explanation + Live State Dashboard -->
+        <div class="lg:col-span-7 lg:sticky lg:top-40">
+          <div class="bg-white rounded-3xl border-2 border-cream-200 shadow-sm overflow-hidden">
+            <!-- Step Controls -->
+            <div class="flex items-center justify-between px-5 py-3.5 bg-cream-100 border-b-2 border-cream-200">
+              <span id="step-counter" class="text-xs font-black text-cocoa-700 uppercase tracking-wider">
+                Bước 1 / 12
+              </span>
+              <div class="flex items-center gap-2">
+                <button id="prev-line-btn" class="px-3.5 py-1.5 rounded-xl bg-white hover:bg-cream-50 text-cocoa-800 border-2 border-cream-200 border-b-4 text-xs font-extrabold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+                  ← Dòng trước
+                </button>
+                <button id="next-line-btn" class="px-3.5 py-1.5 rounded-xl bg-blush-400 hover:bg-blush-500 text-white border-b-4 border-blush-600 text-xs font-extrabold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+                  Dòng tiếp theo →
+                </button>
+              </div>
+            </div>
+
+            <!-- Dynamic Step Body -->
+            <div id="line-explanation-content" class="p-5 sm:p-6 space-y-5">
+              <!-- JS Populated -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 3: PHÒNG THÍ NGHIỆM GỠ BẪY (+25 XP)                             -->
+    <!-- =================================================================== -->
+    <section id="tab-panel-3" class="tab-panel hidden space-y-8">
+
+      <!-- EXPERIMENT 1: 3-STAGE CAR SIMULATOR -->
+      <div class="bg-white rounded-3xl border-2 border-cream-200 p-5 sm:p-6 shadow-xs space-y-5">
+        <div class="pb-4 border-b-2 border-cream-100">
+          <span class="inline-block px-3 py-0.5 rounded-full text-xs font-extrabold bg-peach-100 text-cocoa-900 mb-1">
+            🚗 Thí nghiệm 1 (+12 XP)
+          </span>
+          <h2 class="text-lg font-black text-cocoa-900 font-display">
+            Mô phỏng 3 chặng chạy vòng lặp: <code class="font-mono text-blush-600">backward</code> → <code class="font-mono text-coral-500">none</code> → <code class="font-mono text-mint-600">zero</code>
+          </h2>
+          <p class="text-xs sm:text-sm text-cocoa-500 mt-0.5">
+            Bấm từng chặng để xem đồng hồ đo quán tính (buffer), vị trí trọng số <code class="font-mono">p</code> và trạng thái động cơ thay đổi ra sao!
+          </p>
+        </div>
+
+        <!-- 3 Stage Buttons -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <button id="stage-btn-0" onclick="setStage(0)" class="stage-btn p-4 rounded-2xl border-2 text-left transition cursor-pointer">
+            <p class="text-[11px] font-extrabold uppercase opacity-80">Chặng 1 • Đạp ga</p>
+            <p class="text-sm font-black mt-0.5">1. mode = "backward"</p>
+            <p class="text-[11px] opacity-80 mt-0.5">p.grad = [1.0, -1.0]</p>
+          </button>
+          <button id="stage-btn-1" onclick="setStage(1)" class="stage-btn p-4 rounded-2xl border-2 text-left transition cursor-pointer">
+            <p class="text-[11px] font-extrabold uppercase opacity-80">Chặng 2 • Tắt máy 🔑</p>
+            <p class="text-sm font-black mt-0.5">2. mode = "none"</p>
+            <p class="text-[11px] opacity-80 mt-0.5">p.grad = None → BỎ QUA!</p>
+          </button>
+          <button id="stage-btn-2" onclick="setStage(2)" class="stage-btn p-4 rounded-2xl border-2 text-left transition cursor-pointer">
+            <p class="text-[11px] font-extrabold uppercase opacity-80">Chặng 3 • Nhả ga 🦶</p>
+            <p class="text-sm font-black mt-0.5">3. mode = "zero"</p>
+            <p class="text-[11px] opacity-80 mt-0.5">p.grad = [0.0, 0.0] → VẪN TRÔI!</p>
+          </button>
+        </div>
+
+        <!-- Dynamic Dashboard for Selected Stage -->
+        <div id="sim1-dashboard" class="space-y-4">
+          <!-- JS Populated -->
+        </div>
+      </div>
+
+      <!-- EXPERIMENT 2: TRAP GENERATOR MACHINE (A, B, C, D) -->
+      <div class="bg-white rounded-3xl border-2 border-blush-200 p-5 sm:p-6 shadow-xs space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b-2 border-cream-100">
+          <div>
+            <span class="inline-block px-3 py-0.5 rounded-full text-xs font-extrabold bg-blush-100 text-blush-600 mb-1">
+              🎛️ Thí nghiệm 2 (+13 XP)
+            </span>
+            <h2 class="text-lg font-black text-cocoa-900 font-display">
+              "Máy tạo bẫy A, B, C, D" — Tự gạt 3 công tắc xem đáp án nhảy ra sao!
+            </h2>
+            <p class="text-xs sm:text-sm text-cocoa-500 mt-0.5">
+              Thử tắt từng công tắc bên dưới để tự tay tái hiện đúng 100% các đáp án nhiễu A, C, D của đề thi!
+            </p>
+          </div>
+          <button onclick="resetTrapMachine()" class="px-3.5 py-2 rounded-xl bg-mint-100 hover:bg-mint-300/60 text-mint-600 border-2 border-mint-300 text-xs font-extrabold transition cursor-pointer self-start sm:self-auto">
+            ✅ Về chuẩn PyTorch (Đáp án B)
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <!-- 3 Interactive Switches -->
+          <div class="lg:col-span-6 space-y-3">
+            <!-- Switch 1 -->
+            <button type="button" onclick="toggleTrapSwitch('skipNone')" id="sw-skipNone"
+              class="w-full p-4 rounded-2xl border-2 text-left transition cursor-pointer flex items-center justify-between gap-3">
+              <div>
+                <p class="text-xs sm:text-sm font-black">1. Bỏ qua khi <code class="font-mono">grad</code> là <code class="font-mono">None</code>?</p>
+                <p class="text-[11px] opacity-80 mt-0.5">Chuẩn: <strong>BẬT</strong> • Nếu TẮT → tạo ngay <strong>Bẫy A</strong>!</p>
+              </div>
+              <span id="sw-skipNone-pill" class="px-3 py-1 rounded-full text-xs font-black shrink-0"></span>
+            </button>
+
+            <!-- Switch 2 -->
+            <button type="button" onclick="toggleTrapSwitch('useWD')" id="sw-useWD"
+              class="w-full p-4 rounded-2xl border-2 text-left transition cursor-pointer flex items-center justify-between gap-3">
+              <div>
+                <p class="text-xs sm:text-sm font-black">2. Kích hoạt Weight Decay (0.2) ở bước <code class="font-mono">zero</code>?</p>
+                <p class="text-[11px] opacity-80 mt-0.5">Chuẩn: <strong>BẬT</strong> • Nếu TẮT → tạo ngay <strong>Bẫy C</strong>!</p>
+              </div>
+              <span id="sw-useWD-pill" class="px-3 py-1 rounded-full text-xs font-black shrink-0"></span>
+            </button>
+
+            <!-- Switch 3 -->
+            <button type="button" onclick="toggleTrapSwitch('useMom')" id="sw-useMom"
+              class="w-full p-4 rounded-2xl border-2 text-left transition cursor-pointer flex items-center justify-between gap-3">
+              <div>
+                <p class="text-xs sm:text-sm font-black">3. Giữ Momentum (0.5) ở bước <code class="font-mono">zero</code>?</p>
+                <p class="text-[11px] opacity-80 mt-0.5">Chuẩn: <strong>BẬT</strong> • Nếu TẮT → tạo ngay <strong>Bẫy D</strong>!</p>
+              </div>
+              <span id="sw-useMom-pill" class="px-3 py-1 rounded-full text-xs font-black shrink-0"></span>
+            </button>
+          </div>
+
+          <!-- Live Result Screen -->
+          <div id="trap-result-screen" class="lg:col-span-6 rounded-3xl border-2 p-5 space-y-4 transition-all">
+            <!-- JS Populated -->
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 4: MẸO 15 GIÂY & MINI-QUIZ (+30 XP)                             -->
+    <!-- =================================================================== -->
+    <section id="tab-panel-4" class="tab-panel hidden space-y-8">
+      <!-- 15-Second Strategy -->
+      <div class="bg-white rounded-3xl border-2 border-cream-200 p-5 sm:p-6 shadow-xs">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+          <div>
+            <span class="inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-xs font-extrabold bg-blush-100 text-blush-600 mb-1">
+              ⚡ Chiến thuật phòng thi 15 giây
+            </span>
+            <h2 class="text-lg sm:text-xl font-black text-cocoa-900 font-display">
+              Chỉ cần tính nhẩm đúng 1 con số <code class="font-mono text-mint-600">buffer = 0.776</code> là khoanh ngay Đáp án B!
+            </h2>
+          </div>
+          <button onclick="toggleExamHints()" class="px-4 py-2 rounded-2xl bg-cream-100 hover:bg-cream-200 text-cocoa-800 text-xs font-extrabold border-2 border-cream-200 border-b-4 transition cursor-pointer self-start sm:self-auto">
+            👁️ Ẩn/Hiện đánh dấu sai
+          </button>
+        </div>
+
+        <!-- 3-Step Speed Math -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+          <div class="p-4 rounded-2xl bg-peach-100/70 border-2 border-peach-200">
+            <p class="text-xs font-black text-cocoa-900">Bước 1 (5s): Nhẩm lượt "backward"</p>
+            <p class="text-xs text-cocoa-800 mt-1 font-mono">g = 1 + 0.2×1 = <strong>1.2</strong> → buf = <strong>1.2</strong><br/>p = 1 − 0.1×1.2 = <strong>0.88</strong></p>
+          </div>
+          <div class="p-4 rounded-2xl bg-coral-50 border-2 border-coral-200">
+            <p class="text-xs font-black text-coral-500">Bước 2 (2s): Gặp lượt "none"</p>
+            <p class="text-xs text-cocoa-800 mt-1">Tắt máy → <strong>BỎ QUA hoàn toàn!</strong><br/>Vẫn giữ nguyên <code class="font-mono font-bold">p = 0.88</code>, <code class="font-mono font-bold">buf = 1.2</code>.</p>
+          </div>
+          <div class="p-4 rounded-2xl bg-mint-50 border-2 border-mint-300">
+            <p class="text-xs font-black text-mint-600">Bước 3 (8s): Nhẩm buffer lượt "zero"</p>
+            <p class="text-xs text-cocoa-800 mt-1 font-mono">buf = 0.5×1.2 + 0.2×0.88<br/>= 0.6 + 0.176 = <strong class="text-mint-600 text-sm">0.776</strong> → <strong>CHỐT B!</strong></p>
+          </div>
+        </div>
+
+        <!-- 4 Options Comparison Cards -->
+        <div class="space-y-3.5">
+          <!-- Option A -->
+          <div class="rounded-2xl border-2 border-cream-200 bg-cream-50/70 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-cream-200 text-cocoa-900 font-black text-sm flex items-center justify-center">A</span>
+                <span class="text-sm font-extrabold text-cocoa-900">Phương án A</span>
+              </div>
+              <span class="exam-hint px-3 py-1 rounded-full text-xs font-extrabold bg-coral-50 text-coral-500 border border-coral-200">
+                ❌ SAI (Tưởng bước "none" vẫn chạy như bước "zero"!)
+              </span>
+            </div>
+            <pre class="bg-white rounded-xl p-3 border border-cream-200 text-[11px] sm:text-xs font-mono text-cocoa-800 overflow-x-auto"><span class="bg-coral-200 text-red-900 font-bold px-1 rounded">[0.7476, -0.7476] [0.5485, -0.5485]</span> [False, True, False]</pre>
+          </div>
+
+          <!-- Option B (CORRECT) -->
+          <div class="rounded-2xl border-2 border-mint-500 bg-mint-50/70 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-mint-500 text-white font-black text-sm flex items-center justify-center border-b-2 border-mint-600">B</span>
+                <span class="text-sm font-black text-mint-600">Phương án B</span>
+              </div>
+              <span class="exam-hint px-3 py-1 rounded-full text-xs font-extrabold bg-mint-500 text-white">
+                ✅ ĐÁP ÁN ĐÚNG 100%
+              </span>
+            </div>
+            <pre class="bg-white rounded-xl p-3 border-2 border-mint-300 text-[11px] sm:text-xs font-mono text-cocoa-900 overflow-x-auto"><span class="bg-mint-100 text-emerald-950 font-bold px-1 rounded">[0.8024, -0.8024] [0.776, -0.776]</span> [False, True, False]</pre>
+            <p class="exam-hint text-xs text-mint-600 mt-2 font-semibold">
+              🎯 <strong>Chuẩn cả 3 quy tắc:</strong> Bỏ qua khi <code class="font-mono">grad is None</code>; bước <code class="font-mono">zero</code> kích hoạt đủ cả Momentum (<code class="font-mono">0.6</code>) + Weight Decay (<code class="font-mono">0.176</code>) = <code class="font-mono">0.776</code>!
+            </p>
+          </div>
+
+          <!-- Option C -->
+          <div class="rounded-2xl border-2 border-cream-200 bg-cream-50/70 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-cream-200 text-cocoa-900 font-black text-sm flex items-center justify-center">C</span>
+                <span class="text-sm font-extrabold text-cocoa-900">Phương án C</span>
+              </div>
+              <span class="exam-hint px-3 py-1 rounded-full text-xs font-extrabold bg-coral-50 text-coral-500 border border-coral-200">
+                ❌ SAI (Quên cộng Weight Decay 0.2×0.88 = 0.176 ở bước zero!)
+              </span>
+            </div>
+            <pre class="bg-white rounded-xl p-3 border border-cream-200 text-[11px] sm:text-xs font-mono text-cocoa-800 overflow-x-auto"><span class="bg-coral-200 text-red-900 font-bold px-1 rounded">[0.82, -0.82] [0.6, -0.6]</span> [False, True, False]</pre>
+          </div>
+
+          <!-- Option D -->
+          <div class="rounded-2xl border-2 border-cream-200 bg-cream-50/70 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-cream-200 text-cocoa-900 font-black text-sm flex items-center justify-center">D</span>
+                <span class="text-sm font-extrabold text-cocoa-900">Phương án D</span>
+              </div>
+              <span class="exam-hint px-3 py-1 rounded-full text-xs font-extrabold bg-coral-50 text-coral-500 border border-coral-200">
+                ❌ SAI (Quên giữ Momentum 0.5×1.2 = 0.6 ở bước zero!)
+              </span>
+            </div>
+            <pre class="bg-white rounded-xl p-3 border border-cream-200 text-[11px] sm:text-xs font-mono text-cocoa-800 overflow-x-auto"><span class="bg-coral-200 text-red-900 font-bold px-1 rounded">[0.8624, -0.8624] [0.176, -0.176]</span> [False, True, False]</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mini-Quiz (4 Questions, +30 XP) -->
+      <div class="bg-white rounded-3xl border-2 border-cream-200 p-5 sm:p-6 shadow-xs">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-5 border-b-2 border-cream-100">
+          <div>
+            <span class="inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-xs font-extrabold bg-mint-100 text-mint-600 mb-1">
+              🎯 Mini-Quiz 4 câu (+30 XP khi đúng cả 4!)
+            </span>
+            <h3 class="text-lg font-black text-cocoa-900 font-display">
+              Chinh phục 4 câu hỏi chốt hạ để chạm mốc 100 XP nhận hiệu ứng chúc mừng!
+            </h3>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="px-4 py-1.5 rounded-2xl bg-blush-50 border-2 border-blush-200 text-sm font-black text-blush-600">
+              Điểm: <span id="quiz-score">0</span> / 4
+            </div>
+            <button onclick="resetQuiz()" class="px-3.5 py-1.5 rounded-2xl bg-cream-100 hover:bg-cream-200 text-cocoa-800 text-xs font-extrabold border-2 border-cream-200 border-b-4 transition cursor-pointer">
+              🔄 Làm lại
+            </button>
+          </div>
+        </div>
+
+        <div id="quiz-container" class="space-y-5">
+          <!-- JS Populated -->
+        </div>
+
+        <!-- 100 XP Celebration Banner -->
+        <div id="xp-win-banner" class="hidden mt-6 p-6 rounded-3xl bg-gradient-to-r from-peach-400 via-blush-400 to-mint-500 text-white text-center shadow-md border-b-4 border-cocoa-800/20">
+          <p class="text-3xl mb-2">🌸⭐🦋🏆🦋⭐🌸</p>
+          <p class="text-lg sm:text-xl font-black font-display">XUẤT SẮC! BẠN ĐÃ ĐẠT 100 / 100 XP!</p>
+          <p class="text-xs sm:text-sm text-white/95 mt-1 font-semibold">
+            Bí kíp Câu 07 đã thuộc lòng: <strong>None = Tắt máy (bỏ qua) • Zero = Nhả ga (vẫn chạy Momentum + Weight Decay → 0.776) → Chốt B!</strong>
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t-2 border-cream-200 py-4 mt-8">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 text-center text-xs text-cocoa-500 font-semibold">
+      Ôn thi Câu 07: SGD, Momentum &amp; Gradient Bằng None • Phong cách Gamified Pastel dành cho Non-tech
+    </div>
+  </footer>
+
+  <!-- Complete Application JavaScript -->
+  <script>
+    // =========================================================================
+    // 0. GAMIFIED XP ENGINE (0 -> 100 XP) + PARTICLE CELEBRATION
+    // =========================================================================
+    // Exact XP Budget:
+    // - Tab 1 (+20 XP): Visit Tab 1 (10 XP) + Flip any flashcard (10 XP)
+    // - Tab 2 (+25 XP): Visit Tab 2 (10 XP) + Click/step >= 3 lines (15 XP)
+    // - Tab 3 (+25 XP): Interact Sim 1 (12 XP) + Interact Sim 2 (13 XP)
+    // - Tab 4 (+30 XP): 4 Quiz questions correct -> [0, 8, 15, 23, 30]
+    // Total = 100 XP
+    const xpState = {
+      tab1Visited: true,
+      vocabFlipped: false,
+      tab2Visited: false,
+      tab2SteppedCount: 0,
+      sim1Done: false,
+      sim2Done: false,
+      quizCorrectCount: 0,
+      celebrated: false,
+    };
+
+    const quizXpTable = [0, 8, 15, 23, 30];
+
+    function launchCelebration() {
+      const layer = document.getElementById('celebration-layer');
+      if (!layer) return;
+      const icons = ['🌸', '⭐', '🦋', '✨', '🌼', '🎉', '💖'];
+      for (let i = 0; i < 40; i++) {
+        const span = document.createElement('span');
+        span.className = 'celebrate-particle';
+        span.textContent = icons[i % icons.length];
+        span.style.left = `${Math.random() * 96 + 2}vw`;
+        span.style.fontSize = `${Math.random() * 16 + 18}px`;
+        span.style.animationDelay = `${Math.random() * 1.3}s`;
+        span.style.animationDuration = `${Math.random() * 1.6 + 2.4}s`;
+        layer.appendChild(span);
+        setTimeout(() => span.remove(), 4800);
+      }
+    }
+
+    function updateXP() {
+      try {
+        const xp1 = (xpState.tab1Visited ? 10 : 0) + (xpState.vocabFlipped ? 10 : 0);
+        const xp2 = (xpState.tab2Visited ? 10 : 0) + (xpState.tab2SteppedCount >= 2 ? 15 : 0);
+        const xp3 = (xpState.sim1Done ? 12 : 0) + (xpState.sim2Done ? 13 : 0);
+        const xp4 = quizXpTable[xpState.quizCorrectCount] || 0;
+        const total = Math.min(100, xp1 + xp2 + xp3 + xp4);
+
+        const valEl = document.getElementById('xp-value');
+        const barEl = document.getElementById('xp-bar');
+        const winBanner = document.getElementById('xp-win-banner');
+
+        if (valEl) valEl.textContent = String(total);
+        if (barEl) barEl.style.width = `${total}%`;
+        if (winBanner) winBanner.classList.toggle('hidden', total < 100);
+
+        if (total === 100 && !xpState.celebrated) {
+          xpState.celebrated = true;
+          launchCelebration();
+        }
+      } catch (err) {
+        console.error('XP update error:', err);
+      }
+    }
+
+    // =========================================================================
+    // 1. TAB 1: 8 INTERACTIVE FLASHCARDS (PHONETIC + MEANING + EXAMPLE)
+    // =========================================================================
+    const vocabList = [
+      {
+        term: 'torch.nn.Parameter',
+        phonetic: '/pơ-ra-mét-tơ/',
+        short: 'Trọng số có thể học được',
+        meaning: 'Gắn nhãn cho mảng số [1., -1.] để báo PyTorch đây là trọng số của mô hình AI, tự động bật theo dõi đạo hàm (requires_grad=True).',
+        example: 'p = torch.nn.Parameter(torch.tensor([1., -1.]))'
+      },
+      {
+        term: 'torch.optim.SGD',
+        phonetic: '/óp-tim ét-gi-đi/',
+        short: 'Bộ tối ưu lái xe xuống dốc',
+        meaning: 'Stochastic Gradient Descent — bộ máy chuyên dùng để cập nhật trọng số p sau mỗi bước học nhằm làm giảm sai số.',
+        example: 'opt = torch.optim.SGD([p], lr=0.1, ...)'
+      },
+      {
+        term: 'lr (learning rate)',
+        phonetic: '/lơn-ning rết/',
+        short: 'Tốc độ học (độ dài bước chân)',
+        meaning: 'Quy định mỗi lần cập nhật thì nhích p bao nhiêu phần trăm theo đà chạy. Trong bài lr=0.1 tức là nhích 10%.',
+        example: 'p = p - 0.1 * buffer'
+      },
+      {
+        term: 'momentum',
+        phonetic: '/mô-men-tầm/',
+        short: 'Quán tính giữ đà chạy',
+        meaning: 'Tỷ lệ giữ lại đà chạy từ bước trước. Với momentum=0.5, đà mới sẽ giữ lại 50% đà cũ rồi mới cộng thêm lực hiện tại.',
+        example: 'buf = 0.5 * 1.2 + 0.176 = 0.776'
+      },
+      {
+        term: 'weight_decay',
+        phonetic: '/guây đi-kây/',
+        short: 'Lực phanh kéo p nhỏ lại',
+        meaning: 'Cộng thêm một lượng bằng 0.2 × p vào gradient trước khi tính đà chạy, giúp trọng số p không bị phình quá lớn.',
+        example: 'Ở bước zero: d_p = 0 + 0.2 * 0.88 = 0.176'
+      },
+      {
+        term: 'zero_grad(set_to_none=True)',
+        phonetic: '/zi-rô grát sét tu năn/',
+        short: 'Xóa sạch grad thành None',
+        meaning: 'Đặt p.grad = None thay vì số 0. Ở bước "none", điều này giống như rút chìa khóa khiến opt.step() BỎ QUA p hoàn toàn!',
+        example: 'p.grad is None → True (lượt 2)'
+      },
+      {
+        term: 'torch.zeros_like(p)',
+        phonetic: '/zi-rô lai pi/',
+        short: 'Tạo mảng toàn số 0 giống hệt p',
+        meaning: 'Gán p.grad = [0.0, 0.0]. Vì 0.0 vẫn là một con số (KHÔNG phải None), nên opt.step() VẪN CHẠY momentum & weight_decay!',
+        example: 'p.grad = [0., 0.] → vẫn cập nhật p!'
+      },
+      {
+        term: 'momentum_buffer',
+        phonetic: '/mô-men-tầm bắp-phơ/',
+        short: 'Đồng hồ lưu đà chạy hiện tại',
+        meaning: 'Ngăn nhớ bên trong opt.state[p] lưu lại vận tốc/đà chạy gần nhất của p. Cuối bài buffer có giá trị [0.776, -0.776].',
+        example: 'buffer = opt.state[p]["momentum_buffer"]'
+      }
+    ];
+
+    const flippedVocab = new Set();
+    function toggleVocab(idx) {
+      if (flippedVocab.has(idx)) flippedVocab.delete(idx);
+      else flippedVocab.add(idx);
+      xpState.vocabFlipped = true;
+      updateXP();
+      renderVocab();
+    }
+    function flipAllVocab() {
+      if (flippedVocab.size === vocabList.length) flippedVocab.clear();
+      else vocabList.forEach((_, i) => flippedVocab.add(i));
+      xpState.vocabFlipped = true;
+      updateXP();
+      renderVocab();
+    }
+    function renderVocab() {
+      const grid = document.getElementById('vocab-grid');
+      if (!grid) return;
+      grid.innerHTML = vocabList.map((item, idx) => {
+        const isFlipped = flippedVocab.has(idx);
+        if (isFlipped) {
+          return `
+            <button type="button" onclick="toggleVocab(${idx})"
+              class="text-left p-4 rounded-2xl border-2 border-peach-400 bg-peach-100/70 border-b-4 border-b-peach-500/60 transition cursor-pointer flex flex-col justify-between min-h-[168px]">
+              <div class="space-y-1.5">
+                <p class="font-mono text-xs font-black text-blush-600 break-words">${item.term}</p>
+                <p class="text-xs text-cocoa-900 leading-relaxed font-semibold">${item.meaning}</p>
+                <p class="font-mono text-[10px] bg-white/80 px-2 py-1 rounded-lg border border-peach-200 text-cocoa-800 break-words">${item.example}</p>
+              </div>
+              <span class="text-[10px] font-bold text-cocoa-500 mt-2">👆 Bấm để úp lại</span>
+            </button>
+          `;
+        }
+        return `
+          <button type="button" onclick="toggleVocab(${idx})"
+            class="text-left p-4 rounded-2xl border-2 border-cream-200 bg-cream-50 hover:bg-cream-100 border-b-4 border-b-cream-200 transition cursor-pointer flex flex-col justify-between min-h-[168px]">
+            <div>
+              <span class="inline-block px-2 py-0.5 rounded-lg text-[10px] font-extrabold bg-blush-100 text-blush-600 mb-2">Thẻ #${idx + 1}</span>
+              <p class="font-mono text-xs sm:text-sm font-black text-cocoa-900 break-words">${item.term}</p>
+              <p class="text-[11px] italic text-cocoa-500 mt-0.5">${item.phonetic}</p>
+              <p class="text-xs text-cocoa-700 mt-1.5 font-bold">${item.short}</p>
+            </div>
+            <span class="text-[11px] font-extrabold text-blush-600 mt-3">👆 Bấm để lật xem nghĩa →</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    // =========================================================================
+    // 2. TAB 2: LINE-BY-LINE CODE EXPLANATION + LIVE STATE
+    // =========================================================================
+    const codeSteps = [
+      {
+        lines: '1-2',
+        code: 'import torch\ntorch.set_default_dtype(torch.float64)',
+        badge: 'Khởi động',
+        theme: 'neutral',
+        title: 'Mở PyTorch và chọn kiểu số thập phân độ chính xác cao',
+        everyday: 'Giống như mở phần mềm tính toán AI và chỉnh máy tính hiển thị đủ số lẻ để tránh sai số làm tròn.',
+        math: 'Chưa có phép tính nào.',
+        state: { mode: '—', p: '—', grad: '—', buf: '—', isNone: '—', records: '—', hl: [] }
+      },
+      {
+        lines: '4-6',
+        code: 'p = torch.nn.Parameter(torch.tensor([1., -1.]))\nopt = torch.optim.SGD([p], lr=0.1, momentum=0.5, weight_decay=0.2)\nrecords = []',
+        badge: '🚗 Khởi tạo xe & sổ ghi',
+        theme: 'peach',
+        title: 'Tạo trọng số p = [1, -1], bộ lái xe SGD và cuốn sổ records trống',
+        everyday: 'Xe bắt đầu ở vị trí [1.0, -1.0]. Ta cài đặt: bước đi lr = 0.1, quán tính momentum = 0.5, lực phanh weight_decay = 0.2. Cuốn sổ records để lưu nhật ký 3 lượt chạy.',
+        math: 'p = [1.0, -1.0] | lr = 0.1 | momentum = 0.5 | weight_decay = 0.2.',
+        state: { mode: 'Khởi tạo', p: '[1.0, -1.0]', grad: 'None', buf: 'Chưa có', isNone: 'True', records: '[] (0 lượt)', hl: ['p'] }
+      },
+      {
+        lines: '8',
+        code: 'for mode in ("backward", "none", "zero"):',
+        badge: '🔁 Vòng lặp 3 chặng',
+        theme: 'neutral',
+        title: 'Chạy đúng 3 lượt tương ứng 3 tình huống: "backward" → "none" → "zero"',
+        everyday: 'Lượt 1: Đạp ga tính đạo hàm thật. Lượt 2: Rút chìa khóa tắt máy (None). Lượt 3: Nhả chân ga về 0 nhưng vẫn nổ máy (zero).',
+        math: 'Tổng cộng có 3 bản ghi sẽ được lưu vào records (chỉ số 0, 1, 2).',
+        state: { mode: 'Sẵn sàng 3 lượt', p: '[1.0, -1.0]', grad: 'None', buf: 'Chưa có', isNone: 'True', records: '[]', hl: ['mode'] }
+      },
+      {
+        lines: '9-11',
+        code: '    if mode == "backward":\n        opt.zero_grad(set_to_none=True)\n        (p.square().sum() / 2).backward()',
+        badge: 'Lượt 1: backward (Đạp ga)',
+        theme: 'peach',
+        title: 'Lượt 1 — Tính đạo hàm của (p² / 2) → Ra p.grad = p = [1.0, -1.0]',
+        everyday: 'Đạo hàm của ½·p² chính là p! Nên sau lệnh backward(), p.grad nhận giá trị [1.0, -1.0].',
+        math: 'loss = (1² + (-1)²) / 2 = 1.0 → d(loss)/dp = p = [1.0, -1.0].',
+        state: { mode: '"backward"', p: '[1.0, -1.0]', grad: '[1.0, -1.0]', buf: 'Chưa có', isNone: 'False', records: '[]', hl: ['mode', 'grad', 'isNone'] }
+      },
+      {
+        lines: '16-19',
+        code: '    opt.step()  # (Chạy ở lượt 1: backward)\n    buffer = opt.state[p]["momentum_buffer"]\n    records.append((mode, p..., buffer..., p.grad is None))',
+        badge: 'Lượt 1: Cập nhật p & buffer',
+        theme: 'peach',
+        title: 'Lượt 1 — opt.step() cộng Weight Decay → buffer = [1.2, -1.2], p = [0.88, -0.88]',
+        everyday: 'Vì đây là bước đầu tiên chưa có đà cũ, buffer lấy luôn lực hiện tại (grad + 0.2×p = 1.2). Sau đó p lùi một bước 0.1 × 1.2 = 0.12 xuống còn 0.88!',
+        math: '• g = [1, -1] + 0.2×[1, -1] = [1.2, -1.2]\n• buffer = [1.2, -1.2] (khởi tạo lần đầu)\n• p = [1, -1] − 0.1×[1.2, -1.2] = [0.88, -0.88]\n• Lưu records[0]: ("backward", [0.88, -0.88], [1.2, -1.2], False)',
+        state: { mode: '"backward"', p: '[0.88, -0.88]', grad: '[1.0, -1.0]', buf: '[1.2, -1.2]', isNone: 'False', records: '1 lượt [False]', hl: ['p', 'buf', 'records'] }
+      },
+      {
+        lines: '12-13',
+        code: '    elif mode == "none":\n        opt.zero_grad(set_to_none=True)',
+        badge: '🔑 Lượt 2: BẪY TẮT MÁY',
+        theme: 'coral',
+        title: 'Lượt 2 — Xóa p.grad thành None (KHÔNG gọi backward)',
+        everyday: 'Lệnh set_to_none=True biến p.grad thành None. Điều này giống như bạn rút chìa khóa tắt động cơ xe vậy!',
+        math: 'p.grad = None → p.grad is None cho kết quả True.',
+        state: { mode: '"none" 🔑', p: '[0.88, -0.88]', grad: 'None', buf: '[1.2, -1.2]', isNone: 'True', records: '1 lượt [False]', hl: ['mode', 'grad', 'isNone'] }
+      },
+      {
+        lines: '16-19',
+        code: '    opt.step()  # (Chạy ở lượt 2: none -> BỎ QUA!)\n    buffer = opt.state[p]["momentum_buffer"]\n    records.append(...)',
+        badge: '🛑 Lượt 2: Xe ĐỨNG IM!',
+        theme: 'coral',
+        title: 'Lượt 2 — opt.step() thấy p.grad là None nên BỎ QUA hoàn toàn!',
+        everyday: 'Đây là cái bẫy của Đáp án A! Khi thấy p.grad is None, PyTorch bỏ qua tham số p luôn: KHÔNG momentum, KHÔNG weight_decay, p vẫn là [0.88, -0.88] và buffer vẫn là [1.2, -1.2]!',
+        math: '• p giữ nguyên: [0.88, -0.88]\n• buffer giữ nguyên: [1.2, -1.2]\n• Lưu records[1]: ("none", [0.88, -0.88], [1.2, -1.2], True)',
+        state: { mode: '"none" 🛑', p: '[0.88, -0.88] (Đứng im!)', grad: 'None', buf: '[1.2, -1.2] (Giữ nguyên!)', isNone: 'True', records: '2 lượt [False, True]', hl: ['p', 'buf', 'records'] }
+      },
+      {
+        lines: '14-15',
+        code: '    else:\n        p.grad = torch.zeros_like(p)',
+        badge: '🦶 Lượt 3: Nhả ga về 0',
+        theme: 'mint',
+        title: 'Lượt 3 — Gán p.grad = [0.0, 0.0] (Không phải None!)',
+        everyday: 'Lần này bạn nhả chân ga về 0.0 nhưng KHÔNG tắt máy. Vì p.grad khác None nên lát nữa opt.step() vẫn hoạt động hết công suất!',
+        math: 'p.grad = [0.0, 0.0] → p.grad is None cho kết quả False.',
+        state: { mode: '"zero" 🦶', p: '[0.88, -0.88]', grad: '[0.0, 0.0]', buf: '[1.2, -1.2]', isNone: 'False', records: '2 lượt [False, True]', hl: ['mode', 'grad', 'isNone'] }
+      },
+      {
+        lines: '16-19',
+        code: '    opt.step()  # (Chạy ở lượt 3: zero -> VẪN CHẠY!)\n    buffer = opt.state[p]["momentum_buffer"]\n    records.append(...)',
+        badge: '🔥 Lượt 3: Momentum + WD!',
+        theme: 'mint',
+        title: 'Lượt 3 — Kích hoạt cả Momentum (0.5) & Weight Decay (0.2) → Ra Đáp án B!',
+        everyday: 'Dù grad = 0, xe vẫn chịu lực phanh 0.2×0.88 = 0.176 và giữ 50% quán tính cũ (0.5×1.2 = 0.6). Cộng lại đà mới = 0.776! Xe trôi tiếp từ 0.88 xuống 0.8024!',
+        math: '• g = [0, 0] + 0.2×[0.88, -0.88] = [0.176, -0.176]\n• buffer = 0.5×[1.2, -1.2] + [0.176, -0.176] = [0.6, -0.6] + [0.176, -0.176] = [0.776, -0.776]\n• p = [0.88, -0.88] − 0.1×[0.776, -0.776] = [0.8024, -0.8024]\n• Lưu records[2]: ("zero", [0.8024, -0.8024], [0.776, -0.776], False)',
+        state: { mode: '"zero" ✅', p: '[0.8024, -0.8024]', grad: '[0.0, 0.0]', buf: '[0.776, -0.776]', isNone: 'False', records: '3 lượt [F, T, F]', hl: ['p', 'buf', 'records'] }
+      },
+      {
+        lines: '21',
+        code: 'print(records[-1][1], records[-1][2], [r[3] for r in records])',
+        badge: '🎯 Giải mã lệnh print',
+        theme: 'mint',
+        title: 'In 3 món cuối cùng — Khớp 100% Phương án B!',
+        everyday: 'Đừng rối bởi dấu ngoặc vuông! records[-1] là lấy trang CUỐI CÙNG (lượt "zero"): [1] là lấy p, [2] là lấy buffer. Còn [r[3] for r in records] là gom cột thứ 4 (p.grad is None) của cả 3 lượt thành [False, True, False]!',
+        math: '• records[-1][1] = [0.8024, -0.8024]\n• records[-1][2] = [0.776, -0.776]\n• [r[3] for r in records] = [False, True, False]',
+        state: { mode: 'KẾT QUẢ CUỐI', p: '[0.8024, -0.8024] 🎯', grad: '[0.0, 0.0]', buf: '[0.776, -0.776] 🎯', isNone: 'False', records: '[False, True, False]', hl: ['p', 'buf', 'records'] }
+      }
+    ];
+
+    let activeStepIdx = 0;
+
+    function switchTab(tabNum) {
+      if (String(tabNum) === '2') xpState.tab2Visited = true;
+      updateXP();
+
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        const isTarget = btn.getAttribute('data-tab') === String(tabNum);
+        btn.className = isTarget
+          ? 'tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2 bg-blush-400 text-white border-blush-400 border-b-4 border-b-blush-600 shadow-xs'
+          : 'tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2 bg-white text-cocoa-700 border-cream-200 hover:bg-cream-100';
+      });
+      document.querySelectorAll('.tab-panel').forEach((panel) => {
+        panel.classList.toggle('hidden', panel.id !== `tab-panel-${tabNum}`);
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderCodeList() {
+      const container = document.getElementById('code-lines-container');
+      if (!container) return;
+      container.innerHTML = codeSteps.map((step, idx) => {
+        const isActive = idx === activeStepIdx;
+        const activeClass = isActive
+          ? 'bg-blush-400/25 border-l-4 border-peach-400 text-white'
+          : 'border-l-4 border-transparent text-cream-100/80 hover:bg-cocoa-800';
+        const safeCode = step.code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return `
+          <button type="button" onclick="selectCodeStep(${idx})"
+            class="w-full text-left flex items-start gap-2.5 px-2.5 py-2 rounded-xl transition cursor-pointer ${activeClass}">
+            <span class="w-9 text-right text-peach-200/60 select-none shrink-0 text-[11px] pt-0.5">${step.lines}</span>
+            <pre class="whitespace-pre font-mono leading-relaxed text-xs">${safeCode}</pre>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function renderLiveBox(key, label, value, hlList, theme) {
+      const isHl = hlList.includes(key);
+      let cls = 'bg-cream-50 border-cream-200 text-cocoa-800';
+      if (isHl) {
+        cls = theme === 'coral'
+          ? 'bg-coral-50 border-coral-400 text-red-950 ring-2 ring-coral-200 font-bold'
+          : theme === 'mint'
+            ? 'bg-mint-50 border-mint-500 text-emerald-950 ring-2 ring-mint-100 font-bold'
+            : 'bg-peach-100 border-peach-400 text-cocoa-900 ring-2 ring-peach-200 font-bold';
+      }
+      return `
+        <div class="p-2.5 rounded-2xl border-2 transition ${cls}">
+          <p class="text-[10px] font-extrabold uppercase tracking-wider opacity-70 mb-0.5">${label}</p>
+          <p class="font-mono text-xs break-words">${value}</p>
+        </div>
+      `;
+    }
+
+    function renderLineExplanation() {
+      const step = codeSteps[activeStepIdx];
+      document.getElementById('step-counter').textContent = `Bước ${activeStepIdx + 1} / ${codeSteps.length} (Dòng ${step.lines})`;
+      document.getElementById('prev-line-btn').disabled = activeStepIdx === 0;
+      document.getElementById('next-line-btn').disabled = activeStepIdx === codeSteps.length - 1;
+
+      const badgeColor = {
+        coral: 'bg-coral-50 text-coral-500 border-coral-200',
+        peach: 'bg-peach-100 text-cocoa-900 border-peach-200',
+        mint: 'bg-mint-100 text-mint-600 border-mint-300',
+        neutral: 'bg-cream-100 text-cocoa-800 border-cream-200'
+      }[step.theme];
+
+      const st = step.state;
+      document.getElementById('line-explanation-content').innerHTML = `
+        <div>
+          <span class="inline-flex items-center px-3 py-0.5 rounded-full text-xs font-extrabold border ${badgeColor} mb-2">
+            ${step.badge}
+          </span>
+          <h3 class="text-base sm:text-lg font-black text-cocoa-900 leading-snug font-display">${step.title}</h3>
+        </div>
+
+        <p class="text-sm text-cocoa-800 leading-relaxed">${step.everyday}</p>
+
+        <div class="p-3.5 rounded-2xl bg-cream-100 border-2 border-peach-200 text-xs text-cocoa-900 space-y-1">
+          <p class="font-extrabold text-cocoa-800 uppercase tracking-wider text-[11px]">🧮 Phép tính chi tiết:</p>
+          <p class="font-mono leading-relaxed">${step.math.replace(/\n/g, '<br/>')}</p>
+        </div>
+
+        <!-- Live State Dashboard -->
+        <div class="space-y-2">
+          <p class="text-xs font-extrabold text-cocoa-500 uppercase tracking-wider">📊 Bảng trạng thái trực tiếp (Live State)</p>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            ${renderLiveBox('mode', 'mode hiện tại', st.mode, st.hl, step.theme)}
+            ${renderLiveBox('grad', 'p.grad', st.grad, st.hl, step.theme)}
+            ${renderLiveBox('isNone', 'p.grad is None', st.isNone, st.hl, step.theme)}
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            ${renderLiveBox('p', 'Trọng số p', st.p, st.hl, step.theme)}
+            ${renderLiveBox('buf', 'momentum_buffer', st.buf, st.hl, step.theme)}
+          </div>
+          ${renderLiveBox('records', 'Mảng records tích lũy', st.records, st.hl, step.theme)}
+        </div>
+      `;
+    }
+
+    function selectCodeStep(idx) {
+      if (idx < 0 || idx >= codeSteps.length) return;
+      activeStepIdx = idx;
+      xpState.tab2SteppedCount++;
+      updateXP();
+      renderCodeList();
+      renderLineExplanation();
+    }
+
+    // =========================================================================
+    // 3. TAB 3: LAB SIMULATIONS
+    // =========================================================================
+
+    // --- SIM 1: 3-STAGE CAR SIMULATOR ---
+    const stages = [
+      {
+        title: 'Chặng 1: mode = "backward" (Đạp ga chạy xuống dốc!)',
+        engineStatus: '🟢 ĐỘNG CƠ ĐANG NỔ • CÓ GA (p.grad = [1.0, -1.0])',
+        engineClass: 'bg-peach-100 border-peach-400 text-cocoa-900',
+        pVal: '[0.88, -0.88]',
+        pPercent: 88,
+        bufVal: '[1.2, -1.2]',
+        bufPercent: 100, // max 1.2
+        stepsHtml: `
+          <p>1. Tính đạo hàm thật: <code class="font-mono font-bold">p.grad = [1.0, -1.0]</code></p>
+          <p>2. Cộng lực phanh Weight Decay (0.2 × p): <code class="font-mono font-bold">g = [1, -1] + 0.2×[1, -1] = [1.2, -1.2]</code></p>
+          <p>3. Bước đầu tiên chưa có đà cũ → <code class="font-mono font-bold text-peach-500">buffer = [1.2, -1.2]</code></p>
+          <p>4. Cập nhật vị trí xe: <code class="font-mono font-bold text-mint-600">p = [1, -1] − 0.1×[1.2, -1.2] = [0.88, -0.88]</code></p>
+        `
+      },
+      {
+        title: 'Chặng 2: mode = "none" (RÚT CHÌA KHÓA TẮT MÁY!)',
+        engineStatus: '🔴 ĐÃ TẮT MÁY • opt.step() BỎ QUA HOÀN TOÀN (p.grad = None)',
+        engineClass: 'bg-coral-50 border-coral-400 text-coral-500',
+        pVal: '[0.88, -0.88] (ĐỨNG IM!)',
+        pPercent: 88,
+        bufVal: '[1.2, -1.2] (GIỮ NGUYÊN!)',
+        bufPercent: 100,
+        stepsHtml: `
+          <p>1. Lệnh <code class="font-mono font-bold">opt.zero_grad(set_to_none=True)</code> đặt <code class="font-mono font-bold text-coral-500">p.grad = None</code>.</p>
+          <p>2. Khi gọi <code class="font-mono font-bold">opt.step()</code>, PyTorch kiểm tra thấy <code class="font-mono">p.grad is None</code> nên <strong>NHẢY QUA KHÔNG LÀM GÌ CẢ</strong>!</p>
+          <p>3. Vị trí <code class="font-mono font-bold">p</code> đứng im ở <strong>[0.88, -0.88]</strong> và đồng hồ quán tính <code class="font-mono font-bold">buffer</code> giữ nguyên <strong>[1.2, -1.2]</strong>!</p>
+        `
+      },
+      {
+        title: 'Chặng 3: mode = "zero" (Nhả chân ga về 0 nhưng VẪN NỔ MÁY!)',
+        engineStatus: '🟢 ĐỘNG CƠ VẪN CHẠY • KÍCH HOẠT CẢ MOMENTUM + WEIGHT DECAY!',
+        engineClass: 'bg-mint-50 border-mint-500 text-mint-600',
+        pVal: '[0.8024, -0.8024] 🎯',
+        pPercent: 80.24,
+        bufVal: '[0.776, -0.776] 🎯',
+        bufPercent: Math.round((0.776 / 1.2) * 100),
+        stepsHtml: `
+          <p>1. Gán <code class="font-mono font-bold">p.grad = [0.0, 0.0]</code> (khác None → <code class="font-mono">opt.step()</code> vẫn chạy!).</p>
+          <p>2. Cộng Weight Decay (0.2 × p): <code class="font-mono font-bold">g = [0, 0] + 0.2×[0.88, -0.88] = [0.176, -0.176]</code></p>
+          <p>3. Giữ 50% quán tính cũ + lực mới: <code class="font-mono font-bold text-blush-600">buffer = 0.5×[1.2, -1.2] + [0.176, -0.176] = [0.6, -0.6] + [0.176, -0.176] = [0.776, -0.776]</code></p>
+          <p>4. Xe trôi thêm 1 đoạn: <code class="font-mono font-bold text-mint-600">p = [0.88, -0.88] − 0.1×[0.776, -0.776] = [0.8024, -0.8024]</code></p>
+        `
+      }
+    ];
+
+    let currentStage = 0;
+    function setStage(idx, isInit = false) {
+      currentStage = idx;
+      if (!isInit) {
+        xpState.sim1Done = true;
+        updateXP();
+      }
+      for (let i = 0; i < 3; i++) {
+        const btn = document.getElementById(`stage-btn-${i}`);
+        if (!btn) continue;
+        if (i === idx) {
+          btn.className = i === 1
+            ? 'stage-btn p-4 rounded-2xl border-2 text-left transition cursor-pointer bg-coral-400 text-white border-coral-500 border-b-4 shadow-xs'
+            : i === 2
+              ? 'stage-btn p-4 rounded-2xl border-2 text-left transition cursor-pointer bg-mint-500 text-white border-mint-600 border-b-4 shadow-xs'
+              : 'stage-btn p-4 rounded-2xl border-2 text-left transition cursor-pointer bg-peach-400 text-cocoa-900 border-peach-500 border-b-4 shadow-xs';
+        } else {
+          btn.className = 'stage-btn p-4 rounded-2xl border-2 text-left transition cursor-pointer bg-cream-50 text-cocoa-800 border-cream-200 hover:bg-cream-100';
+        }
+      }
+
+      const s = stages[idx];
+      document.getElementById('sim1-dashboard').innerHTML = `
+        <div class="p-3.5 rounded-2xl border-2 text-xs sm:text-sm font-black text-center ${s.engineClass}">
+          ${s.engineStatus}
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Position p Gauge -->
+          <div class="p-4 rounded-2xl bg-cream-50 border-2 border-cream-200 space-y-2">
+            <div class="flex items-center justify-between text-xs font-extrabold">
+              <span class="text-cocoa-700">📍 Vị trí trọng số p</span>
+              <span class="font-mono text-mint-600 font-black">${s.pVal}</span>
+            </div>
+            <div class="w-full h-4 bg-white rounded-full border border-cream-200 overflow-hidden p-0.5">
+              <div class="h-full rounded-full bg-mint-500 transition-all duration-500" style="width: ${s.pPercent}%;"></div>
+            </div>
+            <div class="flex justify-between text-[10px] font-mono text-cocoa-500">
+              <span>0.0 (Đáy dốc)</span><span>1.0 (Điểm xuất phát)</span>
+            </div>
+          </div>
+
+          <!-- Momentum Buffer Gauge -->
+          <div class="p-4 rounded-2xl bg-cream-50 border-2 border-cream-200 space-y-2">
+            <div class="flex items-center justify-between text-xs font-extrabold">
+              <span class="text-cocoa-700">💨 Đồng hồ quán tính (buffer)</span>
+              <span class="font-mono text-blush-600 font-black">${s.bufVal}</span>
+            </div>
+            <div class="w-full h-4 bg-white rounded-full border border-cream-200 overflow-hidden p-0.5">
+              <div class="h-full rounded-full bg-blush-400 transition-all duration-500" style="width: ${s.bufPercent}%;"></div>
+            </div>
+            <div class="flex justify-between text-[10px] font-mono text-cocoa-500">
+              <span>0.0 (Hết đà)</span><span>1.2 (Đà tối đa bước 1)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-cocoa-900 text-cream-50 space-y-1.5 text-xs sm:text-sm leading-relaxed">
+          <p class="text-[11px] font-extrabold uppercase tracking-wider text-peach-200 mb-1">🧮 Chi tiết phép tính ${s.title}</p>
+          ${s.stepsHtml}
+        </div>
+      `;
+    }
+
+    // --- SIM 2: TRAP GENERATOR MACHINE ---
+    const trapCfg = {
+      skipNone: true,
+      useWD: true,
+      useMom: true
+    };
+
+    function toggleTrapSwitch(key) {
+      trapCfg[key] = !trapCfg[key];
+      xpState.sim2Done = true;
+      updateXP();
+      renderTrapMachine();
+    }
+
+    function resetTrapMachine() {
+      trapCfg.skipNone = true;
+      trapCfg.useWD = true;
+      trapCfg.useMom = true;
+      xpState.sim2Done = true;
+      updateXP();
+      renderTrapMachine();
+    }
+
+    function renderTrapMachine() {
+      // Update switch visuals
+      const switches = [
+        { key: 'skipNone', id: 'sw-skipNone', pill: 'sw-skipNone-pill' },
+        { key: 'useWD', id: 'sw-useWD', pill: 'sw-useWD-pill' },
+        { key: 'useMom', id: 'sw-useMom', pill: 'sw-useMom-pill' }
+      ];
+      switches.forEach((sw) => {
+        const isOn = trapCfg[sw.key];
+        const btn = document.getElementById(sw.id);
+        const pill = document.getElementById(sw.pill);
+        if (btn && pill) {
+          btn.className = isOn
+            ? 'w-full p-4 rounded-2xl border-2 text-left transition cursor-pointer flex items-center justify-between gap-3 bg-mint-50 border-mint-300 text-cocoa-900'
+            : 'w-full p-4 rounded-2xl border-2 text-left transition cursor-pointer flex items-center justify-between gap-3 bg-coral-50 border-coral-400 text-red-950';
+          pill.className = isOn
+            ? 'px-3 py-1 rounded-full text-xs font-black shrink-0 bg-mint-500 text-white'
+            : 'px-3 py-1 rounded-full text-xs font-black shrink-0 bg-coral-500 text-white';
+          pill.textContent = isOn ? 'BẬT ✅' : 'TẮT ❌';
+        }
+      });
+
+      // Exact live SGD math simulation for the 3 steps
+      // Step 1: backward (always runs normally)
+      let p = 1.0;
+      let buf = 1.0 + 0.2 * p; // 1.2
+      p = p - 0.1 * buf;       // 0.88
+
+      // Step 2: none
+      if (!trapCfg.skipNone) {
+        // Mistakenly runs like zero step
+        let g2 = trapCfg.useWD ? (0.2 * p) : 0.0;
+        buf = (trapCfg.useMom ? 0.5 * buf : 0.0) + g2;
+        p = p - 0.1 * buf;
+      }
+
+      // Step 3: zero
+      let g3 = trapCfg.useWD ? (0.2 * p) : 0.0;
+      buf = (trapCfg.useMom ? 0.5 * buf : 0.0) + g3;
+      p = p - 0.1 * buf;
+
+      const r4 = (n) => Number(n.toFixed(4));
+      const pR = r4(p);
+      const bR = r4(buf);
+
+      // Identify matching exam option
+      let matchBadge = '';
+      let matchDesc = '';
+      let screenStyle = '';
+
+      if (trapCfg.skipNone && trapCfg.useWD && trapCfg.useMom) {
+        matchBadge = '🎯 KHỚP 100% ĐÁP ÁN B (CHUẨN PYTORCH!)';
+        matchDesc = 'Cả 3 quy tắc đều hoạt động đúng chuẩn: bỏ qua khi None, bước zero chạy đủ cả Momentum (0.5) và Weight Decay (0.2).';
+        screenStyle = 'bg-mint-50 border-mint-500 text-emerald-950';
+      } else if (!trapCfg.skipNone && trapCfg.useWD && trapCfg.useMom) {
+        matchBadge = '🚨 ĐANG TẠO RA BẪY ĐÁP ÁN A!';
+        matchDesc = 'Bạn vừa TẮT bỏ qua None → bước "none" chạy nhầm như bước "zero", làm p tụt quá sâu xuống 0.7476 và buffer xuống 0.5485!';
+        screenStyle = 'bg-coral-50 border-coral-400 text-red-950';
+      } else if (trapCfg.skipNone && !trapCfg.useWD && trapCfg.useMom) {
+        matchBadge = '🚨 ĐANG TẠO RA BẪY ĐÁP ÁN C!';
+        matchDesc = 'Bạn vừa TẮT Weight Decay ở bước zero → mất khoản +0.176, nên buffer chỉ còn đúng 0.5 × 1.2 = 0.6 và p = 0.82!';
+        screenStyle = 'bg-coral-50 border-coral-400 text-red-950';
+      } else if (trapCfg.skipNone && trapCfg.useWD && !trapCfg.useMom) {
+        matchBadge = '🚨 ĐANG TẠO RA BẪY ĐÁP ÁN D!';
+        matchDesc = 'Bạn vừa TẮT Momentum ở bước zero → mất khoản 0.5 × 1.2 = 0.6, nên buffer chỉ còn đúng Weight Decay = 0.176 và p = 0.8624!';
+        screenStyle = 'bg-coral-50 border-coral-400 text-red-950';
+      } else {
+        matchBadge = '🔧 CẤU HÌNH TÙY CHỈNH (Không khớp A/B/C/D)';
+        matchDesc = 'Bạn đang tắt nhiều hơn 1 cơ chế cùng lúc! Thử bật lại để chỉ tắt 1 công tắc mỗi lần và xem từng bẫy A, C, D xuất hiện nhé.';
+        screenStyle = 'bg-peach-100/70 border-peach-400 text-cocoa-900';
+      }
+
+      const screen = document.getElementById('trap-result-screen');
+      screen.className = `lg:col-span-6 rounded-3xl border-2 p-5 space-y-4 transition-all ${screenStyle}`;
+      screen.innerHTML = `
+        <div class="inline-block px-3 py-1 rounded-full text-xs font-black bg-white border border-current/20 shadow-2xs">
+          ${matchBadge}
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 font-mono">
+          <div class="p-3.5 rounded-2xl bg-white border border-cream-200">
+            <p class="text-[10px] font-sans font-extrabold uppercase text-cocoa-500">Kết quả p cuối cùng</p>
+            <p class="text-sm sm:text-base font-black text-cocoa-900 mt-1">[${pR}, ${-pR}]</p>
+          </div>
+          <div class="p-3.5 rounded-2xl bg-white border border-cream-200">
+            <p class="text-[10px] font-sans font-extrabold uppercase text-cocoa-500">Kết quả buffer cuối cùng</p>
+            <p class="text-sm sm:text-base font-black text-blush-600 mt-1">[${bR}, ${-bR}]</p>
+          </div>
+        </div>
+
+        <p class="text-xs sm:text-sm font-semibold leading-relaxed">${matchDesc}</p>
+      `;
+    }
+
+    // =========================================================================
+    // 4. TAB 4: HINTS TOGGLE & MINI-QUIZ (4 QUESTIONS)
+    // =========================================================================
+    let hintsVisible = true;
+    function toggleExamHints() {
+      hintsVisible = !hintsVisible;
+      document.querySelectorAll('.exam-hint').forEach((el) => {
+        el.classList.toggle('hidden', !hintsVisible);
+      });
+    }
+
+    const quizQuestions = [
+      {
+        id: 0,
+        question: 'Câu 1: Trong PyTorch SGD, điều gì xảy ra khi p.grad có giá trị là None và ta gọi opt.step()?',
+        options: [
+          'A. Optimizer tự động coi p.grad bằng 0 rồi chạy momentum và weight_decay',
+          'B. Optimizer BỎ QUA tham số p hoàn toàn — cả p và momentum_buffer đều đứng im không đổi',
+          'C. Optimizer xóa sạch momentum_buffer về 0',
+          'D. Chương trình báo lỗi dừng chạy ngay lập tức'
+        ],
+        correct: 1,
+        explanation: 'Chính xác! p.grad = None giống như rút chìa khóa tắt máy: opt.step() thấy None là bỏ qua luôn, giúp ta loại ngay Bẫy A!'
+      },
+      {
+        id: 1,
+        question: 'Câu 2: Ngược lại, ở lượt "zero" khi gán p.grad = torch.zeros_like(p) (tức [0., 0.]) rồi gọi opt.step(), điều gì xảy ra?',
+        options: [
+          'A. Optimizer cũng bỏ qua giống hệt None',
+          'B. Chỉ chạy Momentum (0.5), không chạy Weight Decay',
+          'C. Chỉ chạy Weight Decay (0.2), không chạy Momentum',
+          'D. Optimizer VẪN CHẠY bình thường, kích hoạt cả Momentum (0.5 × buffer cũ) lẫn Weight Decay (0.2 × p)'
+        ],
+        correct: 3,
+        explanation: 'Chuẩn không cần chỉnh! Vì [0.0, 0.0] không phải None nên động cơ vẫn nổ, kích hoạt đủ cả quán tính Momentum và lực phanh Weight Decay!'
+      },
+      {
+        id: 2,
+        question: 'Câu 3: Biết trước bước "zero" thì p = 0.88 và buffer = 1.2 (momentum=0.5, weight_decay=0.2). Giá trị buffer mới bằng bao nhiêu?',
+        options: [
+          'A. 0.5485',
+          'B. 0.6 (chỉ lấy 0.5 × 1.2)',
+          'C. 0.776 (tính 0.5 × 1.2 + 0.2 × 0.88 = 0.6 + 0.176)',
+          'D. 0.176 (chỉ lấy 0.2 × 0.88)'
+        ],
+        correct: 2,
+        explanation: 'Quá đỉnh! Chỉ cần nhẩm ra con số 0.776 là bạn khoanh thẳng Đáp án B trong 15 giây!'
+      },
+      {
+        id: 3,
+        question: 'Câu 4: Ở dòng print cuối cùng: print(records[-1][1], records[-1][2], [r[3] for r in records]), ký hiệu records[-1] có nghĩa là gì?',
+        options: [
+          'A. Lấy bản ghi của lượt ĐẦU TIÊN ("backward")',
+          'B. Lấy bản ghi của lượt CUỐI CÙNG ("zero") trong danh sách records',
+          'C. Xóa phần tử cuối cùng khỏi danh sách records',
+          'D. Cộng tổng tất cả các bản ghi lại với nhau'
+        ],
+        correct: 1,
+        explanation: 'Tuyệt vời! Trong Python, chỉ số -1 luôn là phần tử CUỐI CÙNG của danh sách (tức kết quả sau lượt "zero").'
+      }
+    ];
+
+    let quizAnswers = {};
+    function answerQuiz(qId, optIdx) {
+      quizAnswers[qId] = optIdx;
+      renderQuiz();
+    }
+    function resetQuiz() {
+      quizAnswers = {};
+      xpState.celebrated = false;
+      renderQuiz();
+    }
+    function renderQuiz() {
+      let score = 0;
+      quizQuestions.forEach((q) => {
+        if (quizAnswers[q.id] === q.correct) score++;
+      });
+      xpState.quizCorrectCount = score;
+      updateXP();
+
+      document.getElementById('quiz-score').textContent = String(score);
+      const container = document.getElementById('quiz-container');
+      if (!container) return;
+
+      container.innerHTML = quizQuestions.map((q) => {
+        const chosen = quizAnswers[q.id];
+        const hasAnswered = chosen !== undefined;
+        const isCorrect = chosen === q.correct;
+
+        const opts = q.options.map((text, idx) => {
+          let cls = 'bg-white border-cream-200 border-b-4 text-cocoa-800 hover:bg-cream-100';
+          if (hasAnswered) {
+            if (idx === q.correct) cls = 'bg-mint-50 border-mint-500 border-b-4 border-b-mint-600 text-emerald-950 font-extrabold';
+            else if (idx === chosen) cls = 'bg-coral-50 border-coral-400 border-b-4 border-b-coral-500 text-red-950 font-extrabold';
+            else cls = 'bg-cream-50 border-cream-100 text-cocoa-500/50';
+          }
+          return `
+            <button type="button" onclick="answerQuiz(${q.id}, ${idx})"
+              class="w-full text-left px-4 py-3 rounded-2xl border-2 text-xs sm:text-sm transition cursor-pointer ${cls}">
+              ${text}
+            </button>
+          `;
+        }).join('');
+
+        const fb = hasAnswered
+          ? `<div class="mt-3 p-3.5 rounded-2xl text-xs sm:text-sm border-2 ${isCorrect ? 'bg-mint-50 border-mint-300 text-emerald-950' : 'bg-coral-50 border-coral-200 text-red-950'}">
+              <strong>${isCorrect ? '✅ Chính xác!' : '❌ Chưa đúng rồi!'}</strong> ${q.explanation}
+            </div>`
+          : '';
+
+        return `
+          <div class="p-4 sm:p-5 rounded-3xl bg-cream-50 border-2 border-cream-200">
+            <p class="text-sm sm:text-base font-black text-cocoa-900 mb-3">${q.question}</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">${opts}</div>
+            ${fb}
+          </div>
+        `;
+      }).join('');
+    }
+
+    // =========================================================================
+    // INITIALIZATION
+    // =========================================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      try {
+        document.querySelectorAll('.tab-btn').forEach((btn) => {
+          btn.addEventListener('click', () => switchTab(btn.getAttribute('data-tab')));
+        });
+        document.getElementById('prev-line-btn').addEventListener('click', () => selectCodeStep(activeStepIdx - 1));
+        document.getElementById('next-line-btn').addEventListener('click', () => selectCodeStep(activeStepIdx + 1));
+
+        switchTab('1');
+        renderVocab();
+        renderCodeList();
+        renderLineExplanation();
+        setStage(0, true);
+        renderTrapMachine();
+        renderQuiz();
+        updateXP();
+      } catch (err) {
+        console.error('Initialization error:', err);
+      }
+    });
+  </script>
+</body>
+</html>

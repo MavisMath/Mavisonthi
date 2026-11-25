@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ôn Thi Câu 04: Batch Normalization (Train &amp; Eval) — Bản Non-tech</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            cream: {
+              50: '#FFFDF7',
+              100: '#FDF6E7',
+              200: '#F6E8CC',
+            },
+            blush: {
+              50: '#FFF5F6',
+              100: '#FDE2E4',
+              200: '#FAD2D6',
+              500: '#E56B6F',
+              600: '#D15458',
+            },
+            honey: {
+              100: '#FEF3C7',
+              300: '#FBD97E',
+              400: '#F9C74F',
+              500: '#E5AE2B',
+            },
+            cocoa: {
+              500: '#8D6E63',
+              700: '#6D4C41',
+              800: '#5C4033',
+              900: '#3E2723',
+            },
+          },
+        },
+      },
+    };
+  </script>
+</head>
+<body class="bg-cream-50 text-cocoa-800 font-sans antialiased selection:bg-blush-100 selection:text-cocoa-900 min-h-screen flex flex-col">
+
+  <!-- Sticky Gamified Header with XP Bar -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur border-b-2 border-cream-200 shadow-xs">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 sm:py-4 space-y-3">
+      <!-- Top Row: Title + XP Progress -->
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-blush-500 text-white flex items-center justify-center font-black text-xl border-b-4 border-blush-600 shadow-xs shrink-0">
+            04
+          </div>
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <h1 class="text-lg sm:text-xl font-black text-cocoa-900 tracking-tight">
+                Batch Normalization: train và eval
+              </h1>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-blush-100 text-blush-600 border border-blush-200">
+                Bản Non-tech ✨
+              </span>
+            </div>
+            <p class="text-xs sm:text-sm text-cocoa-500 font-medium">
+              Quy đổi điểm thi • Sổ tay <code class="font-mono text-xs bg-cream-100 px-1.5 py-0.5 rounded-lg text-cocoa-800">running_mean/var</code> • Bẫy <strong class="text-blush-600">N vs N-1</strong>
+            </p>
+          </div>
+        </div>
+
+        <!-- Duolingo-style XP Progress Bar -->
+        <div class="flex items-center gap-3 bg-cream-100 border-2 border-cream-200 rounded-2xl px-3.5 py-2 self-start md:self-auto w-full md:w-auto">
+          <div class="text-xl shrink-0">🏆</div>
+          <div class="flex-1 md:w-44">
+            <div class="flex items-center justify-between text-[11px] font-extrabold mb-1">
+              <span class="text-cocoa-700 uppercase tracking-wide">Tiến độ ôn thi</span>
+              <span class="text-blush-600 font-black"><span id="xp-value">5</span> / 100 XP</span>
+            </div>
+            <div class="w-full h-3 bg-white rounded-full border border-cream-200 overflow-hidden p-0.5">
+              <div
+                id="xp-bar"
+                class="h-full rounded-full bg-gradient-to-r from-honey-400 to-blush-500 transition-all duration-500"
+                style="width: 5%;"
+              ></div>
+            </div>
+          </div>
+          <div class="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-extrabold text-emerald-800 shrink-0">
+            <span>🎯</span>
+            <span>Đáp án B</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4 Main Navigation Tabs (3D Duolingo Style) -->
+      <nav aria-label="Điều hướng 4 phần học" class="grid grid-cols-2 lg:grid-cols-4 gap-2">
+        <button
+          id="tab-btn-1"
+          data-tab="1"
+          class="tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2"
+        >
+          <span>💡</span>
+          <span>1. Bản chất &amp; Từ vựng</span>
+        </button>
+        <button
+          id="tab-btn-2"
+          data-tab="2"
+          class="tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2"
+        >
+          <span>🔍</span>
+          <span>2. Từng dòng code</span>
+        </button>
+        <button
+          id="tab-btn-3"
+          data-tab="3"
+          class="tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2"
+        >
+          <span>🧪</span>
+          <span>3. Gỡ 3 Bẫy</span>
+        </button>
+        <button
+          id="tab-btn-4"
+          data-tab="4"
+          class="tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2"
+        >
+          <span>⚡</span>
+          <span>4. Mẹo 15s &amp; Quiz</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
+
+    <!-- =================================================================== -->
+    <!-- TAB 1: HIỂU BẢN CHẤT & TỪ VỰNG                                      -->
+    <!-- =================================================================== -->
+    <section id="tab-panel-1" class="tab-panel space-y-8">
+      <!-- Warm Hero Banner -->
+      <div class="bg-gradient-to-r from-blush-500 via-rose-400 to-honey-400 text-white rounded-3xl p-6 sm:p-8 border-b-4 border-blush-600/50 shadow-sm">
+        <div class="inline-flex items-center gap-2 bg-white/25 backdrop-blur px-3 py-1 rounded-full text-xs font-extrabold mb-3">
+          <span>📌 Tóm tắt Câu 04 trong 1 câu siêu dễ nhớ</span>
+        </div>
+        <h2 class="text-xl sm:text-2xl font-black leading-snug mb-3">
+          BatchNorm giống như "quy đổi điểm thi về cùng một thang đo chuẩn": Lúc ôn luyện (<code class="bg-white/25 px-1.5 py-0.5 rounded-lg font-mono">train()</code>) thì vừa đổi điểm vừa ghi sổ tay; lúc thi thật (<code class="bg-white/25 px-1.5 py-0.5 rounded-lg font-mono">eval()</code>) thì khóa sổ tay, lôi số cũ ra dùng!
+        </h2>
+        <p class="text-white/95 text-sm sm:text-base leading-relaxed">
+          Đề bài cài đúng <strong>1 cái bẫy kinh điển của PyTorch</strong>: Chuẩn hóa output lúc <code class="bg-white/25 px-1.5 py-0.5 rounded-lg font-mono text-xs sm:text-sm">train()</code> thì chia cho <strong>N</strong>, nhưng ghi vào sổ tay <code class="bg-white/25 px-1.5 py-0.5 rounded-lg font-mono text-xs sm:text-sm">running_var</code> lại chia cho <strong>N − 1</strong>!
+        </p>
+      </div>
+
+      <!-- 4 Everyday Metaphor Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- 1. BatchNorm -->
+        <article class="bg-white rounded-3xl border-2 border-cream-200 p-6 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-cream-100 text-cocoa-800 border border-cream-200">
+                Ẩn dụ 1 • Quy đổi thang đo
+              </span>
+              <span class="text-2xl">📏</span>
+            </div>
+            <h3 class="text-lg font-black text-cocoa-900 mb-2">
+              BatchNorm = Quy đổi điểm thi về cùng thang đo chuẩn
+            </h3>
+            <p class="text-sm text-cocoa-700 leading-relaxed mb-4">
+              Giống như so sánh điểm Toán (thang 10) với điểm Tiếng Anh (thang 100), ta quy đổi từng cột điểm bằng công thức:
+            </p>
+            <div class="p-3.5 rounded-2xl bg-cream-100 border-2 border-honey-300 text-center font-mono text-xs sm:text-sm font-extrabold text-cocoa-900">
+              Điểm chuẩn = (Điểm cũ − Trung bình) / Độ lệch chuẩn
+            </div>
+          </div>
+          <p class="mt-4 pt-3 border-t border-cream-200 text-xs text-cocoa-500">
+            <strong>Siêu mẹo:</strong> Nếu nhóm chỉ có đúng <strong>2 người</strong> (ví dụ <code class="font-mono">[1, 3]</code> hay <code class="font-mono">[5, 9]</code>), khi chia cho N=2 thì người thấp hơn LUÔN thành <strong>-1.0</strong> và người cao hơn LUÔN thành <strong>+1.0</strong>!
+          </p>
+        </article>
+
+        <!-- 2. train() -->
+        <article class="bg-white rounded-3xl border-2 border-honey-300 p-6 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-honey-100 text-cocoa-900 border border-honey-300">
+                Ẩn dụ 2 • Đang ôn luyện
+              </span>
+              <span class="text-2xl">📓</span>
+            </div>
+            <h3 class="text-lg font-black text-cocoa-900 mb-2">
+              <code class="font-mono text-cocoa-800">bn.train()</code> = Thi thử &amp; Ghi chép Cuốn sổ tay
+            </h3>
+            <p class="text-sm text-cocoa-700 leading-relaxed mb-3">
+              Mỗi lần đưa 1 lô dữ liệu (batch) vào lúc đang ôn luyện, máy làm đủ 3 bước:
+            </p>
+            <ul class="space-y-2 text-xs text-cocoa-800">
+              <li class="p-2.5 rounded-xl bg-cream-100 border border-cream-200 flex gap-2">
+                <span class="font-black text-blush-600">1.</span>
+                <span>Tự tính trung bình &amp; phương sai của <strong>đề hiện tại</strong> để quy đổi điểm.</span>
+              </li>
+              <li class="p-2.5 rounded-xl bg-cream-100 border border-cream-200 flex gap-2">
+                <span class="font-black text-blush-600">2.</span>
+                <span>Cập nhật cuốn sổ tay <code class="font-mono font-bold">running_mean</code> và <code class="font-mono font-bold">running_var</code> kiểu pha trà: <strong>50% sổ cũ + 50% đề mới</strong>.</span>
+              </li>
+              <li class="p-2.5 rounded-xl bg-cream-100 border border-cream-200 flex gap-2">
+                <span class="font-black text-blush-600">3.</span>
+                <span>Tăng số đề đã làm (<code class="font-mono font-bold">num_batches_tracked</code>) thêm 1.</span>
+              </li>
+            </ul>
+          </div>
+        </article>
+
+        <!-- 3. eval() -->
+        <article class="bg-white rounded-3xl border-2 border-emerald-200 p-6 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                Ẩn dụ 3 • Đi thi thật
+              </span>
+              <span class="text-2xl">🎓</span>
+            </div>
+            <h3 class="text-lg font-black text-cocoa-900 mb-2">
+              <code class="font-mono text-emerald-700">bn.eval()</code> = Khóa sổ tay! Lôi số cũ ra dùng
+            </h3>
+            <p class="text-sm text-cocoa-700 leading-relaxed mb-4">
+              Vào phòng thi thật (<code class="font-mono font-bold">eval()</code>), mô hình <strong>đóng nắp bút</strong>, không học thêm nữa:
+            </p>
+            <div class="space-y-2 text-xs">
+              <div class="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-950">
+                ✅ <strong>Dùng số trong sổ tay:</strong> Lôi <code class="font-mono font-bold">running_mean = [4.0, 2.0]</code> và <code class="font-mono font-bold">running_var = [4.75, 6.25]</code> ra tính → nên kết quả <code class="font-mono">eval</code> KHÔNG phải <code class="font-mono">±1.0</code> (loại ngay D!).
+              </div>
+              <div class="p-3 rounded-2xl bg-cream-100 border border-cream-200 text-cocoa-800">
+                🔒 <strong>Không cập nhật sổ, không tăng số batch:</strong> Nên cuối bài <code class="font-mono font-bold">batches</code> vẫn là <strong>2</strong> (không phải 3).
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- 4. Trap N vs N-1 -->
+        <article class="bg-white rounded-3xl border-2 border-blush-500/50 p-6 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-blush-100 text-blush-600 border border-blush-200">
+                Ẩn dụ 4 • Cái bẫy ăn điểm 🚨
+              </span>
+              <span class="text-2xl">⚖️</span>
+            </div>
+            <h3 class="text-lg font-black text-cocoa-900 mb-2">
+              Bẫy kinh điển: Chia <span class="text-emerald-700">N</span> vs Chia <span class="text-blush-600">N − 1</span>
+            </h3>
+            <p class="text-sm text-cocoa-700 leading-relaxed mb-4">
+              Với mỗi lô có <strong>N = 2</strong> dòng, PyTorch dùng <strong>2 công thức phương sai khác nhau</strong>:
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+              <div class="p-3 rounded-2xl bg-emerald-50 border-2 border-emerald-200">
+                <p class="font-black text-emerald-800 mb-1">1. Chuẩn hóa output (train)</p>
+                <p class="text-cocoa-700">Chia cho <strong>N = 2</strong>.</p>
+                <p class="font-mono font-extrabold text-emerald-700 mt-1">→ Luôn ra ±1.0</p>
+                <p class="text-[11px] text-cocoa-500 mt-0.5">(Loại A ra ±0.7071)</p>
+              </div>
+              <div class="p-3 rounded-2xl bg-blush-50 border-2 border-blush-200">
+                <p class="font-black text-blush-600 mb-1">2. Ghi sổ running_var</p>
+                <p class="text-cocoa-700">Chia cho <strong>N − 1 = 1</strong> (gấp đôi lên!).</p>
+                <p class="font-mono font-extrabold text-blush-600 mt-1">→ Ra [1.5, 4.5]</p>
+                <p class="text-[11px] text-cocoa-500 mt-0.5">(Loại C ra [1.0, 2.5])</p>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <!-- Interactive Flashcard Dictionary -->
+      <div class="bg-white rounded-3xl border-2 border-cream-200 p-5 sm:p-6 shadow-xs">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+          <div>
+            <span class="inline-block px-3 py-0.5 rounded-full text-xs font-extrabold bg-honey-100 text-cocoa-900 mb-1">
+              📖 Từ điển Anh–Việt cho Non-tech
+            </span>
+            <h3 class="text-base sm:text-lg font-black text-cocoa-900">
+              Nhấp vào từng thẻ từ vựng để lật xem nghĩa đời thường!
+            </h3>
+          </div>
+          <button
+            onclick="flipAllVocab()"
+            class="px-3.5 py-2 rounded-xl bg-cream-100 hover:bg-cream-200 text-cocoa-800 text-xs font-extrabold border-2 border-cream-200 border-b-4 transition cursor-pointer self-start sm:self-auto"
+          >
+            🔄 Lật tất cả thẻ
+          </button>
+        </div>
+
+        <div id="vocab-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <!-- JS Populated -->
+        </div>
+      </div>
+
+      <!-- CTA Button -->
+      <div class="bg-cream-100 rounded-3xl border-2 border-cream-200 p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-2xl bg-honey-400 text-cocoa-900 flex items-center justify-center text-xl border-b-4 border-honey-500 shrink-0">
+            🦉
+          </div>
+          <div>
+            <h4 class="text-sm font-black text-cocoa-900">Đã thuộc lòng 4 ẩn dụ và từ vựng?</h4>
+            <p class="text-xs text-cocoa-600">Sang Tab 2 để bấm từng dòng code và xem sổ tay tự cập nhật từng con số nhé!</p>
+          </div>
+        </div>
+        <button
+          onclick="switchTab('2')"
+          class="w-full sm:w-auto px-5 py-2.5 rounded-2xl bg-blush-500 hover:bg-blush-600 active:translate-y-0.5 text-white text-sm font-extrabold border-b-4 border-blush-600 transition cursor-pointer"
+        >
+          Đi tới Tab 2: Giải thích từng dòng →
+        </button>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 2: GIẢI THÍCH TỪNG DÒNG CODE                                    -->
+    <!-- =================================================================== -->
+    <section id="tab-panel-2" class="tab-panel hidden space-y-5">
+      <div class="bg-white rounded-3xl border-2 border-cream-200 p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="text-base sm:text-lg font-black text-cocoa-900">Click từng dòng code để xem phép tính số học &amp; Sổ tay trực tiếp</h2>
+          <p class="text-xs sm:text-sm text-cocoa-500">Các ô vừa thay đổi trong bảng Live State bên phải sẽ được tô sáng tự động.</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 shrink-0">
+          <span class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-xl bg-honey-100 text-cocoa-900 border border-honey-300">
+            <span class="w-2 h-2 rounded-full bg-honey-500"></span> Train (Ghi sổ)
+          </span>
+          <span class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-xl bg-blush-100 text-blush-600 border border-blush-200">
+            <span class="w-2 h-2 rounded-full bg-blush-500"></span> Bẫy N vs N-1
+          </span>
+          <span class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-xl bg-emerald-100 text-emerald-800 border border-emerald-200">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Eval (Khóa sổ)
+          </span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <!-- Left: Full Code of Câu 04 -->
+        <div class="lg:col-span-5 bg-cocoa-900 rounded-3xl shadow-md border-2 border-cocoa-700 overflow-hidden">
+          <div class="flex items-center justify-between px-4 py-3 bg-cocoa-800 border-b border-cocoa-700">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-blush-500"></span>
+              <span class="w-3 h-3 rounded-full bg-honey-400"></span>
+              <span class="w-3 h-3 rounded-full bg-emerald-400"></span>
+              <span class="ml-2 text-xs font-mono text-cream-100">cau_04_batchnorm.py</span>
+            </div>
+            <span class="text-[11px] font-semibold text-honey-300">Click từng dòng</span>
+          </div>
+          <div id="code-lines-container" class="p-3 overflow-x-auto font-mono text-xs sm:text-[13px] space-y-1">
+            <!-- JS Populated -->
+          </div>
+        </div>
+
+        <!-- Right: Explanation + Arithmetic + Live State Panel -->
+        <div class="lg:col-span-7 lg:sticky lg:top-40">
+          <div class="bg-white rounded-3xl border-2 border-cream-200 shadow-sm overflow-hidden">
+            <!-- Controls -->
+            <div class="flex items-center justify-between px-5 py-3.5 bg-cream-100 border-b-2 border-cream-200">
+              <span id="step-counter" class="text-xs font-black text-cocoa-700 uppercase tracking-wider">
+                Bước 1 / 12
+              </span>
+              <div class="flex items-center gap-2">
+                <button
+                  id="prev-line-btn"
+                  class="px-3.5 py-1.5 rounded-xl bg-white hover:bg-cream-50 text-cocoa-800 border-2 border-cream-200 border-b-4 text-xs font-extrabold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  ← Dòng trước
+                </button>
+                <button
+                  id="next-line-btn"
+                  class="px-3.5 py-1.5 rounded-xl bg-blush-500 hover:bg-blush-600 text-white border-b-4 border-blush-600 text-xs font-extrabold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  Dòng tiếp theo →
+                </button>
+              </div>
+            </div>
+
+            <!-- Dynamic Body -->
+            <div id="line-explanation-content" class="p-5 sm:p-6 space-y-5">
+              <!-- JS Populated -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 3: PHÒNG THÍ NGHIỆM GỠ 3 BẪY                                    -->
+    <!-- =================================================================== -->
+    <section id="tab-panel-3" class="tab-panel hidden space-y-8">
+      <!-- SIMULATION 1: BẪY N VS N-1 -->
+      <div class="bg-white rounded-3xl border-2 border-cream-200 p-5 sm:p-6 shadow-xs space-y-5">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b-2 border-cream-100">
+          <div>
+            <span class="inline-block px-3 py-0.5 rounded-full text-xs font-extrabold bg-blush-100 text-blush-600 mb-1">
+              🧪 Thí nghiệm 1 (+10 XP)
+            </span>
+            <h2 class="text-lg font-black text-cocoa-900">
+              Gỡ bẫy N vs N−1 trên Batch <code class="font-mono text-blush-600">a = [[1, 2], [3, 6]]</code>
+            </h2>
+            <p class="text-xs sm:text-sm text-cocoa-500 mt-0.5">
+              Bấm chọn 1 trong 3 chế độ dưới đây để thấy rõ cách tính CHUẨN và lý do Đáp án A, C bị sai!
+            </p>
+          </div>
+        </div>
+
+        <!-- 3 Mode Buttons -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <button id="nmode-std" onclick="setNMode('std')" class="nmode-btn p-3.5 rounded-2xl border-2 text-left transition cursor-pointer">
+            <p class="text-xs font-black">✅ Cách tính CHUẨN (Đáp án B)</p>
+            <p class="text-[11px] opacity-85 mt-0.5">Train chia N=2 • Sổ tay chia N−1=1</p>
+          </button>
+          <button id="nmode-trapA" onclick="setNMode('trapA')" class="nmode-btn p-3.5 rounded-2xl border-2 text-left transition cursor-pointer">
+            <p class="text-xs font-black">🚨 Bẫy A (Dùng N−1 chuẩn hóa)</p>
+            <p class="text-[11px] opacity-85 mt-0.5">Ra ±0.7071 thay vì ±1.0!</p>
+          </button>
+          <button id="nmode-trapC" onclick="setNMode('trapC')" class="nmode-btn p-3.5 rounded-2xl border-2 text-left transition cursor-pointer">
+            <p class="text-xs font-black">🚨 Bẫy C (Dùng N ghi sổ tay)</p>
+            <p class="text-[11px] opacity-85 mt-0.5">running_var nhỏ đi 1 nửa: [1.0, 2.5]</p>
+          </button>
+        </div>
+
+        <!-- Simulation 1 Output Area -->
+        <div id="sim1-output" class="space-y-4">
+          <!-- JS Populated -->
+        </div>
+      </div>
+
+      <!-- SIMULATION 2: PHA TRÀ MOMENTUM = 0.5 -->
+      <div class="bg-white rounded-3xl border-2 border-cream-200 p-5 sm:p-6 shadow-xs space-y-5">
+        <div class="pb-4 border-b-2 border-cream-100">
+          <span class="inline-block px-3 py-0.5 rounded-full text-xs font-extrabold bg-honey-100 text-cocoa-900 mb-1">
+            🍵 Thí nghiệm 2 (+5 XP)
+          </span>
+          <h2 class="text-lg font-black text-cocoa-900">
+            Mô phỏng "Pha trà" <code class="font-mono text-cocoa-800">momentum = 0.5</code> (50% sổ cũ + 50% batch mới)
+          </h2>
+          <p class="text-xs sm:text-sm text-cocoa-500 mt-0.5">
+            Bấm lần lượt 4 chặng để xem sổ tay <code class="font-mono">running_mean</code>, <code class="font-mono">running_var</code> và <code class="font-mono">batches</code> biến đổi!
+          </p>
+        </div>
+
+        <!-- 4 Step Buttons -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+          <button id="tea-btn-0" onclick="setTeaStep(0)" class="tea-btn p-3 rounded-2xl border-2 text-left transition cursor-pointer">
+            <p class="text-[11px] font-extrabold uppercase opacity-75">Bước 0</p>
+            <p class="text-xs sm:text-sm font-black">Khởi tạo sổ</p>
+          </button>
+          <button id="tea-btn-1" onclick="setTeaStep(1)" class="tea-btn p-3 rounded-2xl border-2 text-left transition cursor-pointer">
+            <p class="text-[11px] font-extrabold uppercase opacity-75">Bước 1 • train()</p>
+            <p class="text-xs sm:text-sm font-black">Qua Batch a</p>
+          </button>
+          <button id="tea-btn-2" onclick="setTeaStep(2)" class="tea-btn p-3 rounded-2xl border-2 text-left transition cursor-pointer">
+            <p class="text-[11px] font-extrabold uppercase opacity-75">Bước 2 • train()</p>
+            <p class="text-xs sm:text-sm font-black">Qua Batch b</p>
+          </button>
+          <button id="tea-btn-3" onclick="setTeaStep(3)" class="tea-btn p-3 rounded-2xl border-2 text-left transition cursor-pointer">
+            <p class="text-[11px] font-extrabold uppercase opacity-75">Bước 3 • eval()</p>
+            <p class="text-xs sm:text-sm font-black">Qua Eval (Khóa!)</p>
+          </button>
+        </div>
+
+        <!-- Tea Mixing Visual Output -->
+        <div id="sim2-output">
+          <!-- JS Populated -->
+        </div>
+      </div>
+
+      <!-- SIMULATION 3: TÍNH TAY EVAL SIÊU DỄ -->
+      <div class="bg-white rounded-3xl border-2 border-emerald-200 p-5 sm:p-6 shadow-xs space-y-5">
+        <div class="pb-4 border-b-2 border-cream-100">
+          <span class="inline-block px-3 py-0.5 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800 mb-1">
+            🧮 Thí nghiệm 3 (+5 XP)
+          </span>
+          <h2 class="text-lg font-black text-cocoa-900">
+            Tính tay <code class="font-mono text-emerald-700">eval</code> siêu dễ: Click từng ô trong bảng <code class="font-mono">[[4, 3], [8, 7]]</code>!
+          </h2>
+          <p class="text-xs sm:text-sm text-cocoa-500 mt-0.5">
+            Sổ tay đang khóa ở <code class="font-mono font-bold text-cocoa-800">running_mean = [4.0, 2.0]</code> và <code class="font-mono font-bold text-blush-600">running_var = [4.75, 6.25]</code>.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <!-- Input Matrix (Clickable) -->
+          <div class="lg:col-span-4 flex flex-col items-center">
+            <p class="text-xs font-extrabold text-cocoa-700 mb-2">👆 Click 1 ô đầu vào (test):</p>
+            <div class="grid grid-cols-2 gap-2.5 bg-cream-100 p-3.5 rounded-2xl border-2 border-cream-200">
+              <button onclick="selectEvalCell(0,0)" id="eval-in-0-0" class="eval-in-btn w-20 h-14 rounded-2xl border-2 font-mono font-black text-base transition cursor-pointer">4.0</button>
+              <button onclick="selectEvalCell(0,1)" id="eval-in-0-1" class="eval-in-btn w-20 h-14 rounded-2xl border-2 font-mono font-black text-base transition cursor-pointer">3.0</button>
+              <button onclick="selectEvalCell(1,0)" id="eval-in-1-0" class="eval-in-btn w-20 h-14 rounded-2xl border-2 font-mono font-black text-base transition cursor-pointer">8.0</button>
+              <button onclick="selectEvalCell(1,1)" id="eval-in-1-1" class="eval-in-btn w-20 h-14 rounded-2xl border-2 font-mono font-black text-base transition cursor-pointer">7.0</button>
+            </div>
+            <div class="grid grid-cols-2 gap-2.5 mt-1.5 w-44 text-center text-[11px] font-bold text-cocoa-500">
+              <span>Cột 0</span>
+              <span>Cột 1</span>
+            </div>
+          </div>
+
+          <!-- Formula Inspector -->
+          <div id="sim3-inspector" class="lg:col-span-4 bg-cocoa-900 text-cream-50 rounded-3xl p-5 space-y-2 shadow-sm">
+            <!-- JS Populated -->
+          </div>
+
+          <!-- Output Matrix -->
+          <div class="lg:col-span-4 flex flex-col items-center">
+            <p class="text-xs font-extrabold text-emerald-800 mb-2">✅ Kết quả đầu ra (ze):</p>
+            <div class="grid grid-cols-2 gap-2.5 bg-emerald-50 p-3.5 rounded-2xl border-2 border-emerald-300">
+              <div id="eval-out-0-0" class="w-20 h-14 rounded-2xl border-2 font-mono font-black text-sm flex items-center justify-center transition">0.0</div>
+              <div id="eval-out-0-1" class="w-20 h-14 rounded-2xl border-2 font-mono font-black text-sm flex items-center justify-center transition">0.4</div>
+              <div id="eval-out-1-0" class="w-20 h-14 rounded-2xl border-2 font-mono font-black text-sm flex items-center justify-center transition">1.8353</div>
+              <div id="eval-out-1-1" class="w-20 h-14 rounded-2xl border-2 font-mono font-black text-sm flex items-center justify-center transition">2.0</div>
+            </div>
+            <p class="text-[11px] font-bold text-emerald-700 mt-2">Cột 1 có √6.25 = 2.5 nhẩm cực nhanh!</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 4: MẸO 15 GIÂY & MINI-QUIZ 4 CÂU                                -->
+    <!-- =================================================================== -->
+    <section id="tab-panel-4" class="tab-panel hidden space-y-8">
+      <!-- 15-Second Strategy -->
+      <div class="bg-white rounded-3xl border-2 border-cream-200 p-5 sm:p-6 shadow-xs">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+          <div>
+            <span class="inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-xs font-extrabold bg-blush-100 text-blush-600 mb-1">
+              ⚡ Chiến thuật phòng thi 15 giây
+            </span>
+            <h2 class="text-lg sm:text-xl font-black text-cocoa-900">
+              Loại nhanh A → D → C không cần bấm máy tính, chốt ngay Đáp án B!
+            </h2>
+          </div>
+          <button
+            onclick="toggleExamHints()"
+            class="px-4 py-2 rounded-2xl bg-cream-100 hover:bg-cream-200 text-cocoa-800 text-xs font-extrabold border-2 border-cream-200 border-b-4 transition cursor-pointer self-start sm:self-auto"
+          >
+            👁️ Ẩn/Hiện đánh dấu sai
+          </button>
+        </div>
+
+        <!-- 3-Step Quick Elimination -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+          <div class="p-4 rounded-2xl bg-blush-50 border-2 border-blush-200">
+            <p class="text-xs font-black text-blush-600">Bước 1 (4s): Nhìn dòng train</p>
+            <p class="text-xs text-cocoa-800 mt-1">2 số bất kỳ chuẩn hóa chia N=2 LUÔN ra <code class="font-mono font-bold">±1.0</code> → <strong>Loại ngay A</strong> (ra <code class="font-mono">±0.7071</code>)!</p>
+          </div>
+          <div class="p-4 rounded-2xl bg-honey-100/70 border-2 border-honey-300">
+            <p class="text-xs font-black text-cocoa-900">Bước 2 (5s): Nhìn dòng eval</p>
+            <p class="text-xs text-cocoa-800 mt-1">Chế độ <code class="font-mono">eval()</code> dùng sổ tay cũ nên KHÔNG thể tự chuẩn hóa thành <code class="font-mono">±1.0</code> → <strong>Loại ngay D!</strong></p>
+          </div>
+          <div class="p-4 rounded-2xl bg-emerald-50 border-2 border-emerald-200">
+            <p class="text-xs font-black text-emerald-800">Bước 3 (6s): Nhìn var1 trong state1</p>
+            <p class="text-xs text-cocoa-800 mt-1">Cột 1 <code class="font-mono">[1, 3]</code> có var(N−1) = <strong>2.0</strong>. Pha 50% cũ (1.0) + 50% mới (2.0) = <strong>1.5</strong> → <strong>Loại C (1.0) → CHỐT B!</strong></p>
+          </div>
+        </div>
+
+        <!-- Quick Comparison Table / Cards of A, B, C, D -->
+        <div class="grid grid-cols-1 gap-4">
+          <!-- Option A -->
+          <div class="rounded-2xl border-2 border-cream-200 bg-cream-50/70 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-cream-200 text-cocoa-900 font-black text-sm flex items-center justify-center">A</span>
+                <span class="text-sm font-extrabold text-cocoa-900">Phương án A</span>
+              </div>
+              <span class="exam-hint px-3 py-1 rounded-full text-xs font-extrabold bg-blush-100 text-blush-600 border border-blush-200">
+                ❌ SAI (Dùng N−1 để chuẩn hóa train)
+              </span>
+            </div>
+            <pre class="bg-white rounded-xl p-3 border border-cream-200 text-[11px] sm:text-xs font-mono text-cocoa-800 overflow-x-auto leading-relaxed">train: <span class="bg-blush-200 text-rose-900 font-bold px-1 rounded">[[-0.7071, -0.7071], [0.7071, 0.7071]]</span> [[-0.7071, -0.7071], [0.7071, 0.7071]]
+state1: [1.0, 2.0] [1.5, 4.5]
+state2: [4.0, 2.0] [4.75, 6.25]
+eval: [[0.0, 0.4], [1.8353, 2.0]]   |   batches: 2</pre>
+          </div>
+
+          <!-- Option B (CORRECT) -->
+          <div class="rounded-2xl border-2 border-emerald-400 bg-emerald-50/60 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-emerald-500 text-white font-black text-sm flex items-center justify-center border-b-2 border-emerald-700">B</span>
+                <span class="text-sm font-black text-emerald-900">Phương án B</span>
+              </div>
+              <span class="exam-hint px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-600 text-white">
+                ✅ ĐÁP ÁN ĐÚNG 100%
+              </span>
+            </div>
+            <pre class="bg-white rounded-xl p-3 border-2 border-emerald-300 text-[11px] sm:text-xs font-mono text-cocoa-900 overflow-x-auto leading-relaxed">train: <span class="bg-emerald-100 text-emerald-900 font-bold px-1 rounded">[[-1.0, -1.0], [1.0, 1.0]]</span> [[-1.0, -1.0], [1.0, 1.0]]
+state1: [1.0, 2.0] <span class="bg-emerald-100 text-emerald-900 font-bold px-1 rounded">[1.5, 4.5]</span>
+state2: [4.0, 2.0] <span class="bg-emerald-100 text-emerald-900 font-bold px-1 rounded">[4.75, 6.25]</span>
+eval: <span class="bg-emerald-100 text-emerald-900 font-bold px-1 rounded">[[0.0, 0.4], [1.8353, 2.0]]</span>   |   batches: <span class="bg-emerald-100 text-emerald-900 font-bold px-1 rounded">2</span></pre>
+          </div>
+
+          <!-- Option C -->
+          <div class="rounded-2xl border-2 border-cream-200 bg-cream-50/70 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-cream-200 text-cocoa-900 font-black text-sm flex items-center justify-center">C</span>
+                <span class="text-sm font-extrabold text-cocoa-900">Phương án C</span>
+              </div>
+              <span class="exam-hint px-3 py-1 rounded-full text-xs font-extrabold bg-blush-100 text-blush-600 border border-blush-200">
+                ❌ SAI (Dùng N để ghi sổ running_var → nhỏ đi một nửa)
+              </span>
+            </div>
+            <pre class="bg-white rounded-xl p-3 border border-cream-200 text-[11px] sm:text-xs font-mono text-cocoa-800 overflow-x-auto leading-relaxed">train: [[-1.0, -1.0], [1.0, 1.0]] [[-1.0, -1.0], [1.0, 1.0]]
+state1: [1.0, 2.0] <span class="bg-blush-200 text-rose-900 font-bold px-1 rounded">[1.0, 2.5]</span>
+state2: [4.0, 2.0] <span class="bg-blush-200 text-rose-900 font-bold px-1 rounded">[2.5, 3.25]</span>
+eval: <span class="bg-blush-200 text-rose-900 font-bold px-1 rounded">[[0.0, 0.5547], [2.5298, 2.7735]]</span>   |   batches: 2</pre>
+          </div>
+
+          <!-- Option D -->
+          <div class="rounded-2xl border-2 border-cream-200 bg-cream-50/70 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-cream-200 text-cocoa-900 font-black text-sm flex items-center justify-center">D</span>
+                <span class="text-sm font-extrabold text-cocoa-900">Phương án D</span>
+              </div>
+              <span class="exam-hint px-3 py-1 rounded-full text-xs font-extrabold bg-blush-100 text-blush-600 border border-blush-200">
+                ❌ SAI (Tưởng eval tự chuẩn hóa như train)
+              </span>
+            </div>
+            <pre class="bg-white rounded-xl p-3 border border-cream-200 text-[11px] sm:text-xs font-mono text-cocoa-800 overflow-x-auto leading-relaxed">train: [[-1.0, -1.0], [1.0, 1.0]] [[-1.0, -1.0], [1.0, 1.0]]
+state1: [1.0, 2.0] [1.5, 4.5]
+state2: [4.0, 2.0] [4.75, 6.25]
+eval: <span class="bg-blush-200 text-rose-900 font-bold px-1 rounded">[[-1.0, -1.0], [1.0, 1.0]]</span>   |   batches: 2</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mini-Quiz (4 Questions) -->
+      <div class="bg-white rounded-3xl border-2 border-cream-200 p-5 sm:p-6 shadow-xs">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-5 border-b-2 border-cream-100">
+          <div>
+            <span class="inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800 mb-1">
+              🎯 Mini-Quiz 4 câu (+15 XP / câu đúng)
+            </span>
+            <h3 class="text-lg font-black text-cocoa-900">
+              Hoàn thành 4 câu &amp; trải nghiệm các tab để cán mốc 100 XP!
+            </h3>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="px-4 py-1.5 rounded-2xl bg-blush-50 border-2 border-blush-200 text-sm font-black text-blush-600">
+              Điểm: <span id="quiz-score">0</span> / 4
+            </div>
+            <button
+              onclick="resetQuiz()"
+              class="px-3.5 py-1.5 rounded-2xl bg-cream-100 hover:bg-cream-200 text-cocoa-800 text-xs font-extrabold border-2 border-cream-200 border-b-4 transition cursor-pointer"
+            >
+              🔄 Làm lại
+            </button>
+          </div>
+        </div>
+
+        <div id="quiz-container" class="space-y-5">
+          <!-- JS Populated -->
+        </div>
+
+        <!-- 100 XP Celebration Banner -->
+        <div id="xp-win-banner" class="hidden mt-6 p-6 rounded-3xl bg-gradient-to-r from-honey-400 via-blush-500 to-emerald-400 text-white text-center shadow-md border-b-4 border-cocoa-800/20">
+          <p class="text-3xl mb-2">🎉🦉🏆🎉</p>
+          <p class="text-lg sm:text-xl font-black">CHÚC MỪNG! BẠN ĐÃ ĐẠT 100 / 100 XP!</p>
+          <p class="text-xs sm:text-sm text-white/95 mt-1 font-medium">
+            Bạn đã mở khóa toàn bộ bí kíp Câu 04: <strong>Train chia N (±1.0) • Sổ tay chia N−1 ([1.5, 4.5]) • Eval khóa sổ!</strong> Tự tin khoanh B nhé!
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t-2 border-cream-200 py-4 mt-8">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 text-center text-xs text-cocoa-500 font-medium">
+      Ôn thi Câu 04: Batch Normalization (train &amp; eval) • Giao diện Gamified Pastel dành cho Non-tech
+    </div>
+  </footer>
+
+  <!-- Complete Application Logic -->
+  <script>
+    // =========================================================================
+    // 0. GAMIFIED XP ENGINE (0 -> 100 XP)
+    // =========================================================================
+    // Breakdown:
+    // - 4 Tabs visited: 5 XP each = 20 XP
+    // - 3 Lab Simulations interacted: Sim1 (10 XP) + Sim2 (5 XP) + Sim3 (5 XP) = 20 XP
+    // - 4 Quiz questions answered correctly: 15 XP each = 60 XP
+    // Total = 100 XP
+    const xpState = {
+      tabs: new Set(['1']),
+      sim1: false,
+      sim2: false,
+      sim3: false,
+      quizCorrectCount: 0,
+    };
+
+    function updateXP() {
+      try {
+        const tabXP = xpState.tabs.size * 5;
+        const simXP = (xpState.sim1 ? 10 : 0) + (xpState.sim2 ? 5 : 0) + (xpState.sim3 ? 5 : 0);
+        const quizXP = xpState.quizCorrectCount * 15;
+        const total = Math.min(100, tabXP + simXP + quizXP);
+
+        const valEl = document.getElementById('xp-value');
+        const barEl = document.getElementById('xp-bar');
+        const winBanner = document.getElementById('xp-win-banner');
+
+        if (valEl) valEl.textContent = String(total);
+        if (barEl) barEl.style.width = `${total}%`;
+        if (winBanner) {
+          winBanner.classList.toggle('hidden', total < 100);
+        }
+      } catch (err) {
+        console.error('XP update error:', err);
+      }
+    }
+
+    // =========================================================================
+    // 1. TAB 1: INTERACTIVE ANH-VIET FLASHCARD DICTIONARY
+    // =========================================================================
+    const vocabList = [
+      { term: 'affine=False', short: 'Tắt chỉnh tay thêm', meaning: 'Không nhân thêm hệ số phóng đại (gamma) và không cộng thêm độ lệch (beta) sau khi quy đổi. Giúp phép tính sạch sẽ, chỉ còn đúng (x − mean) / std.' },
+      { term: 'momentum=0.5', short: 'Tỷ lệ pha trà 50/50', meaning: 'Khi cập nhật sổ tay running_mean / running_var, lấy đúng 50% giá trị cũ trong sổ + 50% giá trị của batch mới.' },
+      { term: 'eps=0.0', short: 'Không cộng số chống chia 0', meaning: 'Bình thường máy cộng thêm 0.00001 vào mẫu số để tránh lỗi chia cho 0. Đề đặt eps=0.0 để ta tính tay ra số tròn đẹp (-1.0, 1.0, 0.4, 2.0).' },
+      { term: 'running_mean', short: 'Sổ tay ghi Trung bình', meaning: 'Cuốn sổ lưu trung bình cộng tích lũy của các batch đã đi qua lúc train. Ban đầu luôn khởi tạo là [0.0, 0.0].' },
+      { term: 'running_var', short: 'Sổ tay ghi Phương sai', meaning: 'Cuốn sổ lưu phương sai tích lũy (tính theo chia N−1!). Ban đầu luôn khởi tạo là [1.0, 1.0] (chú ý là 1, KHÔNG phải 0).' },
+      { term: 'clone()', short: 'Photocopy lưu lại', meaning: 'Tạo một bản sao độc lập của sổ tay sau batch a (mean1, var1) để khi batch b chạy tiếp không làm ghi đè mất số cũ.' },
+      { term: 'detach()', short: 'Tách khỏi đồ thị đạo hàm', meaning: 'Tách tensor khỏi hệ thống tính đạo hàm của PyTorch để có thể đổi sang NumPy (.numpy()) và in ra màn hình.' },
+      { term: 'num_batches_tracked', short: 'Bộ đếm số đề đã luyện', meaning: 'Đếm số lượng batch đã chạy ở chế độ train(). Chạy a → 1, chạy b → 2, chạy eval() KHÔNG tăng nên vẫn là 2!' }
+    ];
+
+    const flippedVocab = new Set();
+
+    function toggleVocab(idx) {
+      if (flippedVocab.has(idx)) flippedVocab.delete(idx);
+      else flippedVocab.add(idx);
+      renderVocab();
+    }
+
+    function flipAllVocab() {
+      if (flippedVocab.size === vocabList.length) {
+        flippedVocab.clear();
+      } else {
+        vocabList.forEach((_, i) => flippedVocab.add(i));
+      }
+      renderVocab();
+    }
+
+    function renderVocab() {
+      const grid = document.getElementById('vocab-grid');
+      if (!grid) return;
+      grid.innerHTML = vocabList.map((item, idx) => {
+        const isFlipped = flippedVocab.has(idx);
+        if (isFlipped) {
+          return `
+            <button
+              type="button"
+              onclick="toggleVocab(${idx})"
+              class="text-left p-4 rounded-2xl border-2 border-honey-400 bg-honey-100/60 border-b-4 border-b-honey-500 transition cursor-pointer flex flex-col justify-between min-h-[135px]"
+            >
+              <div>
+                <p class="font-mono text-xs font-black text-blush-600 mb-1">${item.term}</p>
+                <p class="text-xs text-cocoa-900 leading-relaxed font-medium">${item.meaning}</p>
+              </div>
+              <span class="text-[10px] font-bold text-cocoa-500 mt-2">👆 Bấm để úp lại</span>
+            </button>
+          `;
+        }
+        return `
+          <button
+            type="button"
+            onclick="toggleVocab(${idx})"
+            class="text-left p-4 rounded-2xl border-2 border-cream-200 bg-cream-50 hover:bg-cream-100 border-b-4 border-b-cream-200 transition cursor-pointer flex flex-col justify-between min-h-[135px]"
+          >
+            <div>
+              <span class="inline-block px-2 py-0.5 rounded-lg text-[10px] font-extrabold bg-blush-100 text-blush-600 mb-2">Từ khóa #${idx + 1}</span>
+              <p class="font-mono text-sm font-black text-cocoa-900 break-words">${item.term}</p>
+              <p class="text-xs text-cocoa-500 mt-1 font-semibold">${item.short}</p>
+            </div>
+            <span class="text-[11px] font-extrabold text-blush-600 mt-3">👆 Bấm để lật xem nghĩa →</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    // =========================================================================
+    // 2. TAB 2: LINE-BY-LINE CODE EXPLANATION + LIVE STATE PANEL
+    // =========================================================================
+    const codeSteps = [
+      {
+        lines: '1-2',
+        code: 'import torch\ntorch.set_default_dtype(torch.float64)',
+        badge: 'Khởi động',
+        theme: 'neutral',
+        title: 'Mở PyTorch & bật độ chính xác số thập phân cao (float64)',
+        everyday: 'Giống như bật ứng dụng máy tính khoa học để tính số lẻ chính xác tuyệt đối, không bị lệch do làm tròn sớm.',
+        math: 'Chưa có phép tính số học nào ở 2 dòng cài đặt này.',
+        state: { mode: 'Chưa tạo', rMean: '—', rVar: '—', batches: '—', za: '—', zb: '—', ze: '—', hl: [] }
+      },
+      {
+        lines: '3',
+        code: 'bn = torch.nn.BatchNorm1d(2, affine=False, momentum=0.5, eps=0.0)',
+        badge: '📓 Mở sổ tay mới',
+        theme: 'honey',
+        title: 'Tạo lớp BatchNorm1d cho 2 cột (Sổ tay khởi đầu: mean=[0,0], var=[1,1])',
+        everyday: 'Mở một cuốn sổ tay mới cho 2 cột đặc trưng. PyTorch luôn điền sẵn giá trị khởi tạo: trung bình = [0.0, 0.0], phương sai = [1.0, 1.0], số đề đã học = 0.',
+        math: 'Khởi tạo chuẩn: running_mean = [0.0, 0.0] | running_var = [1.0, 1.0] | batches = 0.',
+        state: { mode: 'TRAIN (mặc định)', rMean: '[0.0, 0.0]', rVar: '[1.0, 1.0]', batches: '0', za: '—', zb: '—', ze: '—', hl: ['rMean', 'rVar', 'batches'] }
+      },
+      {
+        lines: '4-5',
+        code: 'a = torch.tensor([[1., 2.], [3., 6.]])\nb = torch.tensor([[5., 0.], [9., 4.]])',
+        badge: 'Tạo 2 lô ôn luyện',
+        theme: 'neutral',
+        title: 'Chuẩn bị 2 lô bài thi thử a và b (mỗi lô 2 dòng × 2 cột)',
+        everyday: 'Mỗi cột dọc là 1 môn học riêng biệt. BatchNorm luôn tính trung bình và phương sai theo TỪNG CỘT DỌC.',
+        math: 'Lô a: Cột 0 là [1, 3] (TB=2), Cột 1 là [2, 6] (TB=4).\nLô b: Cột 0 là [5, 9] (TB=7), Cột 1 là [0, 4] (TB=2).',
+        state: { mode: 'TRAIN', rMean: '[0.0, 0.0]', rVar: '[1.0, 1.0]', batches: '0', za: '—', zb: '—', ze: '—', hl: [] }
+      },
+      {
+        lines: '6',
+        code: 'bn.train()',
+        badge: 'Bật chế độ ôn luyện',
+        theme: 'honey',
+        title: 'Chắc chắn lớp bn đang ở chế độ train() (tự chuẩn hóa + ghi sổ)',
+        everyday: 'Bật chế độ ôn luyện: mỗi lần chạy qua 1 lô dữ liệu, máy sẽ tự quy đổi điểm, pha 50/50 vào sổ tay và cộng 1 vào bộ đếm.',
+        math: 'Không thay đổi số liệu, chỉ xác nhận trạng thái = TRAIN.',
+        state: { mode: 'TRAIN 📓', rMean: '[0.0, 0.0]', rVar: '[1.0, 1.0]', batches: '0', za: '—', zb: '—', ze: '—', hl: ['mode'] }
+      },
+      {
+        lines: '7',
+        code: 'za = bn(a)',
+        badge: '🚨 Bẫy N vs N−1 (Lô a)',
+        theme: 'blush',
+        title: 'Chạy lô a: Chuẩn hóa chia N=2 ra ±1.0; Ghi sổ var chia N−1=1 ra [1.5, 4.5]!',
+        everyday: 'Đây là dòng chứa cái bẫy lớn nhất! Chuẩn hóa za dùng phương sai chia 2, nhưng ghi vào running_var lại dùng phương sai chia 1 (gấp đôi lên!).',
+        math: '• Cột 0 [1, 3]: TB=2; tổng bình phương lệch = (1-2)²+(3-2)² = 2.\n  → var(N=2) = 1 (std=1) ⇒ za cột 0 = [(1-2)/1, (3-2)/1] = [-1.0, 1.0].\n  → var(N-1=1) = 2 ⇒ running_var[0] = 0.5×1 + 0.5×2 = 1.5.\n• Cột 1 [2, 6]: TB=4; tổng bình phương lệch = (2-4)²+(6-4)² = 8.\n  → var(N=2) = 4 (std=2) ⇒ za cột 1 = [(2-4)/2, (6-4)/2] = [-1.0, 1.0].\n  → var(N-1=1) = 8 ⇒ running_var[1] = 0.5×1 + 0.5×8 = 4.5.\n• running_mean = 0.5×[0,0] + 0.5×[2,4] = [1.0, 2.0] | batches = 1.',
+        state: { mode: 'TRAIN 📓', rMean: '[1.0, 2.0]', rVar: '[1.5, 4.5]', batches: '1', za: '[[-1.0, -1.0], [1.0, 1.0]]', zb: '—', ze: '—', hl: ['rMean', 'rVar', 'batches', 'za'] }
+      },
+      {
+        lines: '8-9',
+        code: 'mean1 = bn.running_mean.clone()\nvar1 = bn.running_var.clone()',
+        badge: 'Chụp ảnh state1',
+        theme: 'neutral',
+        title: 'Photocopy sổ tay sau lô a để lưu thành state1',
+        everyday: 'Lưu riêng giá trị sổ tay hiện tại sang mean1 và var1 để lát nữa in ra dòng "state1:". Nhờ clone(), lô b phía sau không làm mất số này.',
+        math: 'state1 chốt cứng: mean1 = [1.0, 2.0] | var1 = [1.5, 4.5].',
+        state: { mode: 'TRAIN 📓', rMean: '[1.0, 2.0]', rVar: '[1.5, 4.5]', batches: '1', za: '[[-1.0, -1.0], [1.0, 1.0]]', zb: '—', ze: '—', hl: [] }
+      },
+      {
+        lines: '10',
+        code: 'zb = bn(b)',
+        badge: '🚨 Bẫy N vs N−1 (Lô b)',
+        theme: 'blush',
+        title: 'Chạy lô b: zb vẫn là ±1.0; Sổ tay lên [4.0, 2.0] và [4.75, 6.25]',
+        everyday: 'Tương tự lô a: lô b có 2 dòng nên chuẩn hóa chia N=2 vẫn ra ±1.0. Sổ tay tiếp tục pha 50% state1 + 50% lô b mới.',
+        math: '• Cột 0 [5, 9]: TB=7; tổng bình phương lệch = 8 → var(N)=4, var(N-1)=8.\n• Cột 1 [0, 4]: TB=2; tổng bình phương lệch = 8 → var(N)=4, var(N-1)=8.\n• running_mean = 0.5×[1.0, 2.0] + 0.5×[7, 2] = [4.0, 2.0].\n• running_var = 0.5×[1.5, 4.5] + 0.5×[8, 8] = [4.75, 6.25].\n• batches tăng 1 → 2.',
+        state: { mode: 'TRAIN 📓', rMean: '[4.0, 2.0]', rVar: '[4.75, 6.25]', batches: '2', za: '[[-1.0, -1.0], [1.0, 1.0]]', zb: '[[-1.0, -1.0], [1.0, 1.0]]', ze: '—', hl: ['rMean', 'rVar', 'batches', 'zb'] }
+      },
+      {
+        lines: '11',
+        code: 'bn.eval()',
+        badge: '🎓 KHÓA SỔ TAY',
+        theme: 'emerald',
+        title: 'Bật chế độ eval(): Khóa sổ tay, không ghi thêm, không tăng batches!',
+        everyday: 'Từ giờ trở đi là đi thi thật: đóng băng hoàn toàn running_mean, running_var và num_batches_tracked.',
+        math: 'Sổ tay bị khóa cứng ở: mean = [4.0, 2.0] | var = [4.75, 6.25] | batches = 2.',
+        state: { mode: 'EVAL 🔒', rMean: '[4.0, 2.0] 🔒', rVar: '[4.75, 6.25] 🔒', batches: '2 🔒', za: '[[-1.0, -1.0], [1.0, 1.0]]', zb: '[[-1.0, -1.0], [1.0, 1.0]]', ze: '—', hl: ['mode'] }
+      },
+      {
+        lines: '12',
+        code: 'ze = bn(torch.tensor([[4., 3.], [8., 7.]]))',
+        badge: '🎓 Tính điểm thi thật',
+        theme: 'emerald',
+        title: 'Quy đổi [[4, 3], [8, 7]] bằng sổ tay cũ → [[0.0, 0.4], [1.8353, 2.0]]',
+        everyday: 'Thay vì tính trung bình của đề thi mới, máy lôi sổ tay [4.0, 2.0] và [4.75, 6.25] ra tính. Bộ đếm batches vẫn đứng yên ở 2!',
+        math: '• Cột 0 (mean=4.0, √4.75 ≈ 2.17945):\n  (4 − 4.0) / 2.17945 = 0.0 | (8 − 4.0) / 2.17945 = 1.8353.\n• Cột 1 (mean=2.0, √6.25 = 2.5 rất đẹp!):\n  (3 − 2.0) / 2.5 = 0.4 | (7 − 2.0) / 2.5 = 2.0.',
+        state: { mode: 'EVAL 🔒', rMean: '[4.0, 2.0] 🔒', rVar: '[4.75, 6.25] 🔒', batches: '2 🔒', za: '[[-1.0, -1.0], [1.0, 1.0]]', zb: '[[-1.0, -1.0], [1.0, 1.0]]', ze: '[[0.0, 0.4], [1.8353, 2.0]]', hl: ['ze'] }
+      },
+      {
+        lines: '13-14',
+        code: 'def out(t):\n    return t.detach().numpy().round(4).tolist()',
+        badge: 'Hàm làm đẹp',
+        theme: 'neutral',
+        title: 'Định nghĩa hàm out(t) để làm tròn 4 số thập phân và đổi thành list',
+        everyday: 'Chỉ là hàm phụ trợ giúp in các mảng số PyTorch ra màn hình gọn gàng hơn (giữ 4 chữ số sau dấu phẩy).',
+        math: 'Ví dụ: 1.83532587... → round(4) → 1.8353.',
+        state: { mode: 'EVAL 🔒', rMean: '[4.0, 2.0] 🔒', rVar: '[4.75, 6.25] 🔒', batches: '2 🔒', za: '[[-1.0, -1.0], [1.0, 1.0]]', zb: '[[-1.0, -1.0], [1.0, 1.0]]', ze: '[[0.0, 0.4], [1.8353, 2.0]]', hl: [] }
+      },
+      {
+        lines: '15-19',
+        code: 'print("train:", out(za), out(zb))\nprint("state1:", out(mean1), out(var1))\nprint("state2:", out(bn.running_mean), out(bn.running_var))\nprint("eval:", out(ze))\nprint("batches:", bn.num_batches_tracked.item())',
+        badge: '✅ In Đáp án B',
+        theme: 'emerald',
+        title: 'In 5 dòng kết quả cuối cùng — Khớp 100% Phương án B!',
+        everyday: 'In toàn bộ 5 dòng kết quả của bài thi. Cả 5 dòng đều khớp tuyệt đối từng con số với Phương án B.',
+        math: 'train: ±1.0 | state1: [1.0, 2.0] [1.5, 4.5] | state2: [4.0, 2.0] [4.75, 6.25] | eval: [[0.0, 0.4], [1.8353, 2.0]] | batches: 2.',
+        state: { mode: 'EVAL 🔒', rMean: '[4.0, 2.0]', rVar: '[4.75, 6.25]', batches: '2', za: '[[-1.0, -1.0], [1.0, 1.0]]', zb: '[[-1.0, -1.0], [1.0, 1.0]]', ze: '[[0.0, 0.4], [1.8353, 2.0]]', hl: ['rMean', 'rVar', 'batches', 'ze'] }
+      }
+    ];
+
+    let activeStepIdx = 0;
+
+    function switchTab(tabNum) {
+      xpState.tabs.add(String(tabNum));
+      updateXP();
+
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        const isTarget = btn.getAttribute('data-tab') === String(tabNum);
+        btn.className = isTarget
+          ? 'tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2 bg-blush-500 text-white border-blush-500 border-b-4 border-b-blush-600 shadow-xs'
+          : 'tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2 bg-white text-cocoa-700 border-cream-200 hover:bg-cream-100';
+      });
+      document.querySelectorAll('.tab-panel').forEach((panel) => {
+        panel.classList.toggle('hidden', panel.id !== `tab-panel-${tabNum}`);
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderCodeList() {
+      const container = document.getElementById('code-lines-container');
+      if (!container) return;
+      container.innerHTML = codeSteps.map((step, idx) => {
+        const isActive = idx === activeStepIdx;
+        const activeClass = isActive
+          ? 'bg-blush-500/30 border-l-4 border-honey-400 text-white'
+          : 'border-l-4 border-transparent text-cream-100/80 hover:bg-cocoa-800';
+        const safeCode = step.code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return `
+          <button
+            type="button"
+            onclick="selectCodeStep(${idx})"
+            class="w-full text-left flex items-start gap-2.5 px-2.5 py-2 rounded-xl transition cursor-pointer ${activeClass}"
+          >
+            <span class="w-9 text-right text-honey-300/60 select-none shrink-0 text-[11px] pt-0.5">${step.lines}</span>
+            <pre class="whitespace-pre font-mono leading-relaxed text-xs">${safeCode}</pre>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function renderLiveCell(key, label, value, hlList, theme) {
+      const isHl = hlList.includes(key);
+      let cls = 'bg-cream-50 border-cream-200 text-cocoa-800';
+      if (isHl) {
+        cls = theme === 'blush'
+          ? 'bg-blush-50 border-blush-500 text-cocoa-900 ring-2 ring-blush-200 font-bold'
+          : theme === 'emerald'
+            ? 'bg-emerald-50 border-emerald-500 text-emerald-950 ring-2 ring-emerald-200 font-bold'
+            : 'bg-honey-100 border-honey-500 text-cocoa-900 ring-2 ring-honey-300 font-bold';
+      }
+      return `
+        <div class="p-2.5 rounded-2xl border-2 transition ${cls}">
+          <p class="text-[10px] font-extrabold uppercase tracking-wider text-cocoa-500 mb-0.5">${label}</p>
+          <p class="font-mono text-xs break-words">${value}</p>
+        </div>
+      `;
+    }
+
+    function renderLineExplanation() {
+      const step = codeSteps[activeStepIdx];
+      document.getElementById('step-counter').textContent = `Bước ${activeStepIdx + 1} / ${codeSteps.length} (Dòng ${step.lines})`;
+      document.getElementById('prev-line-btn').disabled = activeStepIdx === 0;
+      document.getElementById('next-line-btn').disabled = activeStepIdx === codeSteps.length - 1;
+
+      const badgeColor = {
+        blush: 'bg-blush-100 text-blush-600 border-blush-200',
+        honey: 'bg-honey-100 text-cocoa-900 border-honey-300',
+        emerald: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+        neutral: 'bg-cream-100 text-cocoa-800 border-cream-200'
+      }[step.theme];
+
+      const st = step.state;
+      const mathHtml = step.math.replace(/\n/g, '<br/>');
+
+      document.getElementById('line-explanation-content').innerHTML = `
+        <div>
+          <span class="inline-flex items-center px-3 py-0.5 rounded-full text-xs font-extrabold border ${badgeColor} mb-2">
+            ${step.badge}
+          </span>
+          <h3 class="text-base sm:text-lg font-black text-cocoa-900 leading-snug">${step.title}</h3>
+        </div>
+
+        <p class="text-sm text-cocoa-800 leading-relaxed">${step.everyday}</p>
+
+        <div class="p-3.5 rounded-2xl bg-cream-100 border-2 border-honey-300 text-xs text-cocoa-900 space-y-1">
+          <p class="font-extrabold text-cocoa-800 uppercase tracking-wider text-[11px]">🧮 Phép tính số học chi tiết:</p>
+          <p class="font-mono leading-relaxed">${mathHtml}</p>
+        </div>
+
+        <!-- Live State Panel -->
+        <div class="space-y-2">
+          <p class="text-xs font-extrabold text-cocoa-500 uppercase tracking-wider">📓 Sổ tay &amp; Biến trực tiếp (Live State)</p>
+          <div class="grid grid-cols-2 gap-2">
+            ${renderLiveCell('mode', 'Chế độ', st.mode, st.hl, step.theme)}
+            ${renderLiveCell('batches', 'num_batches_tracked', st.batches, st.hl, step.theme)}
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            ${renderLiveCell('rMean', 'running_mean', st.rMean, st.hl, step.theme)}
+            ${renderLiveCell('rVar', 'running_var', st.rVar, st.hl, step.theme)}
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            ${renderLiveCell('za', 'za (train a)', st.za, st.hl, step.theme)}
+            ${renderLiveCell('zb', 'zb (train b)', st.zb, st.hl, step.theme)}
+            ${renderLiveCell('ze', 'ze (eval)', st.ze, st.hl, step.theme)}
+          </div>
+        </div>
+      `;
+    }
+
+    function selectCodeStep(idx) {
+      if (idx < 0 || idx >= codeSteps.length) return;
+      activeStepIdx = idx;
+      renderCodeList();
+      renderLineExplanation();
+    }
+
+    // =========================================================================
+    // 3. TAB 3: 3 INTERACTIVE LAB SIMULATIONS
+    // =========================================================================
+
+    // --- SIM 1: N vs N-1 ---
+    let currentNMode = 'std';
+    function setNMode(mode, isInit = false) {
+      currentNMode = mode;
+      if (!isInit) {
+        xpState.sim1 = true;
+        updateXP();
+      }
+
+      const modes = ['std', 'trapA', 'trapC'];
+      modes.forEach((m) => {
+        const btn = document.getElementById(`nmode-${m}`);
+        if (!btn) return;
+        if (m === mode) {
+          btn.className = m === 'std'
+            ? 'nmode-btn p-3.5 rounded-2xl border-2 text-left transition cursor-pointer bg-emerald-500 text-white border-emerald-600 border-b-4 border-b-emerald-700'
+            : 'nmode-btn p-3.5 rounded-2xl border-2 text-left transition cursor-pointer bg-blush-500 text-white border-blush-600 border-b-4 border-b-blush-600';
+        } else {
+          btn.className = 'nmode-btn p-3.5 rounded-2xl border-2 text-left transition cursor-pointer bg-cream-50 text-cocoa-800 border-cream-200 hover:bg-cream-100';
+        }
+      });
+
+      const out = document.getElementById('sim1-output');
+      if (!out) return;
+
+      if (mode === 'std') {
+        out.innerHTML = `
+          <div class="p-4 rounded-2xl bg-emerald-50 border-2 border-emerald-300 text-xs sm:text-sm text-emerald-950 font-medium">
+            ✅ <strong>CÁCH TÍNH CHUẨN CỦA PYTORCH (ĐÁP ÁN B):</strong> Chuẩn hóa output dùng phương sai chia <strong>N = 2</strong>; Cập nhật sổ tay <code class="font-mono font-bold">running_var</code> dùng phương sai chia <strong>N − 1 = 1</strong>.
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs sm:text-sm">
+            <div class="p-4 rounded-2xl bg-cream-50 border-2 border-cream-200 space-y-2">
+              <p class="font-black text-cocoa-900">Cột 1 của Batch a: <code class="font-mono text-blush-600">[1, 3]</code> (TB = 2)</p>
+              <p>• Tổng bình phương lệch: <code class="font-mono">(1−2)² + (3−2)² = 2</code></p>
+              <p class="text-emerald-800 font-bold">• Chuẩn hóa (chia N=2): var = 2/2 = 1 → std = 1 ⇒ <strong>[-1.0, 1.0]</strong></p>
+              <p class="text-blush-600 font-bold">• Ghi sổ (chia N−1=1): var = 2/1 = 2 ⇒ var1 = 0.5×1 + 0.5×2 = <strong>1.5</strong></p>
+            </div>
+            <div class="p-4 rounded-2xl bg-cream-50 border-2 border-cream-200 space-y-2">
+              <p class="font-black text-cocoa-900">Cột 2 của Batch a: <code class="font-mono text-blush-600">[2, 6]</code> (TB = 4)</p>
+              <p>• Tổng bình phương lệch: <code class="font-mono">(2−4)² + (6−4)² = 8</code></p>
+              <p class="text-emerald-800 font-bold">• Chuẩn hóa (chia N=2): var = 8/2 = 4 → std = 2 ⇒ <strong>[-1.0, 1.0]</strong></p>
+              <p class="text-blush-600 font-bold">• Ghi sổ (chia N−1=1): var = 8/1 = 8 ⇒ var1 = 0.5×1 + 0.5×8 = <strong>4.5</strong></p>
+            </div>
+          </div>
+        `;
+      } else if (mode === 'trapA') {
+        out.innerHTML = `
+          <div class="p-4 rounded-2xl bg-blush-50 border-2 border-blush-500 text-xs sm:text-sm text-rose-950 font-medium">
+            🚨 <strong>BẪY CỦA ĐÁP ÁN A:</strong> Lấy nhầm phương sai chia <strong>N − 1 = 1</strong> để chuẩn hóa output lúc train → bị chia cho √2 lớn hơn nên ra <strong>±0.7071</strong>!
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs sm:text-sm">
+            <div class="p-4 rounded-2xl bg-cream-50 border-2 border-blush-200 space-y-2">
+              <p class="font-black text-cocoa-900">Cột 1: <code class="font-mono text-blush-600">[1, 3]</code> (TB = 2)</p>
+              <p>• Nếu lấy var(N−1) = 2 → std = √2 ≈ <strong>1.4142</strong></p>
+              <p class="text-blush-600 font-bold">• Output bị sai: (1−2)/1.4142 = <strong>-0.7071</strong> và <strong>+0.7071</strong> ❌</p>
+            </div>
+            <div class="p-4 rounded-2xl bg-cream-50 border-2 border-blush-200 space-y-2">
+              <p class="font-black text-cocoa-900">Cột 2: <code class="font-mono text-blush-600">[2, 6]</code> (TB = 4)</p>
+              <p>• Nếu lấy var(N−1) = 8 → std = √8 ≈ <strong>2.8284</strong></p>
+              <p class="text-blush-600 font-bold">• Output bị sai: (2−4)/2.8284 = <strong>-0.7071</strong> và <strong>+0.7071</strong> ❌</p>
+            </div>
+          </div>
+        `;
+      } else {
+        out.innerHTML = `
+          <div class="p-4 rounded-2xl bg-blush-50 border-2 border-blush-500 text-xs sm:text-sm text-rose-950 font-medium">
+            🚨 <strong>BẪY CỦA ĐÁP ÁN C:</strong> Lấy nhầm phương sai chia <strong>N = 2</strong> để ghi vào sổ tay <code class="font-mono font-bold">running_var</code> → số mới bị nhỏ đi một nửa, kéo theo cả state1, state2 và eval đều sai!
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs sm:text-sm">
+            <div class="p-4 rounded-2xl bg-cream-50 border-2 border-blush-200 space-y-2">
+              <p class="font-black text-cocoa-900">state1 bị sai (nhỏ hơn chuẩn):</p>
+              <p>• Cột 1: 0.5×1 + 0.5×<strong>1</strong> = <strong class="text-blush-600">1.0</strong> (Chuẩn là 1.5)</p>
+              <p>• Cột 2: 0.5×1 + 0.5×<strong>4</strong> = <strong class="text-blush-600">2.5</strong> (Chuẩn là 4.5)</p>
+              <p class="font-mono font-bold text-blush-600">⇒ var1 = [1.0, 2.5] ❌</p>
+            </div>
+            <div class="p-4 rounded-2xl bg-cream-50 border-2 border-blush-200 space-y-2">
+              <p class="font-black text-cocoa-900">state2 bị sai dây chuyền:</p>
+              <p>• Cột 1: 0.5×1.0 + 0.5×<strong>4</strong> = <strong class="text-blush-600">2.5</strong> (Chuẩn là 4.75)</p>
+              <p>• Cột 2: 0.5×2.5 + 0.5×<strong>4</strong> = <strong class="text-blush-600">3.25</strong> (Chuẩn là 6.25)</p>
+              <p class="font-mono font-bold text-blush-600">⇒ var2 = [2.5, 3.25] ❌</p>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    // --- SIM 2: PHA TRÀ MOMENTUM = 0.5 ---
+    const teaSteps = [
+      {
+        title: 'Bước 0: Khởi tạo cuốn sổ tay trắng',
+        badge: 'Mặc định PyTorch',
+        meanFormula: 'Chưa trộn gì cả → giữ nguyên giá trị gốc [0.0, 0.0]',
+        varFormula: 'Chưa trộn gì cả → giữ nguyên giá trị gốc [1.0, 1.0]',
+        rMean: '[0.0, 0.0]',
+        rVar: '[1.0, 1.0]',
+        batches: '0',
+        note: 'Mẹo nhớ: running_mean bắt đầu từ 0, còn running_var luôn bắt đầu từ 1!'
+      },
+      {
+        title: 'Bước 1: Pha 50% sổ cũ + 50% Batch a (train)',
+        badge: 'state1 & batches = 1',
+        meanFormula: '0.5 × [0.0, 0.0] (cũ) + 0.5 × [2.0, 4.0] (batch a) = [1.0, 2.0]',
+        varFormula: '0.5 × [1.0, 1.0] (cũ) + 0.5 × [2.0, 8.0] (var N−1 của a) = [1.5, 4.5]',
+        rMean: '[1.0, 2.0]',
+        rVar: '[1.5, 4.5]',
+        batches: '1',
+        note: 'Chính đây là 2 mảng số được in ra ở dòng "state1:"!'
+      },
+      {
+        title: 'Bước 2: Pha 50% state1 + 50% Batch b (train)',
+        badge: 'state2 & batches = 2',
+        meanFormula: '0.5 × [1.0, 2.0] (cũ) + 0.5 × [7.0, 2.0] (batch b) = [4.0, 2.0]',
+        varFormula: '0.5 × [1.5, 4.5] (cũ) + 0.5 × [8.0, 8.0] (var N−1 của b) = [4.75, 6.25]',
+        rMean: '[4.0, 2.0]',
+        rVar: '[4.75, 6.25]',
+        batches: '2',
+        note: 'Chính đây là 2 mảng số được in ra ở dòng "state2:"!'
+      },
+      {
+        title: 'Bước 3: Qua Eval [[4, 3], [8, 7]] — KHÓA SỔ TAY!',
+        badge: '🔒 Đóng băng • batches vẫn = 2',
+        meanFormula: 'KHÔNG pha thêm! Giữ nguyên [4.0, 2.0] để mang đi chia điểm.',
+        varFormula: 'KHÔNG pha thêm! Giữ nguyên [4.75, 6.25] để lấy căn bậc hai.',
+        rMean: '[4.0, 2.0] 🔒',
+        rVar: '[4.75, 6.25] 🔒',
+        batches: '2 🔒 (Không tăng!)',
+        note: 'Đi thi rất hay bị bẫy tưởng batches lên 3. Nhớ: eval() không bao giờ tăng batches!'
+      }
+    ];
+
+    function setTeaStep(idx, isInit = false) {
+      if (!isInit) {
+        xpState.sim2 = true;
+        updateXP();
+      }
+      for (let i = 0; i < 4; i++) {
+        const btn = document.getElementById(`tea-btn-${i}`);
+        if (!btn) continue;
+        if (i === idx) {
+          btn.className = i === 3
+            ? 'tea-btn p-3 rounded-2xl border-2 text-left transition cursor-pointer bg-emerald-500 text-white border-emerald-600 border-b-4 border-b-emerald-700'
+            : 'tea-btn p-3 rounded-2xl border-2 text-left transition cursor-pointer bg-honey-400 text-cocoa-900 border-honey-500 border-b-4 border-b-honey-500';
+        } else {
+          btn.className = 'tea-btn p-3 rounded-2xl border-2 text-left transition cursor-pointer bg-cream-50 text-cocoa-800 border-cream-200 hover:bg-cream-100';
+        }
+      }
+
+      const t = teaSteps[idx];
+      const out = document.getElementById('sim2-output');
+      if (!out) return;
+      out.innerHTML = `
+        <div class="p-5 rounded-3xl bg-cream-50 border-2 border-cream-200 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <h3 class="text-sm sm:text-base font-black text-cocoa-900">${t.title}</h3>
+            <span class="px-3 py-1 rounded-full text-xs font-extrabold ${idx === 3 ? 'bg-emerald-100 text-emerald-800' : 'bg-honey-100 text-cocoa-900'}">${t.badge}</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+            <div class="p-3.5 rounded-2xl bg-white border-2 border-cream-200 space-y-1.5">
+              <p class="font-extrabold text-cocoa-500 uppercase">Pha running_mean:</p>
+              <p class="font-mono text-cocoa-800">${t.meanFormula}</p>
+              <p class="font-mono text-sm font-black text-cocoa-900 pt-1">⇒ ${t.rMean}</p>
+            </div>
+            <div class="p-3.5 rounded-2xl bg-white border-2 border-blush-200 space-y-1.5">
+              <p class="font-extrabold text-blush-600 uppercase">Pha running_var (N−1):</p>
+              <p class="font-mono text-cocoa-800">${t.varFormula}</p>
+              <p class="font-mono text-sm font-black text-blush-600 pt-1">⇒ ${t.rVar}</p>
+            </div>
+          </div>
+
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-cream-200 text-xs">
+            <p class="text-cocoa-700 font-medium">💡 ${t.note}</p>
+            <span class="shrink-0 font-mono font-black px-3 py-1 rounded-xl bg-cocoa-900 text-honey-300">batches = ${t.batches}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    // --- SIM 3: CLICKABLE EVAL MATRIX ---
+    const evalInput = [[4.0, 3.0], [8.0, 7.0]];
+    const evalOutput = [['0.0', '0.4'], ['1.8353', '2.0']];
+    const evalMeans = [4.0, 2.0];
+    const evalVars = [4.75, 6.25];
+    const evalStds = ['2.17945', '2.5'];
+
+    function selectEvalCell(r, c, isInit = false) {
+      if (!isInit) {
+        xpState.sim3 = true;
+        updateXP();
+      }
+      for (let i = 0; i < 2; i++) {
+        for (let j = 0; j < 2; j++) {
+          const isSel = i === r && j === c;
+          const inBtn = document.getElementById(`eval-in-${i}-${j}`);
+          const outDiv = document.getElementById(`eval-out-${i}-${j}`);
+          if (inBtn) {
+            inBtn.className = isSel
+              ? 'eval-in-btn w-20 h-14 rounded-2xl border-2 font-mono font-black text-base transition cursor-pointer bg-blush-500 text-white border-blush-600 border-b-4 scale-105 shadow-sm'
+              : 'eval-in-btn w-20 h-14 rounded-2xl border-2 font-mono font-black text-base transition cursor-pointer bg-white text-cocoa-900 border-cream-200 hover:bg-honey-100';
+          }
+          if (outDiv) {
+            outDiv.className = isSel
+              ? 'w-20 h-14 rounded-2xl border-2 font-mono font-black text-sm flex items-center justify-center transition bg-emerald-500 text-white border-emerald-600 scale-105 shadow-sm'
+              : 'w-20 h-14 rounded-2xl border-2 font-mono font-black text-sm flex items-center justify-center transition bg-white text-emerald-900 border-emerald-200';
+          }
+        }
+      }
+
+      const xVal = evalInput[r][c];
+      const mVal = evalMeans[c];
+      const vVal = evalVars[c];
+      const sVal = evalStds[c];
+      const resVal = evalOutput[r][c];
+
+      const insp = document.getElementById('sim3-inspector');
+      if (insp) {
+        insp.innerHTML = `
+          <p class="text-[11px] font-extrabold uppercase tracking-wider text-honey-300">Đang tính ô [Hàng ${r}, Cột ${c}]</p>
+          <p class="text-xs text-cream-200">Dùng sổ tay <strong>Cột ${c}</strong>: mean = <code class="font-mono text-white">${mVal}</code>, var = <code class="font-mono text-white">${vVal}</code> (√${vVal} ≈ ${sVal})</p>
+          <div class="p-3 rounded-2xl bg-white/10 border border-white/15 font-mono text-xs sm:text-sm text-center">
+            (${xVal} − ${mVal}) / √${vVal} = <strong class="text-emerald-300 text-base">${resVal}</strong>
+          </div>
+        `;
+      }
+    }
+
+    // =========================================================================
+    // 4. TAB 4: HINTS TOGGLE & MINI-QUIZ (4 QUESTIONS)
+    // =========================================================================
+    let hintsVisible = true;
+    function toggleExamHints() {
+      hintsVisible = !hintsVisible;
+      document.querySelectorAll('.exam-hint').forEach((el) => {
+        el.classList.toggle('hidden', !hintsVisible);
+      });
+    }
+
+    const quizQuestions = [
+      {
+        id: 0,
+        question: 'Câu 1: Với batch 2 dòng như a = [[1., 2.], [3., 6.]] và eps=0.0, kết quả chuẩn hóa lúc bn.train() ra bao nhiêu?',
+        options: [
+          'A. [[-0.7071, -0.7071], [0.7071, 0.7071]]',
+          'B. [[-1.0, -1.0], [1.0, 1.0]] (vì chuẩn hóa train chia cho N = 2)',
+          'C. [[0.0, 0.0], [1.0, 1.0]]',
+          'D. [[1.0, 2.0], [3.0, 6.0]]'
+        ],
+        correct: 1,
+        explanation: 'Chính xác! Lúc chuẩn hóa train(), PyTorch chia cho N = 2 nên 2 số bất kỳ sau khi chuẩn hóa luôn đối xứng thành -1.0 và +1.0.'
+      },
+      {
+        id: 1,
+        question: 'Câu 2: Sau khi chạy qua batch a = [[1., 2.], [3., 6.]] với momentum=0.5, giá trị var1 (running_var) bằng bao nhiêu?',
+        options: [
+          'A. [1.0, 2.5] (vì lấy phương sai chia N = 2)',
+          'B. [2.0, 8.0] (vì ghi đè toàn bộ bằng batch mới)',
+          'C. [1.5, 4.5] (vì lấy phương sai chia N − 1 = 1 là [2, 8] rồi pha 50% với [1, 1])',
+          'D. [0.5, 2.0]'
+        ],
+        correct: 2,
+        explanation: 'Chuẩn không cần chỉnh! Cập nhật running_var dùng phương sai hiệu chỉnh chia N−1 (ra [2, 8]). Pha 50%×[1, 1] + 50%×[2, 8] = [1.5, 4.5]!'
+      },
+      {
+        id: 2,
+        question: 'Câu 3: Khi chuyển sang bn.eval() và đưa tensor [[4., 3.], [8., 7.]] vào, điều nào sau đây ĐÚNG?',
+        options: [
+          'A. Dùng sổ tay cũ [4.0, 2.0] và [4.75, 6.25] để chuẩn hóa, và num_batches_tracked vẫn giữ nguyên là 2',
+          'B. Tự tính mean/var của batch mới nên kết quả eval vẫn ra [[-1.0, -1.0], [1.0, 1.0]]',
+          'C. Cập nhật thêm running_mean và tăng num_batches_tracked lên 3',
+          'D. Xóa sạch sổ tay về 0'
+        ],
+        correct: 0,
+        explanation: 'Tuyệt vời! Chế độ eval() khóa chặt sổ tay: chỉ lấy running_mean/running_var đã học ra dùng và tuyệt đối không tăng bộ đếm batch.'
+      },
+      {
+        id: 3,
+        question: 'Câu 4: Nhẩm nhanh cột 1 của eval ([3., 7.]) với running_mean = 2.0 và running_var = 6.25. Kết quả là bao nhiêu?',
+        options: [
+          'A. [-1.0, 1.0]',
+          'B. [0.0, 1.8353]',
+          'C. [0.5547, 2.7735]',
+          'D. [0.4, 2.0] (vì √6.25 = 2.5, lấy (3−2)/2.5 = 0.4 và (7−2)/2.5 = 2.0)'
+        ],
+        correct: 3,
+        explanation: 'Quá đỉnh! Con số √6.25 = 2.5 siêu đẹp giúp bạn kiểm chứng ngay Đáp án B trong tích tắc!'
+      }
+    ];
+
+    let quizAnswers = {};
+
+    function answerQuiz(qId, optIdx) {
+      quizAnswers[qId] = optIdx;
+      renderQuiz();
+    }
+
+    function resetQuiz() {
+      quizAnswers = {};
+      renderQuiz();
+    }
+
+    function renderQuiz() {
+      let score = 0;
+      quizQuestions.forEach((q) => {
+        if (quizAnswers[q.id] === q.correct) score++;
+      });
+      xpState.quizCorrectCount = score;
+      updateXP();
+
+      const scoreEl = document.getElementById('quiz-score');
+      if (scoreEl) scoreEl.textContent = String(score);
+
+      const container = document.getElementById('quiz-container');
+      if (!container) return;
+
+      container.innerHTML = quizQuestions.map((q) => {
+        const chosen = quizAnswers[q.id];
+        const hasAnswered = chosen !== undefined;
+        const isCorrect = chosen === q.correct;
+
+        const opts = q.options.map((text, idx) => {
+          let cls = 'bg-white border-cream-200 border-b-4 text-cocoa-800 hover:bg-cream-100';
+          if (hasAnswered) {
+            if (idx === q.correct) cls = 'bg-emerald-50 border-emerald-500 border-b-4 border-b-emerald-600 text-emerald-950 font-extrabold';
+            else if (idx === chosen) cls = 'bg-blush-50 border-blush-500 border-b-4 border-b-blush-600 text-rose-950 font-extrabold';
+            else cls = 'bg-cream-50 border-cream-100 text-cocoa-500/50';
+          }
+          return `
+            <button type="button" onclick="answerQuiz(${q.id}, ${idx})" class="w-full text-left px-4 py-3 rounded-2xl border-2 text-xs sm:text-sm transition cursor-pointer ${cls}">
+              ${text}
+            </button>
+          `;
+        }).join('');
+
+        const fb = hasAnswered
+          ? `<div class="mt-3 p-3.5 rounded-2xl text-xs sm:text-sm border-2 ${isCorrect ? 'bg-emerald-50 border-emerald-200 text-emerald-950' : 'bg-blush-50 border-blush-200 text-rose-950'}">
+              <strong>${isCorrect ? '✅ Chính xác! (+15 XP)' : '❌ Chưa đúng rồi!'}</strong> ${q.explanation}
+            </div>`
+          : '';
+
+        return `
+          <div class="p-4 sm:p-5 rounded-3xl bg-cream-50 border-2 border-cream-200">
+            <p class="text-sm sm:text-base font-black text-cocoa-900 mb-3">${q.question}</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">${opts}</div>
+            ${fb}
+          </div>
+        `;
+      }).join('');
+    }
+
+    // =========================================================================
+    // INITIALIZATION
+    // =========================================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      try {
+        document.querySelectorAll('.tab-btn').forEach((btn) => {
+          btn.addEventListener('click', () => switchTab(btn.getAttribute('data-tab')));
+        });
+        document.getElementById('prev-line-btn').addEventListener('click', () => selectCodeStep(activeStepIdx - 1));
+        document.getElementById('next-line-btn').addEventListener('click', () => selectCodeStep(activeStepIdx + 1));
+
+        switchTab('1');
+        renderVocab();
+        renderCodeList();
+        renderLineExplanation();
+        setNMode('std', true);
+        setTeaStep(0, true);
+        selectEvalCell(0, 1, true);
+        renderQuiz();
+        updateXP();
+      } catch (err) {
+        console.error('Initialization error:', err);
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,1514 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ôn Thi Câu 05: Causal Attention &amp; Trục Softmax (Bản Non-tech)</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            cream: {
+              50: '#FFFDF7',
+              100: '#FDF5E6',
+              200: '#E6D5C3',
+            },
+            blush: {
+              50: '#FFF4F6',
+              100: '#FFE3E8',
+              200: '#FFC2CE',
+              400: '#FF8FA3',
+              500: '#F46E85',
+            },
+            honey: {
+              100: '#FFF4CC',
+              300: '#FFE08A',
+              400: '#FFD166',
+              500: '#EAB308',
+            },
+            mint: {
+              50: '#ECFDF5',
+              200: '#A7F3D0',
+              500: '#58CC02',
+              600: '#46A302',
+            },
+            coral: {
+              50: '#FFF5F5',
+              200: '#FECACA',
+              400: '#FF6B6B',
+              500: '#E55353',
+            },
+            cocoa: {
+              500: '#7C6558',
+              700: '#5D4A3F',
+              800: '#4A3B32',
+              900: '#332720',
+            },
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    @keyframes floatCelebrate {
+      0% {
+        transform: translateY(0) rotate(0deg) scale(0.8);
+        opacity: 0;
+      }
+      15% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-95vh) rotate(360deg) scale(1.25);
+        opacity: 0;
+      }
+    }
+    .celebrate-particle {
+      position: fixed;
+      bottom: -40px;
+      pointer-events: none;
+      z-index: 9999;
+      animation: floatCelebrate 3.2s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="bg-cream-50 text-cocoa-800 font-sans antialiased selection:bg-blush-100 selection:text-cocoa-900 min-h-screen flex flex-col">
+
+  <!-- Particle Celebration Layer -->
+  <div id="celebration-layer" aria-hidden="true"></div>
+
+  <!-- Sticky Gamified Header with XP Bar -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur border-b-2 border-cream-200 shadow-xs">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 sm:py-4 space-y-3">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <!-- Title & Badge -->
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-blush-400 text-white flex items-center justify-center font-black text-xl border-b-4 border-blush-500 shadow-xs shrink-0">
+            05
+          </div>
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <h1 class="text-lg sm:text-xl font-black text-cocoa-900 tracking-tight">
+                Causal Attention &amp; Trục Softmax
+              </h1>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-blush-100 text-blush-500 border border-blush-200">
+                Bản Non-tech ✨
+              </span>
+            </div>
+            <p class="text-xs sm:text-sm text-cocoa-500 font-medium">
+              Thư viện Q, K, V • Cấm nhìn tương lai <code class="font-mono text-xs bg-cream-100 px-1.5 py-0.5 rounded-lg text-cocoa-800">-np.inf</code> • Bẫy <strong class="text-coral-500">axis=1 vs axis=0</strong>
+            </p>
+          </div>
+        </div>
+
+        <!-- Duolingo XP Bar + Target Pill -->
+        <div class="flex items-center gap-3 bg-cream-100 border-2 border-cream-200 rounded-2xl px-3.5 py-2 self-start md:self-auto w-full md:w-auto">
+          <div class="text-xl shrink-0">🌟</div>
+          <div class="flex-1 md:w-44">
+            <div class="flex items-center justify-between text-[11px] font-extrabold mb-1">
+              <span class="text-cocoa-700 uppercase tracking-wide">Tiến độ ôn thi</span>
+              <span class="text-blush-500 font-black"><span id="xp-value">5</span> / 100 XP</span>
+            </div>
+            <div class="w-full h-3 bg-white rounded-full border border-cream-200 overflow-hidden p-0.5">
+              <div
+                id="xp-bar"
+                class="h-full rounded-full bg-gradient-to-r from-honey-400 via-blush-400 to-mint-500 transition-all duration-500"
+                style="width: 5%;"
+              ></div>
+            </div>
+          </div>
+          <div class="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-xl bg-mint-50 border border-mint-200 text-xs font-extrabold text-mint-600 shrink-0">
+            <span>🎯</span>
+            <span>Đáp án C</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4 Main Navigation Tabs -->
+      <nav aria-label="Điều hướng 4 phần học" class="grid grid-cols-2 lg:grid-cols-4 gap-2">
+        <button
+          id="tab-btn-1"
+          data-tab="1"
+          class="tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2"
+        >
+          <span>💡</span>
+          <span>1. Bản chất &amp; Từ vựng</span>
+        </button>
+        <button
+          id="tab-btn-2"
+          data-tab="2"
+          class="tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2"
+        >
+          <span>🔍</span>
+          <span>2. Từng dòng code</span>
+        </button>
+        <button
+          id="tab-btn-3"
+          data-tab="3"
+          class="tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2"
+        >
+          <span>🧪</span>
+          <span>3. Phòng thí nghiệm</span>
+        </button>
+        <button
+          id="tab-btn-4"
+          data-tab="4"
+          class="tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2"
+        >
+          <span>⚡</span>
+          <span>4. Mẹo 15s &amp; Quiz</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
+
+    <!-- =================================================================== -->
+    <!-- TAB 1: HIỂU BẢN CHẤT & TỪ VỰNG (NON-TECH)                           -->
+    <!-- =================================================================== -->
+    <section id="tab-panel-1" class="tab-panel space-y-8">
+      <!-- Warm Hero Banner -->
+      <div class="bg-gradient-to-r from-blush-400 via-rose-400 to-honey-400 text-white rounded-3xl p-6 sm:p-8 border-b-4 border-blush-500/60 shadow-sm">
+        <div class="inline-flex items-center gap-2 bg-white/25 backdrop-blur px-3 py-1 rounded-full text-xs font-extrabold mb-3">
+          <span>📌 Tóm tắt Câu 05 trong 1 câu siêu dễ nhớ</span>
+        </div>
+        <h2 class="text-xl sm:text-2xl font-black leading-snug mb-3">
+          Causal Attention giống như "đọc truyện cấm xem trước trang sau", còn Softmax phải chia 100% sự chú ý theo <code class="bg-white/25 px-1.5 py-0.5 rounded-lg font-mono">HÀNG NGANG (axis=1)</code> — chia nhầm theo cột dọc (<code class="bg-white/25 px-1.5 py-0.5 rounded-lg font-mono">axis=0</code>) là hỏng ngay!
+        </h2>
+        <p class="text-white/95 text-sm sm:text-base leading-relaxed">
+          Đừng sợ các chữ <strong>Query, Key, Value</strong> hay <strong>Softmax</strong>. Đọc lướt 4 câu chuyện đời thường và lật 8 thẻ từ vựng dưới đây là bạn nắm trọn bản chất Câu 05!
+        </p>
+      </div>
+
+      <!-- 4 Everyday Metaphor Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- 1. Q, K, V -->
+        <article class="bg-white rounded-3xl border-2 border-cream-200 p-6 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-cream-100 text-cocoa-800 border border-cream-200">
+                Ẩn dụ 1 • Đi tìm sách trong thư viện
+              </span>
+              <span class="text-2xl">📚</span>
+            </div>
+            <h3 class="text-lg font-black text-cocoa-900 mb-2">
+              Q, K, V là gì? (Tìm kiếm &amp; Pha trộn thông tin)
+            </h3>
+            <p class="text-sm text-cocoa-700 leading-relaxed mb-3">
+              Hãy tưởng tượng bạn bước vào thư viện tìm tài liệu:
+            </p>
+            <ul class="space-y-2 text-xs text-cocoa-800">
+              <li class="p-2.5 rounded-xl bg-cream-100 border border-cream-200">
+                <strong class="text-blush-500">Q (Query):</strong> Câu hỏi bạn đang cần tìm.
+              </li>
+              <li class="p-2.5 rounded-xl bg-cream-100 border border-cream-200">
+                <strong class="text-amber-700">K (Key):</strong> Tiêu đề in trên gáy các cuốn sách.
+              </li>
+              <li class="p-2.5 rounded-xl bg-cream-100 border border-cream-200">
+                <strong class="text-mint-600">V (Value):</strong> Nội dung thực sự bên trong mỗi cuốn sách.
+              </li>
+            </ul>
+          </div>
+          <p class="mt-4 pt-3 border-t border-cream-200 text-xs text-cocoa-500">
+            <strong>Cách hoạt động:</strong> Lấy <code class="font-mono font-bold text-cocoa-800">Q @ K.T</code> để chấm điểm xem câu hỏi khớp tiêu đề nào nhất, đổi ra tỷ lệ %, rồi pha trộn nội dung <code class="font-mono font-bold text-cocoa-800">V</code> theo đúng tỷ lệ đó!
+          </p>
+        </article>
+
+        <!-- 2. Causal Mask -->
+        <article class="bg-white rounded-3xl border-2 border-honey-400 p-6 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-honey-100 text-cocoa-900 border border-honey-300">
+                Ẩn dụ 2 • Cấm nhìn lén tương lai
+              </span>
+              <span class="text-2xl">🙈</span>
+            </div>
+            <h3 class="text-lg font-black text-cocoa-900 mb-2">
+              Causal Mask (<code class="font-mono text-coral-500">-np.inf</code>) = Đọc sách cấm xem trước trang sau!
+            </h3>
+            <p class="text-sm text-cocoa-700 leading-relaxed mb-4">
+              AI viết văn từng chữ một (Từ 0 → Từ 1 → Từ 2). Lúc đang viết Từ 0, nó <strong>không được nhìn lén</strong> Từ 1 và Từ 2 ở tương lai!
+            </p>
+            <div class="p-3.5 rounded-2xl bg-coral-50 border-2 border-coral-200 text-xs text-cocoa-800 space-y-1.5">
+              <p>• <code class="font-mono font-bold text-coral-500">np.triu(..., k=1)</code> chọn đúng phần <strong>tam giác phía trên</strong> đường chéo chính (các ô tương lai).</p>
+              <p>• Gán <code class="font-mono font-bold text-coral-500">-np.inf</code> (âm vô cực) để khi tính Softmax (<code class="font-mono">e^(-∞) = 0</code>), xác suất nhìn thấy tương lai biến thành <strong>0% tuyệt đối</strong>!</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 3. Softmax -->
+        <article class="bg-white rounded-3xl border-2 border-mint-200 p-6 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-mint-50 text-mint-600 border border-mint-200">
+                Ẩn dụ 3 • Đổi điểm sang %
+              </span>
+              <span class="text-2xl">🥧</span>
+            </div>
+            <h3 class="text-lg font-black text-cocoa-900 mb-2">
+              Softmax = Đổi điểm thô sang tỷ lệ % (Tổng = 100%)
+            </h3>
+            <p class="text-sm text-cocoa-700 leading-relaxed mb-4">
+              Điểm thô <code class="font-mono">scores</code> có thể là 0, 1, 2 hay -∞. Softmax giống như cắt 1 chiếc bánh tròn 100% chia cho các từ: điểm càng cao thì miếng bánh càng to!
+            </p>
+            <div class="p-3.5 rounded-2xl bg-mint-50 border border-mint-200 text-xs text-cocoa-800 space-y-1">
+              <p><strong>Bước 1:</strong> <code class="font-mono font-bold">z - z.max(...)</code> chỉ là mẹo trừ số lớn nhất để máy tính <em>không bị tràn số</em> (tỷ lệ % giữ nguyên 100%).</p>
+              <p><strong>Bước 2:</strong> Lấy <code class="font-mono font-bold">e^z</code> chia cho tổng các <code class="font-mono">e^z</code> để mọi số nằm trong khoảng 0 → 1.</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 4. Axis=1 vs Axis=0 Trap -->
+        <article class="bg-white rounded-3xl border-2 border-coral-400 p-6 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-coral-50 text-coral-500 border border-coral-200">
+                Ẩn dụ 4 • Cái bẫy ăn điểm 🚨
+              </span>
+              <span class="text-2xl">🧭</span>
+            </div>
+            <h3 class="text-lg font-black text-cocoa-900 mb-2">
+              Bẫy Trục <code class="font-mono text-mint-600">axis=1</code> (Ngang) vs <code class="font-mono text-coral-500">axis=0</code> (Dọc)
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs mt-3">
+              <div class="p-3 rounded-2xl bg-mint-50 border-2 border-mint-200">
+                <p class="font-black text-mint-600 mb-1">✅ axis=1 (Hàng ngang - ĐÚNG)</p>
+                <p class="text-cocoa-700">Mỗi từ (mỗi hàng) tự phân bổ đủ <strong>100% (tổng = 1.0)</strong> sự chú ý cho quá khứ &amp; hiện tại của mình.</p>
+                <p class="font-mono font-bold text-mint-600 mt-1.5">Hàng 0: [1.0, 0.0, 0.0]</p>
+              </div>
+              <div class="p-3 rounded-2xl bg-coral-50 border-2 border-coral-200">
+                <p class="font-black text-coral-500 mb-1">❌ axis=0 (Cột dọc - SAI)</p>
+                <p class="text-cocoa-700">Lại đi chia 100% theo <strong>từng cột dọc</strong>! Làm tổng các hàng ngang bị méo mó thành:</p>
+                <p class="font-mono font-bold text-coral-500 mt-1.5">[0.212, 1.076, 1.712]</p>
+              </div>
+            </div>
+          </div>
+          <p class="mt-3 pt-3 border-t border-cream-200 text-xs text-cocoa-500">
+            <strong>Mẹo phòng thi:</strong> Chỉ cần nhớ tổng hàng của <code class="font-mono">col</code> KHÔNG bằng 1 là loại ngay 2 đáp án A và D!
+          </p>
+        </article>
+      </div>
+
+      <!-- Interactive 8-Card Anh-Viet Dictionary -->
+      <div class="bg-white rounded-3xl border-2 border-cream-200 p-5 sm:p-6 shadow-xs">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+          <div>
+            <span class="inline-block px-3 py-0.5 rounded-full text-xs font-extrabold bg-honey-100 text-cocoa-900 mb-1">
+              📖 Từ điển Anh–Việt cho Non-tech (8 thẻ)
+            </span>
+            <h3 class="text-base sm:text-lg font-black text-cocoa-900">
+              Click vào từng thẻ để lật xem dịch sát nghĩa &amp; giải thích đời thường!
+            </h3>
+          </div>
+          <button
+            onclick="flipAllVocab()"
+            class="px-3.5 py-2 rounded-xl bg-cream-100 hover:bg-cream-200 text-cocoa-800 text-xs font-extrabold border-2 border-cream-200 border-b-4 transition cursor-pointer self-start sm:self-auto"
+          >
+            🔄 Lật tất cả thẻ
+          </button>
+        </div>
+
+        <div id="vocab-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <!-- JS Populated -->
+        </div>
+      </div>
+
+      <!-- CTA to Tab 2 -->
+      <div class="bg-cream-100 rounded-3xl border-2 border-cream-200 p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-2xl bg-honey-400 text-cocoa-900 flex items-center justify-center text-xl border-b-4 border-honey-500 shrink-0">
+            🦉
+          </div>
+          <div>
+            <h4 class="text-sm font-black text-cocoa-900">Đã nắm chắc bức tranh toàn cảnh?</h4>
+            <p class="text-xs text-cocoa-500">Chuyển sang Tab 2 để click từng dòng code và xem các ma trận 3×3 biến hóa từng bước nhé!</p>
+          </div>
+        </div>
+        <button
+          onclick="switchTab('2')"
+          class="w-full sm:w-auto px-5 py-2.5 rounded-2xl bg-blush-400 hover:bg-blush-500 active:translate-y-0.5 text-white text-sm font-extrabold border-b-4 border-blush-500 transition cursor-pointer"
+        >
+          Đi tới Tab 2: Giải thích từng dòng →
+        </button>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 2: GIẢI THÍCH TỪNG DÒNG CODE (LIVE MATRIX STATE)                -->
+    <!-- =================================================================== -->
+    <section id="tab-panel-2" class="tab-panel hidden space-y-5">
+      <div class="bg-white rounded-3xl border-2 border-cream-200 p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="text-base sm:text-lg font-black text-cocoa-900">Click từng dòng code để xem lời giải thích bình dân &amp; Live Matrix State</h2>
+          <p class="text-xs sm:text-sm text-cocoa-500">Bạn cũng có thể bấm nút "Dòng trước" / "Dòng tiếp theo" để học tuần tự từ trên xuống dưới.</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 shrink-0">
+          <span class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-xl bg-honey-100 text-cocoa-900 border border-honey-300">
+            <span class="w-2 h-2 rounded-full bg-honey-500"></span> Dữ liệu / Mask
+          </span>
+          <span class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-xl bg-mint-50 text-mint-600 border border-mint-200">
+            <span class="w-2 h-2 rounded-full bg-mint-500"></span> Đúng (axis=1)
+          </span>
+          <span class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-xl bg-coral-50 text-coral-500 border border-coral-200">
+            <span class="w-2 h-2 rounded-full bg-coral-400"></span> Bẫy (axis=0)
+          </span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <!-- Left: Code Panel -->
+        <div class="lg:col-span-5 bg-cocoa-900 rounded-3xl shadow-md border-2 border-cocoa-700 overflow-hidden">
+          <div class="flex items-center justify-between px-4 py-3 bg-cocoa-800 border-b border-cocoa-700">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-coral-400"></span>
+              <span class="w-3 h-3 rounded-full bg-honey-400"></span>
+              <span class="w-3 h-3 rounded-full bg-mint-500"></span>
+              <span class="ml-2 text-xs font-mono text-cream-100">cau_05_causal_attention.py</span>
+            </div>
+            <span class="text-[11px] font-semibold text-honey-300">Click từng dòng</span>
+          </div>
+          <div id="code-lines-container" class="p-3 overflow-x-auto font-mono text-xs sm:text-[13px] space-y-1">
+            <!-- JS Populated -->
+          </div>
+        </div>
+
+        <!-- Right: Explanation + Live Matrix Visualizer -->
+        <div class="lg:col-span-7 lg:sticky lg:top-40">
+          <div class="bg-white rounded-3xl border-2 border-cream-200 shadow-sm overflow-hidden">
+            <!-- Controls -->
+            <div class="flex items-center justify-between px-5 py-3.5 bg-cream-100 border-b-2 border-cream-200">
+              <span id="step-counter" class="text-xs font-black text-cocoa-700 uppercase tracking-wider">
+                Bước 1 / 12
+              </span>
+              <div class="flex items-center gap-2">
+                <button
+                  id="prev-line-btn"
+                  class="px-3.5 py-1.5 rounded-xl bg-white hover:bg-cream-50 text-cocoa-800 border-2 border-cream-200 border-b-4 text-xs font-extrabold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  ← Dòng trước
+                </button>
+                <button
+                  id="next-line-btn"
+                  class="px-3.5 py-1.5 rounded-xl bg-blush-400 hover:bg-blush-500 text-white border-b-4 border-blush-500 text-xs font-extrabold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  Dòng tiếp theo →
+                </button>
+              </div>
+            </div>
+
+            <!-- Dynamic Step Body -->
+            <div id="line-explanation-content" class="p-5 sm:p-6 space-y-5">
+              <!-- JS Populated -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 3: PHÒNG THÍ NGHIỆM CAUSAL MASK & TRỤC SOFTMAX                  -->
+    <!-- =================================================================== -->
+    <section id="tab-panel-3" class="tab-panel hidden space-y-8">
+
+      <!-- EXPERIMENT 1: CAUSAL MASK TOGGLE -->
+      <div class="bg-white rounded-3xl border-2 border-cream-200 p-5 sm:p-6 shadow-xs space-y-5">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b-2 border-cream-100">
+          <div>
+            <span class="inline-block px-3 py-0.5 rounded-full text-xs font-extrabold bg-honey-100 text-cocoa-900 mb-1">
+              🙈 Thí nghiệm 1 (+8 XP)
+            </span>
+            <h2 class="text-lg font-black text-cocoa-900">
+              Bật / Tắt Mặt nạ Tương lai (<code class="font-mono text-coral-500">future</code> &amp; <code class="font-mono text-coral-500">-np.inf</code>)
+            </h2>
+            <p class="text-xs sm:text-sm text-cocoa-500 mt-0.5">
+              Gạt nút bên phải để bật/tắt mặt nạ, sau đó <strong>click vào từng hàng (Từ 0, Từ 1, Từ 2)</strong> để xem từ đó được nhìn thấy ai!
+            </p>
+          </div>
+          <div class="inline-flex p-1.5 rounded-2xl bg-cream-100 border-2 border-cream-200 self-start md:self-auto">
+            <button id="mask-off-btn" onclick="setMaskMode(false)" class="px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer">
+              👀 Chưa che (Gốc)
+            </button>
+            <button id="mask-on-btn" onclick="setMaskMode(true)" class="px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer">
+              🙈 Đã che (-np.inf)
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <!-- Interactive 3x3 Scores Grid -->
+          <div class="lg:col-span-6">
+            <div class="grid grid-cols-4 gap-2 text-center items-center">
+              <div></div>
+              <div class="text-[11px] font-extrabold text-cocoa-500">Key 0</div>
+              <div class="text-[11px] font-extrabold text-cocoa-500">Key 1</div>
+              <div class="text-[11px] font-extrabold text-cocoa-500">Key 2</div>
+            </div>
+            <div id="exp1-matrix" class="mt-2 space-y-2">
+              <!-- JS Populated -->
+            </div>
+          </div>
+
+          <!-- Row Inspector -->
+          <div id="exp1-inspector" class="lg:col-span-6 p-5 rounded-3xl bg-cream-100 border-2 border-cream-200 space-y-3">
+            <!-- JS Populated -->
+          </div>
+        </div>
+      </div>
+
+      <!-- EXPERIMENT 2: AXIS=1 (GOOD) VS AXIS=0 (WRONG) -->
+      <div class="bg-white rounded-3xl border-2 border-cream-200 p-5 sm:p-6 shadow-xs space-y-5">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b-2 border-cream-100">
+          <div>
+            <span class="inline-block px-3 py-0.5 rounded-full text-xs font-extrabold bg-blush-100 text-blush-500 mb-1">
+              🧭 Thí nghiệm 2 (+7 XP)
+            </span>
+            <h2 class="text-lg font-black text-cocoa-900">
+              Soi trục Softmax: <code class="font-mono text-mint-600">axis=1</code> (ĐÚNG) vs <code class="font-mono text-coral-500">axis=0</code> (SAI)
+            </h2>
+            <p class="text-xs sm:text-sm text-cocoa-500 mt-0.5">
+              Chuyển chế độ và <strong>click vào từng hàng hoặc cột</strong> để xem công thức <code class="font-mono">e^z / tổng</code> bằng số thật!
+            </p>
+          </div>
+          <div class="inline-flex p-1.5 rounded-2xl bg-cream-100 border-2 border-cream-200 self-start md:self-auto">
+            <button id="axis-1-btn" onclick="setAxisMode(1)" class="px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer">
+              ✅ axis=1 (Hàng ngang)
+            </button>
+            <button id="axis-0-btn" onclick="setAxisMode(0)" class="px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer">
+              🚨 axis=0 (Cột dọc)
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <!-- Matrix with Row/Col Sums -->
+          <div class="lg:col-span-7 overflow-x-auto">
+            <div id="exp2-matrix-wrap" class="min-w-[320px]">
+              <!-- JS Populated -->
+            </div>
+          </div>
+
+          <!-- Formula Detail Inspector -->
+          <div id="exp2-inspector" class="lg:col-span-5 bg-cocoa-900 text-cream-50 rounded-3xl p-5 space-y-3 shadow-sm">
+            <!-- JS Populated -->
+          </div>
+        </div>
+      </div>
+
+      <!-- EXPERIMENT 3: MULTIPLY WITH V (GOOD VS WRONG) -->
+      <div class="bg-white rounded-3xl border-2 border-mint-200 p-5 sm:p-6 shadow-xs space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b-2 border-cream-100">
+          <div>
+            <span class="inline-block px-3 py-0.5 rounded-full text-xs font-extrabold bg-mint-50 text-mint-600 mb-1">
+              ⚡ Thí nghiệm 3 (+5 XP)
+            </span>
+            <h2 class="text-lg font-black text-cocoa-900">
+              Nhân với <code class="font-mono text-cocoa-900">V</code> (<code class="font-mono text-mint-600">good = row @ V</code> vs <code class="font-mono text-coral-500">wrong = col @ V</code>) — Phân biệt B &amp; C trong 3 giây!
+            </h2>
+          </div>
+          <div class="inline-flex gap-1.5">
+            <button onclick="selectVRow(0)" id="vrow-btn-0" class="vrow-btn px-3 py-1.5 rounded-xl text-xs font-extrabold border-2 transition cursor-pointer">Hàng 0 ⭐</button>
+            <button onclick="selectVRow(1)" id="vrow-btn-1" class="vrow-btn px-3 py-1.5 rounded-xl text-xs font-extrabold border-2 transition cursor-pointer">Hàng 1</button>
+            <button onclick="selectVRow(2)" id="vrow-btn-2" class="vrow-btn px-3 py-1.5 rounded-xl text-xs font-extrabold border-2 transition cursor-pointer">Hàng 2</button>
+          </div>
+        </div>
+
+        <div id="exp3-content" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <!-- JS Populated -->
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 4: MẸO KHOANH 15 GIÂY & MINI-QUIZ 4 CÂU                         -->
+    <!-- =================================================================== -->
+    <section id="tab-panel-4" class="tab-panel hidden space-y-8">
+      <!-- 15-Second Elimination Strategy -->
+      <div class="bg-white rounded-3xl border-2 border-cream-200 p-5 sm:p-6 shadow-xs">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+          <div>
+            <span class="inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-xs font-extrabold bg-blush-100 text-blush-500 mb-1">
+              ⚡ Chiến thuật phòng thi 15 giây
+            </span>
+            <h2 class="text-lg sm:text-xl font-black text-cocoa-900">
+              Không cần bấm máy tính! Loại A, D, B trong 15 giây để chốt ngay Đáp án C!
+            </h2>
+          </div>
+          <button
+            onclick="toggleExamHints()"
+            class="px-4 py-2 rounded-2xl bg-cream-100 hover:bg-cream-200 text-cocoa-800 text-xs font-extrabold border-2 border-cream-200 border-b-4 transition cursor-pointer self-start sm:self-auto"
+          >
+            👁️ Ẩn/Hiện đánh dấu sai
+          </button>
+        </div>
+
+        <!-- 3-Step Elimination Checklist -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+          <div class="p-4 rounded-2xl bg-coral-50 border-2 border-coral-200">
+            <p class="text-xs font-black text-coral-500">Bước 1 (5s): Soi dòng cuối col_rows</p>
+            <p class="text-xs text-cocoa-800 mt-1"><code class="font-mono">col</code> chia % theo CỘT (<code class="font-mono">axis=0</code>) nên tổng theo HÀNG (<code class="font-mono">col_rows</code>) chắc chắn <strong>KHÔNG</strong> thể là <code class="font-mono">[1.0, 1.0, 1.0]</code> → <strong>Loại ngay A và D!</strong></p>
+          </div>
+          <div class="p-4 rounded-2xl bg-honey-100/70 border-2 border-honey-300">
+            <p class="text-xs font-black text-cocoa-900">Bước 2 (5s): Soi dòng đầu của good</p>
+            <p class="text-xs text-cocoa-800 mt-1">Hàng 0 của <code class="font-mono">row</code> là <code class="font-mono">[1.0, 0.0, 0.0]</code> nhân với <code class="font-mono">V[0] = [1., 10.]</code> bắt buộc ra <strong class="font-mono text-mint-600">[1.0, 10.0]</strong> → <strong>Loại ngay B</strong> (bị tráo <code class="font-mono">good</code> với <code class="font-mono">wrong</code>)!</p>
+          </div>
+          <div class="p-4 rounded-2xl bg-mint-50 border-2 border-mint-200">
+            <p class="text-xs font-black text-mint-600">Bước 3 (5s): Chốt đáp án C!</p>
+            <p class="text-xs text-cocoa-800 mt-1">Vừa đúng <code class="font-mono">col_rows = [0.212, 1.076, 1.712]</code> vừa đúng <code class="font-mono">good[0] = [1.0, 10.0]</code> → <strong>Khoanh chắc C!</strong></p>
+          </div>
+        </div>
+
+        <!-- 4 Options Comparison Cards -->
+        <div class="space-y-4">
+          <!-- Option A -->
+          <div class="rounded-2xl border-2 border-cream-200 bg-cream-50/70 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-cream-200 text-cocoa-900 font-black text-sm flex items-center justify-center">A</span>
+                <span class="text-sm font-extrabold text-cocoa-900">Phương án A</span>
+              </div>
+              <span class="exam-hint px-3 py-1 rounded-full text-xs font-extrabold bg-coral-50 text-coral-500 border border-coral-200">
+                ❌ LOẠI (Tưởng axis=0 giống hệt axis=1)
+              </span>
+            </div>
+            <pre class="bg-white rounded-xl p-3 border border-cream-200 text-[11px] sm:text-xs font-mono text-cocoa-800 overflow-x-auto leading-relaxed">row: [[1.0, 0.0, 0.0], [0.731, 0.269, 0.0], [0.422, 0.422, 0.155]]
+col: <span class="bg-coral-200 text-red-900 font-bold px-1 rounded">[[1.0, 0.0, 0.0], [0.731, 0.269, 0.0], [0.422, 0.422, 0.155]]</span>
+good: [[1.0, 10.0], [1.269, 12.689], [1.888, 18.884]]
+wrong: [[1.0, 10.0], [1.269, 12.689], [1.888, 18.884]]
+col_rows: <span class="bg-coral-200 text-red-900 font-bold px-1 rounded">[1.0, 1.0, 1.0]</span></pre>
+          </div>
+
+          <!-- Option B -->
+          <div class="rounded-2xl border-2 border-cream-200 bg-cream-50/70 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-cream-200 text-cocoa-900 font-black text-sm flex items-center justify-center">B</span>
+                <span class="text-sm font-extrabold text-cocoa-900">Phương án B</span>
+              </div>
+              <span class="exam-hint px-3 py-1 rounded-full text-xs font-extrabold bg-coral-50 text-coral-500 border border-coral-200">
+                ❌ LOẠI (Tráo ngược good với wrong!)
+              </span>
+            </div>
+            <pre class="bg-white rounded-xl p-3 border border-cream-200 text-[11px] sm:text-xs font-mono text-cocoa-800 overflow-x-auto leading-relaxed">row: [[1.0, 0.0, 0.0], [0.731, 0.269, 0.0], [0.422, 0.422, 0.155]]
+col: [[0.212, 0.0, 0.0], [0.576, 0.5, 0.0], [0.212, 0.5, 1.0]]
+good: <span class="bg-coral-200 text-red-900 font-bold px-1 rounded">[[0.212, 2.119], [1.576, 15.761], [5.212, 52.119]]</span>
+wrong: <span class="bg-coral-200 text-red-900 font-bold px-1 rounded">[[1.0, 10.0], [1.269, 12.689], [1.888, 18.884]]</span>
+col_rows: [0.212, 1.076, 1.712]</pre>
+          </div>
+
+          <!-- Option C (CORRECT) -->
+          <div class="rounded-2xl border-2 border-mint-500 bg-mint-50/70 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-mint-500 text-white font-black text-sm flex items-center justify-center border-b-2 border-mint-600">C</span>
+                <span class="text-sm font-black text-mint-600">Phương án C</span>
+              </div>
+              <span class="exam-hint px-3 py-1 rounded-full text-xs font-extrabold bg-mint-500 text-white">
+                ✅ ĐÁP ÁN ĐÚNG 100%
+              </span>
+            </div>
+            <pre class="bg-white rounded-xl p-3 border-2 border-mint-200 text-[11px] sm:text-xs font-mono text-cocoa-900 overflow-x-auto leading-relaxed">row: [[1.0, 0.0, 0.0], [0.731, 0.269, 0.0], [0.422, 0.422, 0.155]]
+col: [[0.212, 0.0, 0.0], [0.576, 0.5, 0.0], [0.212, 0.5, 1.0]]
+good: <span class="bg-mint-200 text-emerald-950 font-bold px-1 rounded">[[1.0, 10.0], [1.269, 12.689], [1.888, 18.884]]</span>
+wrong: [[0.212, 2.119], [1.576, 15.761], [5.212, 52.119]]
+col_rows: <span class="bg-mint-200 text-emerald-950 font-bold px-1 rounded">[0.212, 1.076, 1.712]</span></pre>
+          </div>
+
+          <!-- Option D -->
+          <div class="rounded-2xl border-2 border-cream-200 bg-cream-50/70 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-cream-200 text-cocoa-900 font-black text-sm flex items-center justify-center">D</span>
+                <span class="text-sm font-extrabold text-cocoa-900">Phương án D</span>
+              </div>
+              <span class="exam-hint px-3 py-1 rounded-full text-xs font-extrabold bg-coral-50 text-coral-500 border border-coral-200">
+                ❌ LOẠI (Chuyển vị nhầm col khiến col_rows = [1, 1, 1])
+              </span>
+            </div>
+            <pre class="bg-white rounded-xl p-3 border border-cream-200 text-[11px] sm:text-xs font-mono text-cocoa-800 overflow-x-auto leading-relaxed">row: [[1.0, 0.0, 0.0], [0.731, 0.269, 0.0], [0.422, 0.422, 0.155]]
+col: <span class="bg-coral-200 text-red-900 font-bold px-1 rounded">[[0.212, 0.576, 0.212], [0.0, 0.5, 0.5], [0.0, 0.0, 1.0]]</span>
+good: [[1.0, 10.0], [1.269, 12.689], [1.888, 18.884]]
+wrong: [[2.212, 22.119], [3.0, 30.0], [4.0, 40.0]]
+col_rows: <span class="bg-coral-200 text-red-900 font-bold px-1 rounded">[1.0, 1.0, 1.0]</span></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mini-Quiz (4 Questions) -->
+      <div class="bg-white rounded-3xl border-2 border-cream-200 p-5 sm:p-6 shadow-xs">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-5 border-b-2 border-cream-100">
+          <div>
+            <span class="inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-xs font-extrabold bg-mint-50 text-mint-600 mb-1">
+              🎯 Mini-Quiz 4 câu (+15 XP / câu đúng)
+            </span>
+            <h3 class="text-lg font-black text-cocoa-900">
+              Trả lời đúng 4 câu &amp; trải nghiệm đủ các tab để đạt 100 XP nhận pháo hoa!
+            </h3>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="px-4 py-1.5 rounded-2xl bg-blush-50 border-2 border-blush-200 text-sm font-black text-blush-500">
+              Điểm: <span id="quiz-score">0</span> / 4
+            </div>
+            <button
+              onclick="resetQuiz()"
+              class="px-3.5 py-1.5 rounded-2xl bg-cream-100 hover:bg-cream-200 text-cocoa-800 text-xs font-extrabold border-2 border-cream-200 border-b-4 transition cursor-pointer"
+            >
+              🔄 Làm lại
+            </button>
+          </div>
+        </div>
+
+        <div id="quiz-container" class="space-y-5">
+          <!-- JS Populated -->
+        </div>
+
+        <!-- 100 XP Celebration Banner -->
+        <div id="xp-win-banner" class="hidden mt-6 p-6 rounded-3xl bg-gradient-to-r from-honey-400 via-blush-400 to-mint-500 text-white text-center shadow-md border-b-4 border-cocoa-800/20">
+          <p class="text-3xl mb-2">✨🌸🦋🏆🦋🌸✨</p>
+          <p class="text-lg sm:text-xl font-black">XUẤT SẮC! BẠN ĐÃ ĐẠT 100 / 100 XP!</p>
+          <p class="text-xs sm:text-sm text-white/95 mt-1 font-medium">
+            Chốt bí kíp Câu 05: <strong>-np.inf che tương lai • axis=1 chia % hàng ngang • col_rows ≠ [1, 1, 1] → Chọn C!</strong>
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t-2 border-cream-200 py-4 mt-8">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 text-center text-xs text-cocoa-500 font-medium">
+      Ôn thi Câu 05: Causal Attention &amp; Trục Softmax • Giao diện Gamified Pastel dành cho Non-tech
+    </div>
+  </footer>
+
+  <!-- Complete Application JavaScript -->
+  <script>
+    // =========================================================================
+    // 0. GAMIFIED XP ENGINE (0 -> 100 XP) + PARTICLE CELEBRATION
+    // =========================================================================
+    // 4 Tabs (5 XP each = 20) + 3 Lab Exps (8 + 7 + 5 = 20) + 4 Quiz (15 each = 60) = 100 XP
+    const xpState = {
+      tabs: new Set(['1']),
+      exp1: false,
+      exp2: false,
+      exp3: false,
+      quizCorrectCount: 0,
+      celebrated: false,
+    };
+
+    function launchCelebration() {
+      const layer = document.getElementById('celebration-layer');
+      if (!layer) return;
+      const icons = ['⭐', '✨', '🌸', '🦋', '🎉', '🌼', '💖'];
+      for (let i = 0; i < 36; i++) {
+        const span = document.createElement('span');
+        span.className = 'celebrate-particle';
+        span.textContent = icons[i % icons.length];
+        span.style.left = `${Math.random() * 96 + 2}vw`;
+        span.style.fontSize = `${Math.random() * 16 + 18}px`;
+        span.style.animationDelay = `${Math.random() * 1.2}s`;
+        span.style.animationDuration = `${Math.random() * 1.6 + 2.4}s`;
+        layer.appendChild(span);
+        setTimeout(() => span.remove(), 4600);
+      }
+    }
+
+    function updateXP() {
+      try {
+        const tabXP = xpState.tabs.size * 5;
+        const labXP = (xpState.exp1 ? 8 : 0) + (xpState.exp2 ? 7 : 0) + (xpState.exp3 ? 5 : 0);
+        const quizXP = xpState.quizCorrectCount * 15;
+        const total = Math.min(100, tabXP + labXP + quizXP);
+
+        const valEl = document.getElementById('xp-value');
+        const barEl = document.getElementById('xp-bar');
+        const winBanner = document.getElementById('xp-win-banner');
+
+        if (valEl) valEl.textContent = String(total);
+        if (barEl) barEl.style.width = `${total}%`;
+        if (winBanner) winBanner.classList.toggle('hidden', total < 100);
+
+        if (total === 100 && !xpState.celebrated) {
+          xpState.celebrated = true;
+          launchCelebration();
+        }
+      } catch (err) {
+        console.error('XP update error:', err);
+      }
+    }
+
+    // =========================================================================
+    // 1. TAB 1: 8 INTERACTIVE ANH-VIET FLASHCARDS
+    // =========================================================================
+    const vocabList = [
+      { term: 'softmax', short: 'Đổi điểm sang tỷ lệ %', meaning: 'Hàm biến các con số điểm bất kỳ thành xác suất dương (từ 0 đến 1) sao cho tổng bằng đúng 1.0 (100%). Điểm càng cao thì % càng lớn.' },
+      { term: 'axis=1', short: 'Tính theo HÀNG NGANG ✅', meaning: 'Trục 1 là chiều ngang (từng hàng). Trong Attention, softmax(scores, axis=1) là CÁCH ĐÚNG vì mỗi từ (mỗi hàng) phải có tổng sự chú ý bằng 100%.' },
+      { term: 'axis=0', short: 'Tính theo CỘT DỌC ❌', meaning: 'Trục 0 là chiều dọc (từng cột). Dùng softmax(scores, axis=0) là BẪY SAI vì tổng từng cột bằng 1, nhưng tổng các hàng ngang bị méo mó!' },
+      { term: 'keepdims=True', short: 'Giữ nguyên hình dáng bảng', meaning: 'Giữ nguyên số chiều (ví dụ bảng 3×1 thay vì bị ép thành mảng 1 chiều) để phép trừ z - z.max(...) và phép chia không bị lỗi Broadcasting.' },
+      { term: 'np.triu(..., k=1)', short: 'Tam giác trên (Tương lai)', meaning: 'triu = Triangle Upper (tam giác trên). Tham số k=1 nghĩa là lấy các ô nằm phía TRÊN đường chéo chính — đại diện cho các từ ở tương lai bị cấm xem.' },
+      { term: '-np.inf', short: 'Âm vô cực (-∞)', meaning: 'Số âm nhỏ vô cùng. Dùng để bịt mắt các ô tương lai vì khi vào hàm mũ e^(-∞) sẽ ra đúng bằng 0.0 (0% sự chú ý).' },
+      { term: 'Q @ K.T', short: 'Chấm điểm khớp Q và K', meaning: 'Phép nhân ma trận giữa Câu hỏi (Q) và Tiêu đề xoay ngang (K.T) để tạo bảng điểm 3×3 (scores) cho biết từ nào liên quan đến từ nào.' },
+      { term: 'col.sum(axis=1)', short: 'Cộng ngang từng hàng của col', meaning: 'Cộng dồn các số trên từng hàng ngang của bảng col. Vì col chia % theo cột dọc, nên tổng các hàng ngang ra [0.212, 1.076, 1.712] ≠ 1!' }
+    ];
+
+    const flippedVocab = new Set();
+    function toggleVocab(idx) {
+      if (flippedVocab.has(idx)) flippedVocab.delete(idx);
+      else flippedVocab.add(idx);
+      renderVocab();
+    }
+    function flipAllVocab() {
+      if (flippedVocab.size === vocabList.length) flippedVocab.clear();
+      else vocabList.forEach((_, i) => flippedVocab.add(i));
+      renderVocab();
+    }
+    function renderVocab() {
+      const grid = document.getElementById('vocab-grid');
+      if (!grid) return;
+      grid.innerHTML = vocabList.map((item, idx) => {
+        const isFlipped = flippedVocab.has(idx);
+        if (isFlipped) {
+          return `
+            <button type="button" onclick="toggleVocab(${idx})"
+              class="text-left p-4 rounded-2xl border-2 border-honey-400 bg-honey-100/70 border-b-4 border-b-honey-500 transition cursor-pointer flex flex-col justify-between min-h-[140px]">
+              <div>
+                <p class="font-mono text-xs font-black text-blush-500 mb-1">${item.term}</p>
+                <p class="text-xs text-cocoa-900 leading-relaxed font-medium">${item.meaning}</p>
+              </div>
+              <span class="text-[10px] font-bold text-cocoa-500 mt-2">👆 Bấm để úp lại</span>
+            </button>
+          `;
+        }
+        return `
+          <button type="button" onclick="toggleVocab(${idx})"
+            class="text-left p-4 rounded-2xl border-2 border-cream-200 bg-cream-50 hover:bg-cream-100 border-b-4 border-b-cream-200 transition cursor-pointer flex flex-col justify-between min-h-[140px]">
+            <div>
+              <span class="inline-block px-2 py-0.5 rounded-lg text-[10px] font-extrabold bg-blush-100 text-blush-500 mb-2">Thẻ #${idx + 1}</span>
+              <p class="font-mono text-sm font-black text-cocoa-900 break-words">${item.term}</p>
+              <p class="text-xs text-cocoa-500 mt-1 font-semibold">${item.short}</p>
+            </div>
+            <span class="text-[11px] font-extrabold text-blush-500 mt-3">👆 Bấm để lật xem nghĩa →</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    // =========================================================================
+    // 2. TAB 2: LINE-BY-LINE CODE EXPLANATION + LIVE MATRIX STATE
+    // =========================================================================
+    const codeSteps = [
+      {
+        lines: '1',
+        code: 'import numpy as np',
+        badge: 'Khởi động',
+        theme: 'neutral',
+        title: 'Mở bộ công cụ bảng số NumPy',
+        everyday: 'Bật công cụ tính toán ma trận NumPy (giống mở Excel trong Python) để xử lý các bảng Q, K, V.',
+        math: 'Chưa có bảng số nào được tạo.',
+        matrix: null
+      },
+      {
+        lines: '3-6',
+        code: 'def softmax(z, axis):\n    z = z - z.max(axis=axis, keepdims=True)\n    e = np.exp(z)\n    return e / e.sum(axis=axis, keepdims=True)',
+        badge: '🥧 Hàm đổi điểm sang %',
+        theme: 'mint',
+        title: 'Định nghĩa hàm Softmax đổi điểm thô thành tỷ lệ % theo trục axis',
+        everyday: 'Hàm nhận vào bảng điểm z và hướng chia (axis=1 là ngang, axis=0 là dọc). Nó trừ đi số lớn nhất cho an toàn máy tính, lấy e mũ z, rồi chia cho tổng để ra %.',
+        math: 'Công thức: softmax(zᵢ) = e^(zᵢ - max) / Σ e^(zⱼ - max). Lưu ý: e^(-∞) = 0.',
+        matrix: null
+      },
+      {
+        lines: '8-10',
+        code: 'Q = np.array([[1., 0.], [1., 1.], [0., 1.]])\nK = np.array([[1., 1.], [0., 1.], [1., 0.]])\nV = np.array([[1., 10.], [2., 20.], [4., 40.]])',
+        badge: '📚 Dữ liệu Q, K, V',
+        theme: 'honey',
+        title: 'Khởi tạo 3 bảng Câu hỏi (Q), Tiêu đề (K) và Nội dung (V)',
+        everyday: 'Có 3 từ (3 hàng). Q và K giúp chấm điểm liên quan; còn V chứa nội dung rất dễ nhẩm: hàng 0 là [1, 10], hàng 1 là [2, 20], hàng 2 là [4, 40] (cột 2 luôn gấp 10 lần cột 1!).',
+        math: 'V = [[1., 10.], [2., 20.], [4., 40.]] (hình dáng 3×2).',
+        matrix: {
+          title: 'Bảng nội dung V (3×2)',
+          cols: 2,
+          accent: 'honey',
+          data: [['1.', '10.'], ['2.', '20.'], ['4.', '40.']]
+        }
+      },
+      {
+        lines: '12',
+        code: 'scores = Q @ K.T',
+        badge: 'Chấm điểm thô',
+        theme: 'honey',
+        title: 'Nhân Q với K xoay ngang (K.T) để ra bảng điểm thô 3×3',
+        everyday: 'Mỗi ô [hàng i, cột j] là độ khớp giữa Câu hỏi của từ i với Tiêu đề của từ j. Lúc này chưa che tương lai nên từ 0 vẫn đang chấm điểm cho từ 1 và 2.',
+        math: 'Hàng 0: [1×1+0×1, 1×0+0×1, 1×1+0×0] = [1, 0, 1].\nHàng 1: [1×1+1×1, 1×0+1×1, 1×1+1×0] = [2, 1, 1].\nHàng 2: [0×1+1×1, 0×0+1×1, 0×1+1×0] = [1, 1, 0].',
+        matrix: {
+          title: 'scores TRƯỚC khi che mask (3×3)',
+          cols: 3,
+          accent: 'honey',
+          data: [['1', '0', '1'], ['2', '1', '1'], ['1', '1', '0']]
+        }
+      },
+      {
+        lines: '13',
+        code: 'future = np.triu(np.ones((3, 3), dtype=bool), k=1)',
+        badge: '🙈 Tạo mặt nạ tương lai',
+        theme: 'coral',
+        title: 'Đánh dấu True cho tam giác phía trên đường chéo chính (k=1)',
+        everyday: 'Tạo tấm lưới Đúng/Sai kích thước 3×3: ô nào nằm ở tương lai (cột > hàng) thì đánh True (cấm nhìn), ô quá khứ và hiện tại đánh False (được nhìn).',
+        math: '3 ô bị đánh dấu True là: (0,1), (0,2) và (1,2).',
+        matrix: {
+          title: 'future — Mặt nạ Đúng/Sai (3×3)',
+          cols: 3,
+          accent: 'coral',
+          hlCells: ['0,1', '0,2', '1,2'],
+          data: [['False', 'True', 'True'], ['False', 'False', 'True'], ['False', 'False', 'False']]
+        }
+      },
+      {
+        lines: '14',
+        code: 'scores[future] = -np.inf',
+        badge: '🚫 Che bằng -∞',
+        theme: 'coral',
+        title: 'Gán âm vô cực (-∞) vào 3 ô tương lai để khóa tầm nhìn!',
+        everyday: 'Thay 3 ô True phía trên thành -∞. Từ 0 chỉ còn thấy chính nó; Từ 1 thấy Từ 0, 1; Từ 2 thấy đủ cả 3 từ.',
+        math: 'Khi vào Softmax, mọi ô -∞ sẽ có e^(-∞) = 0.0 (0% sự chú ý).',
+        matrix: {
+          title: 'scores SAU khi che mask (3×3)',
+          cols: 3,
+          accent: 'coral',
+          hlCells: ['0,1', '0,2', '1,2'],
+          data: [['1', '-∞', '-∞'], ['2', '1', '-∞'], ['1', '1', '0']]
+        }
+      },
+      {
+        lines: '16',
+        code: 'row = softmax(scores, axis=1)',
+        badge: '✅ ĐÚNG (Hàng ngang)',
+        theme: 'mint',
+        title: 'Tính Softmax theo HÀNG NGANG (axis=1) → Tổng mỗi hàng = 1.0!',
+        everyday: 'Mỗi từ tự chia 100% sự chú ý cho các từ được phép nhìn. Hàng 0 chỉ thấy mỗi mình nên dồn 100% (1.0) vào cột 0.',
+        math: '• Hàng 0 [1, -∞, -∞] → [1.0, 0.0, 0.0]\n• Hàng 1 [2, 1, -∞] → trừ max 2 thành [0, -1, -∞] → [0.731, 0.269, 0.0]\n• Hàng 2 [1, 1, 0] → trừ max 1 thành [0, 0, -1] → [0.422, 0.422, 0.155]',
+        matrix: {
+          title: 'row = softmax(scores, axis=1) — Tổng hàng = 1.0',
+          cols: 3,
+          accent: 'mint',
+          data: [['1.0', '0.0', '0.0'], ['0.731', '0.269', '0.0'], ['0.422', '0.422', '0.155']]
+        }
+      },
+      {
+        lines: '17',
+        code: 'col = softmax(scores, axis=0)',
+        badge: '🚨 BẪY SAI (Cột dọc)',
+        theme: 'coral',
+        title: 'Tính nhầm Softmax theo CỘT DỌC (axis=0) → Tổng cột = 1, tổng hàng lệch!',
+        everyday: 'Thay vì chia theo hàng, máy lại chia 100% theo từng CỘT DỌC! Cột 1 chỉ có 2 số bằng nhau [1, 1] nên chia đôi 0.5 và 0.5; Cột 2 chỉ có 1 số 0 nên dồn 1.0 xuống cuối.',
+        math: '• Cột 0 [1, 2, 1] → [0.212, 0.576, 0.212] (tổng cột = 1)\n• Cột 1 [-∞, 1, 1] → [0.0, 0.5, 0.5] (tổng cột = 1)\n• Cột 2 [-∞, -∞, 0] → [0.0, 0.0, 1.0] (tổng cột = 1)',
+        matrix: {
+          title: 'col = softmax(scores, axis=0) — Tổng CỘT = 1.0',
+          cols: 3,
+          accent: 'coral',
+          data: [['0.212', '0.0', '0.0'], ['0.576', '0.5', '0.0'], ['0.212', '0.5', '1.0']]
+        }
+      },
+      {
+        lines: '18',
+        code: 'good = row @ V',
+        badge: '✅ Kết quả ĐÚNG',
+        theme: 'mint',
+        title: 'Pha trộn nội dung V bằng trọng số ĐÚNG (row)',
+        everyday: 'Hàng 0 của row là [1.0, 0.0, 0.0] nên lấy nguyên 100% hàng 0 của V là [1.0, 10.0]! Đây là dấu hiệu vàng để loại Đáp án B trong 3 giây.',
+        math: '• Hàng 0: 1.0 × [1, 10] = [1.0, 10.0]\n• Hàng 1: 0.731×[1,10] + 0.269×[2,20] = [1.269, 12.689]\n• Hàng 2: 0.422×[1,10] + 0.422×[2,20] + 0.155×[4,40] = [1.888, 18.884]',
+        matrix: {
+          title: 'good = row @ V (3×2)',
+          cols: 2,
+          accent: 'mint',
+          hlCells: ['0,0', '0,1'],
+          data: [['1.0', '10.0'], ['1.269', '12.689'], ['1.888', '18.884']]
+        }
+      },
+      {
+        lines: '19',
+        code: 'wrong = col @ V',
+        badge: '🚨 Kết quả SAI',
+        theme: 'coral',
+        title: 'Pha trộn nội dung V bằng trọng số SAI (col) → Bị méo tỷ lệ!',
+        everyday: 'Vì hàng 0 của col chỉ có tổng là 0.212 (mất gần 80% năng lượng!), nên hàng 0 bị tụt xuống còn [0.212, 2.119], còn hàng 2 bị phình to lên tới [5.212, 52.119]!',
+        math: '• Hàng 0: 0.212 × [1, 10] = [0.212, 2.119]\n• Hàng 1: 0.576×[1,10] + 0.5×[2,20] = [1.576, 15.761]\n• Hàng 2: 0.212×[1,10] + 0.5×[2,20] + 1.0×[4,40] = [5.212, 52.119]',
+        matrix: {
+          title: 'wrong = col @ V (3×2)',
+          cols: 2,
+          accent: 'coral',
+          hlCells: ['0,0', '0,1'],
+          data: [['0.212', '2.119'], ['1.576', '15.761'], ['5.212', '52.119']]
+        }
+      },
+      {
+        lines: '21-25',
+        code: 'print("row:", np.round(row, 3).tolist())\nprint("col:", np.round(col, 3).tolist())\nprint("good:", np.round(good, 3).tolist())\nprint("wrong:", np.round(wrong, 3).tolist())\nprint("col_rows:", np.round(col.sum(axis=1), 3).tolist())',
+        badge: '🎯 In Đáp án C',
+        theme: 'mint',
+        title: 'In 5 dòng kết quả cuối cùng — Khớp 100% Phương án C!',
+        everyday: 'Dòng cuối col.sum(axis=1) cộng ngang từng hàng của bảng col: Hàng 0 = 0.212; Hàng 1 = 0.576 + 0.5 = 1.076; Hàng 2 = 0.212 + 0.5 + 1.0 = 1.712 → Không hề bằng 1!',
+        math: 'col_rows = [0.212, 1.076, 1.712] (Loại ngay A và D) + good[0] = [1.0, 10.0] (Loại B) ⇒ CHỐT C!',
+        matrix: {
+          title: 'col_rows = col.sum(axis=1) (Mảng 3 phần tử)',
+          cols: 3,
+          accent: 'coral',
+          data: [['0.212', '1.076', '1.712']]
+        }
+      }
+    ];
+
+    let activeStepIdx = 0;
+
+    function switchTab(tabNum) {
+      xpState.tabs.add(String(tabNum));
+      updateXP();
+
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        const isTarget = btn.getAttribute('data-tab') === String(tabNum);
+        btn.className = isTarget
+          ? 'tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2 bg-blush-400 text-white border-blush-400 border-b-4 border-b-blush-500 shadow-xs'
+          : 'tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2 bg-white text-cocoa-700 border-cream-200 hover:bg-cream-100';
+      });
+      document.querySelectorAll('.tab-panel').forEach((panel) => {
+        panel.classList.toggle('hidden', panel.id !== `tab-panel-${tabNum}`);
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderCodeList() {
+      const container = document.getElementById('code-lines-container');
+      if (!container) return;
+      container.innerHTML = codeSteps.map((step, idx) => {
+        const isActive = idx === activeStepIdx;
+        const activeClass = isActive
+          ? 'bg-blush-400/25 border-l-4 border-honey-400 text-white'
+          : 'border-l-4 border-transparent text-cream-100/80 hover:bg-cocoa-800';
+        const safeCode = step.code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return `
+          <button type="button" onclick="selectCodeStep(${idx})"
+            class="w-full text-left flex items-start gap-2.5 px-2.5 py-2 rounded-xl transition cursor-pointer ${activeClass}">
+            <span class="w-9 text-right text-honey-300/60 select-none shrink-0 text-[11px] pt-0.5">${step.lines}</span>
+            <pre class="whitespace-pre font-mono leading-relaxed text-xs">${safeCode}</pre>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function renderMatrixBox(m) {
+      if (!m) {
+        return `
+          <div class="p-4 rounded-2xl bg-cream-50 border-2 border-dashed border-cream-200 text-center text-xs text-cocoa-500 italic">
+            Chưa tạo ma trận mới ở dòng này — bấm "Dòng tiếp theo →" để xem các bảng số xuất hiện!
+          </div>
+        `;
+      }
+      const gridCols = m.cols === 2 ? 'grid-cols-2' : 'grid-cols-3';
+      const wrapMap = {
+        honey: 'bg-honey-100/40 border-honey-300',
+        mint: 'bg-mint-50 border-mint-200',
+        coral: 'bg-coral-50 border-coral-200'
+      };
+      const hlMap = {
+        honey: 'bg-honey-400 text-cocoa-900 border-honey-500 font-black',
+        mint: 'bg-mint-500 text-white border-mint-600 font-black',
+        coral: 'bg-coral-400 text-white border-coral-500 font-black'
+      };
+      const cells = m.data.map((row, r) =>
+        row.map((val, c) => {
+          const isHl = m.hlCells && m.hlCells.includes(`${r},${c}`);
+          const cls = isHl ? hlMap[m.accent] : 'bg-white text-cocoa-900 border-cream-200 font-bold';
+          return `<div class="min-w-[4rem] px-3 py-2 rounded-xl border-2 font-mono text-xs sm:text-sm text-center shadow-2xs ${cls}">${val}</div>`;
+        }).join('')
+      ).join('');
+
+      return `
+        <div class="p-4 rounded-2xl border-2 ${wrapMap[m.accent] || 'bg-cream-50 border-cream-200'}">
+          <p class="text-xs font-black text-cocoa-900 mb-3 text-center">📊 ${m.title}</p>
+          <div class="flex justify-center">
+            <div class="inline-grid ${gridCols} gap-2">${cells}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderLineExplanation() {
+      const step = codeSteps[activeStepIdx];
+      document.getElementById('step-counter').textContent = `Bước ${activeStepIdx + 1} / ${codeSteps.length} (Dòng ${step.lines})`;
+      document.getElementById('prev-line-btn').disabled = activeStepIdx === 0;
+      document.getElementById('next-line-btn').disabled = activeStepIdx === codeSteps.length - 1;
+
+      const badgeColor = {
+        coral: 'bg-coral-50 text-coral-500 border-coral-200',
+        honey: 'bg-honey-100 text-cocoa-900 border-honey-300',
+        mint: 'bg-mint-50 text-mint-600 border-mint-200',
+        neutral: 'bg-cream-100 text-cocoa-800 border-cream-200'
+      }[step.theme];
+
+      const mathHtml = step.math.replace(/\n/g, '<br/>');
+
+      document.getElementById('line-explanation-content').innerHTML = `
+        <div>
+          <span class="inline-flex items-center px-3 py-0.5 rounded-full text-xs font-extrabold border ${badgeColor} mb-2">
+            ${step.badge}
+          </span>
+          <h3 class="text-base sm:text-lg font-black text-cocoa-900 leading-snug">${step.title}</h3>
+        </div>
+
+        <p class="text-sm text-cocoa-800 leading-relaxed">${step.everyday}</p>
+
+        <div class="p-3.5 rounded-2xl bg-cream-100 border-2 border-honey-300 text-xs text-cocoa-900 space-y-1">
+          <p class="font-extrabold text-cocoa-800 uppercase tracking-wider text-[11px]">🧮 Phép tính chi tiết:</p>
+          <p class="font-mono leading-relaxed">${mathHtml}</p>
+        </div>
+
+        ${renderMatrixBox(step.matrix)}
+      `;
+    }
+
+    function selectCodeStep(idx) {
+      if (idx < 0 || idx >= codeSteps.length) return;
+      activeStepIdx = idx;
+      renderCodeList();
+      renderLineExplanation();
+    }
+
+    // =========================================================================
+    // 3. TAB 3: 3 INTERACTIVE LAB EXPERIMENTS
+    // =========================================================================
+
+    // --- EXP 1: CAUSAL MASK ON/OFF ---
+    const rawScores = [[1, 0, 1], [2, 1, 1], [1, 1, 0]];
+    const maskedScores = [[1, '-∞', '-∞'], [2, 1, '-∞'], [1, 1, 0]];
+    const futureMask = [[false, true, true], [false, false, true], [false, false, false]];
+    let isMaskOn = true;
+    let selectedExp1Row = 0;
+
+    function setMaskMode(on, isInit = false) {
+      isMaskOn = on;
+      if (!isInit) {
+        xpState.exp1 = true;
+        updateXP();
+      }
+      renderExp1();
+    }
+
+    function selectExp1Row(r) {
+      selectedExp1Row = r;
+      xpState.exp1 = true;
+      updateXP();
+      renderExp1();
+    }
+
+    function renderExp1() {
+      const offBtn = document.getElementById('mask-off-btn');
+      const onBtn = document.getElementById('mask-on-btn');
+      if (isMaskOn) {
+        onBtn.className = 'px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer bg-coral-400 text-white shadow-xs';
+        offBtn.className = 'px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer text-cocoa-700 hover:bg-cream-200';
+      } else {
+        offBtn.className = 'px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer bg-honey-400 text-cocoa-900 shadow-xs';
+        onBtn.className = 'px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer text-cocoa-700 hover:bg-cream-200';
+      }
+
+      const data = isMaskOn ? maskedScores : rawScores;
+      const matrixEl = document.getElementById('exp1-matrix');
+      matrixEl.innerHTML = [0, 1, 2].map((r) => {
+        const isSel = r === selectedExp1Row;
+        const rowWrap = isSel
+          ? 'bg-blush-50 border-blush-400 ring-2 ring-blush-100'
+          : 'bg-cream-50 border-cream-200 hover:bg-cream-100';
+        const cells = [0, 1, 2].map((c) => {
+          const isFuture = futureMask[r][c];
+          let cellCls = 'bg-white border-cream-200 text-cocoa-900';
+          if (isFuture && isMaskOn) cellCls = 'bg-coral-400 border-coral-500 text-white font-black';
+          else if (isFuture && !isMaskOn) cellCls = 'bg-honey-100 border-honey-400 text-cocoa-900 border-dashed';
+          else if (!isFuture && isSel) cellCls = 'bg-mint-50 border-mint-500 text-mint-600 font-black';
+          return `<div class="py-2.5 rounded-xl border-2 font-mono text-sm font-bold text-center transition ${cellCls}">${data[r][c]}</div>`;
+        }).join('');
+
+        return `
+          <button type="button" onclick="selectExp1Row(${r})"
+            class="w-full grid grid-cols-4 gap-2 items-center p-2 rounded-2xl border-2 transition cursor-pointer ${rowWrap}">
+            <span class="text-xs font-black ${isSel ? 'text-blush-500' : 'text-cocoa-700'}">Từ ${r} 👆</span>
+            ${cells}
+          </button>
+        `;
+      }).join('');
+
+      const allowed = [];
+      const blocked = [];
+      for (let c = 0; c < 3; c++) {
+        if (futureMask[selectedExp1Row][c]) blocked.push(`Key ${c}`);
+        else allowed.push(`Key ${c}`);
+      }
+
+      const insp = document.getElementById('exp1-inspector');
+      if (isMaskOn) {
+        insp.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="px-2.5 py-1 rounded-full text-xs font-extrabold bg-coral-400 text-white">🙈 Đã bật Causal Mask</span>
+            <span class="font-mono text-xs font-bold text-cocoa-500">Đang soi: Hàng ${selectedExp1Row} (Từ ${selectedExp1Row})</span>
+          </div>
+          <p class="text-sm font-black text-cocoa-900">Tầm nhìn của Từ ${selectedExp1Row}:</p>
+          <p class="text-xs sm:text-sm text-cocoa-800">✅ <strong>Được phép nhìn:</strong> <span class="font-mono font-bold text-mint-600">${allowed.join(', ')}</span></p>
+          <p class="text-xs sm:text-sm text-cocoa-800">🚫 <strong>Bị che bằng -∞ (0%):</strong> <span class="font-mono font-bold text-coral-500">${blocked.length ? blocked.join(', ') : 'Không có (Từ cuối được nhìn hết quá khứ!)'}</span></p>
+        `;
+      } else {
+        insp.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="px-2.5 py-1 rounded-full text-xs font-extrabold bg-honey-400 text-cocoa-900">👀 Chưa bật Mask (Điểm gốc)</span>
+            <span class="font-mono text-xs font-bold text-cocoa-500">Đang soi: Hàng ${selectedExp1Row}</span>
+          </div>
+          <p class="text-sm font-black text-cocoa-900">Điểm thô <code class="font-mono">Q @ K.T</code> của Từ ${selectedExp1Row}: <code class="font-mono text-blush-500">[${rawScores[selectedExp1Row].join(', ')}]</code></p>
+          <p class="text-xs sm:text-sm text-cocoa-700">Các ô viền nét đứt màu vàng (${blocked.length ? blocked.join(', ') : 'không có ở hàng 2'}) đang bị "lộ đề" tương lai. Hãy gạt sang <strong>Đã che (-np.inf)</strong> để khóa chúng lại!</p>
+        `;
+      }
+    }
+
+    // --- EXP 2: AXIS=1 VS AXIS=0 ---
+    const rowMatrix = [[1.0, 0.0, 0.0], [0.731, 0.269, 0.0], [0.422, 0.422, 0.155]];
+    const colMatrix = [[0.212, 0.0, 0.0], [0.576, 0.5, 0.0], [0.212, 0.5, 1.0]];
+    const colRowSums = ['0.212', '1.076', '1.712'];
+
+    const rowMathDetails = [
+      { title: 'Hàng 0 (axis=1)', input: '[1, -∞, -∞]', shifted: '[0, -∞, -∞]', calc: 'e⁰ / (e⁰ + 0 + 0) = 1 / 1 = 1.0', result: '[1.0, 0.0, 0.0] (Tổng = 1.0 ✅)' },
+      { title: 'Hàng 1 (axis=1)', input: '[2, 1, -∞]', shifted: '[0, -1, -∞]', calc: 'e⁰ / (e⁰ + e⁻¹) = 1 / 1.368 ≈ 0.731 | e⁻¹ / 1.368 ≈ 0.269', result: '[0.731, 0.269, 0.0] (Tổng = 1.0 ✅)' },
+      { title: 'Hàng 2 (axis=1)', input: '[1, 1, 0]', shifted: '[0, 0, -1]', calc: '1 / (1 + 1 + 0.368) ≈ 0.422 | 0.368 / 2.368 ≈ 0.155', result: '[0.422, 0.422, 0.155] (Tổng = 1.0 ✅)' }
+    ];
+
+    const colMathDetails = [
+      { title: 'Cột 0 (axis=0)', input: '[1, 2, 1] dọc', shifted: '[-1, 0, -1] dọc', calc: 'e⁰ / (2·e⁻¹ + 1) = 1 / 1.736 ≈ 0.576 | e⁻¹ / 1.736 ≈ 0.212', result: 'Cột 0 = [0.212, 0.576, 0.212] (Tổng cột = 1.0)' },
+      { title: 'Cột 1 (axis=0)', input: '[-∞, 1, 1] dọc', shifted: '[-∞, 0, 0] dọc', calc: 'Hai số bằng nhau (1 và 1) nên chia đôi đều: e⁰ / (e⁰ + e⁰) = 0.5', result: 'Cột 1 = [0.0, 0.5, 0.5] (Tổng cột = 1.0)' },
+      { title: 'Cột 2 (axis=0)', input: '[-∞, -∞, 0] dọc', shifted: '[-∞, -∞, 0] dọc', calc: 'Chỉ có duy nhất 1 ô sống sót ở cuối nên dồn hết 100% = 1.0!', result: 'Cột 2 = [0.0, 0.0, 1.0] (Tổng cột = 1.0)' }
+    ];
+
+    let currentAxisMode = 1; // 1 = row (good), 0 = col (wrong)
+    let selectedAxisIdx = 1; // row or col index 0..2
+
+    function setAxisMode(axis, isInit = false) {
+      currentAxisMode = axis;
+      if (!isInit) {
+        xpState.exp2 = true;
+        updateXP();
+      }
+      renderExp2();
+    }
+
+    function selectAxisSlice(idx) {
+      selectedAxisIdx = idx;
+      xpState.exp2 = true;
+      updateXP();
+      renderExp2();
+    }
+
+    function renderExp2() {
+      const b1 = document.getElementById('axis-1-btn');
+      const b0 = document.getElementById('axis-0-btn');
+      if (currentAxisMode === 1) {
+        b1.className = 'px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer bg-mint-500 text-white shadow-xs';
+        b0.className = 'px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer text-cocoa-700 hover:bg-cream-200';
+      } else {
+        b0.className = 'px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer bg-coral-400 text-white shadow-xs';
+        b1.className = 'px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer text-cocoa-700 hover:bg-cream-200';
+      }
+
+      const wrap = document.getElementById('exp2-matrix-wrap');
+      const insp = document.getElementById('exp2-inspector');
+
+      if (currentAxisMode === 1) {
+        // Horizontal highlighting (rows)
+        const rowsHtml = [0, 1, 2].map((r) => {
+          const isSel = r === selectedAxisIdx;
+          const rowCls = isSel ? 'bg-mint-50 border-mint-500 ring-2 ring-mint-200' : 'bg-cream-50 border-cream-200 hover:bg-cream-100';
+          return `
+            <button type="button" onclick="selectAxisSlice(${r})"
+              class="w-full grid grid-cols-5 gap-2 items-center p-2 rounded-2xl border-2 transition cursor-pointer ${rowCls}">
+              <span class="text-xs font-black ${isSel ? 'text-mint-600' : 'text-cocoa-700'}">Hàng ${r} 👆</span>
+              ${rowMatrix[r].map((v) => `<div class="py-2 rounded-xl bg-white border border-mint-200 font-mono text-xs sm:text-sm font-bold text-cocoa-900">${v}</div>`).join('')}
+              <div class="py-2 rounded-xl bg-mint-500 text-white font-mono text-xs font-black">Σ = 1.0 ✅</div>
+            </button>
+          `;
+        }).join('');
+
+        wrap.innerHTML = `
+          <div class="grid grid-cols-5 gap-2 text-center text-[11px] font-extrabold text-cocoa-500 mb-2 px-2">
+            <span>Chọn hàng</span><span>Cột 0</span><span>Cột 1</span><span>Cột 2</span><span class="text-mint-600">Tổng hàng</span>
+          </div>
+          <div class="space-y-2">${rowsHtml}</div>
+        `;
+
+        const d = rowMathDetails[selectedAxisIdx];
+        insp.innerHTML = `
+          <span class="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-mint-500 text-white">✅ ĐÚNG • ${d.title}</span>
+          <p class="text-xs text-cream-200">Điểm sau mask: <code class="font-mono text-white font-bold">${d.input}</code> → Trừ max: <code class="font-mono text-honey-300">${d.shifted}</code></p>
+          <div class="p-3 rounded-2xl bg-white/10 border border-white/15 font-mono text-xs leading-relaxed">${d.calc}</div>
+          <p class="font-mono text-xs font-black text-mint-200">⇒ ${d.result}</p>
+        `;
+      } else {
+        // Vertical highlighting (columns) + showing broken row sums!
+        const colButtons = [0, 1, 2].map((c) => {
+          const isSel = c === selectedAxisIdx;
+          const btnCls = isSel ? 'bg-coral-400 text-white border-coral-500' : 'bg-cream-100 text-cocoa-800 border-cream-200 hover:bg-cream-200';
+          return `<button type="button" onclick="selectAxisSlice(${c})" class="py-1.5 rounded-xl border-2 text-xs font-black transition cursor-pointer ${btnCls}">Cột ${c} 👆</button>`;
+        }).join('');
+
+        const gridRows = [0, 1, 2].map((r) => {
+          const cells = [0, 1, 2].map((c) => {
+            const isSel = c === selectedAxisIdx;
+            const cls = isSel ? 'bg-coral-50 border-coral-400 text-coral-500 font-black ring-2 ring-coral-200' : 'bg-white border-cream-200 text-cocoa-800 font-bold';
+            return `<div class="py-2 rounded-xl border-2 font-mono text-xs sm:text-sm text-center transition ${cls}">${colMatrix[r][c]}</div>`;
+          }).join('');
+          return `
+            <div class="grid grid-cols-5 gap-2 items-center">
+              <span class="text-xs font-bold text-cocoa-500 text-center">Hàng ${r}</span>
+              ${cells}
+              <div class="py-2 rounded-xl bg-coral-400 text-white font-mono text-xs font-black text-center">${colRowSums[r]} ❌</div>
+            </div>
+          `;
+        }).join('');
+
+        wrap.innerHTML = `
+          <div class="grid grid-cols-5 gap-2 items-center mb-2">
+            <span class="text-[11px] font-extrabold text-cocoa-500 text-center">Click cột →</span>
+            ${colButtons}
+            <span class="text-[11px] font-black text-coral-500 text-center">col_rows!</span>
+          </div>
+          <div class="space-y-2">${gridRows}</div>
+          <div class="grid grid-cols-5 gap-2 items-center mt-2">
+            <span class="text-[10px] font-extrabold text-cocoa-500 text-center">Tổng cột</span>
+            <div class="py-1 rounded-lg bg-cream-100 text-cocoa-700 font-mono text-[11px] font-bold text-center">Σ = 1.0</div>
+            <div class="py-1 rounded-lg bg-cream-100 text-cocoa-700 font-mono text-[11px] font-bold text-center">Σ = 1.0</div>
+            <div class="py-1 rounded-lg bg-cream-100 text-cocoa-700 font-mono text-[11px] font-bold text-center">Σ = 1.0</div>
+            <div class="text-[10px] font-extrabold text-coral-500 text-center">Không = 1!</div>
+          </div>
+        `;
+
+        const d = colMathDetails[selectedAxisIdx];
+        insp.innerHTML = `
+          <span class="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-coral-400 text-white">🚨 BẪY SAI • ${d.title}</span>
+          <p class="text-xs text-cream-200">Điểm theo cột: <code class="font-mono text-white font-bold">${d.input}</code> → Trừ max: <code class="font-mono text-honey-300">${d.shifted}</code></p>
+          <div class="p-3 rounded-2xl bg-white/10 border border-white/15 font-mono text-xs leading-relaxed">${d.calc}</div>
+          <p class="font-mono text-xs font-black text-coral-200">⇒ ${d.result}</p>
+          <p class="text-[11px] text-honey-300 pt-1 border-t border-white/10">⚠️ Hậu quả: Tổng hàng ngang <code class="font-mono">col_rows</code> bị méo thành <strong>[0.212, 1.076, 1.712]</strong>!</p>
+        `;
+      }
+    }
+
+    // --- EXP 3: GOOD VS WRONG (@ V) ---
+    const vComparisons = [
+      {
+        goodFormula: '1.0 × [1, 10] + 0.0 × [2, 20] + 0.0 × [4, 40]',
+        goodRes: '[1.0, 10.0]',
+        wrongFormula: '0.212 × [1, 10] + 0.0 × [2, 20] + 0.0 × [4, 40]',
+        wrongRes: '[0.212, 2.119]',
+        tip: '⭐ Hàng 0 cực dễ nhẩm: good lấy trọn 100% V[0] = [1.0, 10.0], còn wrong chỉ còn 0.212 × [1, 10] = [0.212, 2.119]! Nhìn ngay hàng này để loại Đáp án B!'
+      },
+      {
+        goodFormula: '0.731 × [1, 10] + 0.269 × [2, 20] + 0.0 × [4, 40]',
+        goodRes: '[1.269, 12.689]',
+        wrongFormula: '0.576 × [1, 10] + 0.5 × [2, 20] + 0.0 × [4, 40]',
+        wrongRes: '[1.576, 15.761]',
+        tip: 'Hàng 1 của good nằm gọn giữa V[0]=[1,10] và V[1]=[2,20] (vì tổng trọng số = 1.0). Còn wrong có tổng trọng số 1.076 nên bị đẩy cao lên.'
+      },
+      {
+        goodFormula: '0.422 × [1, 10] + 0.422 × [2, 20] + 0.155 × [4, 40]',
+        goodRes: '[1.888, 18.884]',
+        wrongFormula: '0.212 × [1, 10] + 0.5 × [2, 20] + 1.0 × [4, 40]',
+        wrongRes: '[5.212, 52.119]',
+        tip: 'Nhìn hàng 2 của wrong: giá trị 5.212 còn lớn hơn cả số lớn nhất trong V (là 4.0) vì tổng trọng số hàng 2 bị phình tới 1.712!'
+      }
+    ];
+
+    let selectedVRow = 0;
+    function selectVRow(r, isInit = false) {
+      selectedVRow = r;
+      if (!isInit) {
+        xpState.exp3 = true;
+        updateXP();
+      }
+      for (let i = 0; i < 3; i++) {
+        const btn = document.getElementById(`vrow-btn-${i}`);
+        if (!btn) continue;
+        btn.className = i === r
+          ? 'vrow-btn px-3 py-1.5 rounded-xl text-xs font-extrabold border-2 transition cursor-pointer bg-mint-500 text-white border-mint-600'
+          : 'vrow-btn px-3 py-1.5 rounded-xl text-xs font-extrabold border-2 transition cursor-pointer bg-cream-50 text-cocoa-800 border-cream-200 hover:bg-cream-100';
+      }
+      const item = vComparisons[r];
+      document.getElementById('exp3-content').innerHTML = `
+        <div class="p-4 rounded-2xl bg-mint-50 border-2 border-mint-200 space-y-2">
+          <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-mint-500 text-white">✅ good = row @ V (Hàng ${r})</span>
+          <p class="font-mono text-xs text-cocoa-800">${item.goodFormula}</p>
+          <p class="font-mono text-base font-black text-mint-600">= ${item.goodRes}</p>
+        </div>
+        <div class="p-4 rounded-2xl bg-coral-50 border-2 border-coral-200 space-y-2">
+          <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-coral-400 text-white">🚨 wrong = col @ V (Hàng ${r})</span>
+          <p class="font-mono text-xs text-cocoa-800">${item.wrongFormula}</p>
+          <p class="font-mono text-base font-black text-coral-500">= ${item.wrongRes}</p>
+        </div>
+        <div class="md:col-span-2 p-3.5 rounded-2xl bg-cream-100 border border-cream-200 text-xs sm:text-sm text-cocoa-800 font-medium">
+          💡 ${item.tip}
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // 4. TAB 4: HINTS TOGGLE & MINI-QUIZ (4 QUESTIONS)
+    // =========================================================================
+    let hintsVisible = true;
+    function toggleExamHints() {
+      hintsVisible = !hintsVisible;
+      document.querySelectorAll('.exam-hint').forEach((el) => {
+        el.classList.toggle('hidden', !hintsVisible);
+      });
+    }
+
+    const quizQuestions = [
+      {
+        id: 0,
+        question: 'Câu 1: Tại sao trong Causal Attention người ta gán -np.inf (âm vô cực) vào các ô tương lai (future) trước khi chạy Softmax?',
+        options: [
+          'A. Để máy tính báo lỗi nếu gặp từ tương lai',
+          'B. Vì e^(-∞) = 0, khiến trọng số chú ý vào các từ tương lai bằng 0.0 (0%) tuyệt đối',
+          'C. Để làm tăng điểm số của các từ ở tương lai',
+          'D. Để biến tổng các cột dọc bằng 1.0'
+        ],
+        correct: 1,
+        explanation: 'Chính xác! Gán -np.inf là mẹo toán học chuẩn của Transformer để sau Softmax xác suất nhìn thấy tương lai biến mất hoàn toàn thành 0.0.'
+      },
+      {
+        id: 1,
+        question: 'Câu 2: Trong bài Câu 05, trục nào của Softmax là ĐÚNG cho Causal Attention?',
+        options: [
+          'A. axis=0 (chia 100% theo từng cột dọc)',
+          'B. axis=1 (chia 100% theo từng hàng ngang — mỗi từ tự phân bổ đủ 1.0 sự chú ý)',
+          'C. Cả axis=0 và axis=1 đều cho kết quả giống nhau',
+          'D. Không cần chọn trục axis'
+        ],
+        correct: 1,
+        explanation: 'Chuẩn không cần chỉnh! Softmax trên ma trận Attention luôn chạy theo hàng ngang (axis=1) để mỗi query phân bổ đúng 100% trọng số.'
+      },
+      {
+        id: 2,
+        question: 'Câu 3: Khi tính col_rows = col.sum(axis=1) (với col = softmax(scores, axis=0)), kết quả là gì và giúp ta loại ngay đáp án nào?',
+        options: [
+          'A. Ra [1.0, 1.0, 1.0] → Loại B và C',
+          'B. Ra [0.0, 0.0, 0.0] → Loại C và D',
+          'C. Ra [0.212, 1.076, 1.712] (không bằng 1) → Loại ngay A và D!',
+          'D. Ra [1.0, 10.0, 20.0] → Loại A và B'
+        ],
+        correct: 2,
+        explanation: 'Tuyệt vời! Vì col đã chuẩn hóa theo cột dọc (axis=0), nên cộng ngang các hàng không thể ra [1.0, 1.0, 1.0] được — loại ngay A và D trong 5 giây!'
+      },
+      {
+        id: 3,
+        question: 'Câu 4: Sau khi loại A và D, nhìn vào dòng đầu tiên của good = row @ V, tại sao ta chọn C và loại B?',
+        options: [
+          'A. Vì hàng 0 của row là [1.0, 0.0, 0.0] nhân với V[0] = [1., 10.] chắc chắn ra [1.0, 10.0], còn B lại bị tráo sang [0.212, 2.119]',
+          'B. Vì đáp án B không có dấu ngoặc vuông',
+          'C. Vì đáp án B ghi sai dòng col_rows',
+          'D. Vì good phải luôn nhỏ hơn wrong'
+        ],
+        correct: 0,
+        explanation: 'Quá đỉnh! Phép nhân nhẩm 1.0 × [1, 10] = [1.0, 10.0] giúp bạn phát hiện ngay B bị tráo ngược good và wrong, chốt hạ đáp án C!'
+      }
+    ];
+
+    let quizAnswers = {};
+    function answerQuiz(qId, optIdx) {
+      quizAnswers[qId] = optIdx;
+      renderQuiz();
+    }
+    function resetQuiz() {
+      quizAnswers = {};
+      xpState.celebrated = false;
+      renderQuiz();
+    }
+    function renderQuiz() {
+      let score = 0;
+      quizQuestions.forEach((q) => {
+        if (quizAnswers[q.id] === q.correct) score++;
+      });
+      xpState.quizCorrectCount = score;
+      updateXP();
+
+      document.getElementById('quiz-score').textContent = String(score);
+      const container = document.getElementById('quiz-container');
+      if (!container) return;
+
+      container.innerHTML = quizQuestions.map((q) => {
+        const chosen = quizAnswers[q.id];
+        const hasAnswered = chosen !== undefined;
+        const isCorrect = chosen === q.correct;
+
+        const opts = q.options.map((text, idx) => {
+          let cls = 'bg-white border-cream-200 border-b-4 text-cocoa-800 hover:bg-cream-100';
+          if (hasAnswered) {
+            if (idx === q.correct) cls = 'bg-mint-50 border-mint-500 border-b-4 border-b-mint-600 text-emerald-950 font-extrabold';
+            else if (idx === chosen) cls = 'bg-coral-50 border-coral-400 border-b-4 border-b-coral-500 text-red-950 font-extrabold';
+            else cls = 'bg-cream-50 border-cream-100 text-cocoa-500/50';
+          }
+          return `
+            <button type="button" onclick="answerQuiz(${q.id}, ${idx})"
+              class="w-full text-left px-4 py-3 rounded-2xl border-2 text-xs sm:text-sm transition cursor-pointer ${cls}">
+              ${text}
+            </button>
+          `;
+        }).join('');
+
+        const fb = hasAnswered
+          ? `<div class="mt-3 p-3.5 rounded-2xl text-xs sm:text-sm border-2 ${isCorrect ? 'bg-mint-50 border-mint-200 text-emerald-950' : 'bg-coral-50 border-coral-200 text-red-950'}">
+              <strong>${isCorrect ? '✅ Chính xác! (+15 XP)' : '❌ Chưa đúng rồi!'}</strong> ${q.explanation}
+            </div>`
+          : '';
+
+        return `
+          <div class="p-4 sm:p-5 rounded-3xl bg-cream-50 border-2 border-cream-200">
+            <p class="text-sm sm:text-base font-black text-cocoa-900 mb-3">${q.question}</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">${opts}</div>
+            ${fb}
+          </div>
+        `;
+      }).join('');
+    }
+
+    // =========================================================================
+    // INITIALIZATION
+    // =========================================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      try {
+        document.querySelectorAll('.tab-btn').forEach((btn) => {
+          btn.addEventListener('click', () => switchTab(btn.getAttribute('data-tab')));
+        });
+        document.getElementById('prev-line-btn').addEventListener('click', () => selectCodeStep(activeStepIdx - 1));
+        document.getElementById('next-line-btn').addEventListener('click', () => selectCodeStep(activeStepIdx + 1));
+
+        switchTab('1');
+        renderVocab();
+        renderCodeList();
+        renderLineExplanation();
+        setMaskMode(true, true);
+        setAxisMode(1, true);
+        selectVRow(0, true);
+        renderQuiz();
+        updateXP();
+      } catch (err) {
+        console.error('Initialization error:', err);
+      }
+    });
+  </script>
+</body>
+</html>

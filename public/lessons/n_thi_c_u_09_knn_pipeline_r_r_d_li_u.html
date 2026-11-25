@@ -1,0 +1,1623 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ôn Thi Câu 09: KNN, Pipeline &amp; Rò Rỉ Dữ Liệu (Bản Non-tech)</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Quicksand, Nunito & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Nunito:wght@500;600;700;800;900&family=Quicksand:wght@600;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Nunito', 'Quicksand', 'sans-serif'],
+            display: ['Quicksand', 'Nunito', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            cream: {
+              50: '#FFF9F2',
+              100: '#FDF1E3',
+              200: '#F2DFC9',
+            },
+            cocoa: {
+              500: '#8D6E63',
+              700: '#6D4C41',
+              800: '#5C4033',
+              900: '#3D281E',
+            },
+            pastelpink: {
+              50: '#FFF5FA',
+              100: '#FCE7F3',
+              300: '#F9A8D4',
+              500: '#EC4899',
+              600: '#DB2777',
+            },
+            butter: {
+              100: '#FEF3C7',
+              200: '#FDE68A',
+              400: '#FBBF24',
+              500: '#F59E0B',
+            },
+            mint: {
+              50: '#ECFDF5',
+              100: '#D1FAE5',
+              300: '#6EE7B7',
+              500: '#10B981',
+              600: '#059669',
+            },
+            coral: {
+              50: '#FEF2F2',
+              100: '#FEE2E2',
+              300: '#FCA5A5',
+              500: '#EF4444',
+              600: '#DC2626',
+            },
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    /* 3D Flashcard Flip */
+    .flip-card {
+      perspective: 1000px;
+    }
+    .flip-card-inner {
+      position: relative;
+      width: 100%;
+      min-height: 178px;
+      transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+      transform-style: preserve-3d;
+    }
+    .flip-card.is-flipped .flip-card-inner {
+      transform: rotateY(180deg);
+    }
+    .flip-card-face {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+    .flip-card-back {
+      transform: rotateY(180deg);
+    }
+
+    /* Smooth SVG Point Transitions */
+    .svg-point {
+      transition: all 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    /* Celebration Floating Particles */
+    @keyframes floatCelebrate {
+      0% {
+        transform: translateY(0) rotate(0deg) scale(0.75);
+        opacity: 0;
+      }
+      15% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-95vh) rotate(360deg) scale(1.25);
+        opacity: 0;
+      }
+    }
+    .celebrate-particle {
+      position: fixed;
+      bottom: -40px;
+      pointer-events: none;
+      z-index: 9999;
+      animation: floatCelebrate 3.4s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="bg-cream-50 text-cocoa-800 font-sans antialiased selection:bg-pastelpink-100 selection:text-cocoa-900 min-h-screen flex flex-col">
+
+  <!-- Particle Celebration Layer (100 XP) -->
+  <div id="celebration-layer" aria-hidden="true"></div>
+
+  <!-- Sticky Gamified Header -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur border-b-2 border-cream-200 shadow-xs">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 sm:py-4 space-y-3">
+      <!-- Top Row: Title + Chibi Mascot + XP Bar -->
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+        <!-- Title & Mascot -->
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-pastelpink-500 text-white flex items-center justify-center font-black text-xl border-b-4 border-pastelpink-600 shadow-xs shrink-0 font-display">
+            09
+          </div>
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <h1 class="text-lg sm:text-xl font-black text-cocoa-900 tracking-tight font-display">
+                KNN, Pipeline &amp; Rò Rỉ Dữ Liệu
+              </h1>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-pastelpink-100 text-pastelpink-600 border border-pastelpink-300">
+                Bản Non-tech ✨
+              </span>
+            </div>
+            <p class="text-xs sm:text-sm text-cocoa-500 font-semibold">
+              Hàng xóm gần nhất • <span class="text-mint-600 font-bold">Pipeline sạch</span> vs <span class="text-coral-500 font-bold">Data Leakage (số 100)</span>
+            </p>
+          </div>
+        </div>
+
+        <!-- XP Progress Bar + Target Answer -->
+        <div class="flex items-center gap-3 bg-butter-100/70 border-2 border-butter-200 rounded-2xl px-3.5 py-2 self-start lg:self-auto w-full lg:w-auto">
+          <div class="text-xl shrink-0">🌟</div>
+          <div class="flex-1 lg:w-48">
+            <div class="flex items-center justify-between text-[11px] font-extrabold mb-1">
+              <span class="text-cocoa-700 uppercase tracking-wide">Tiến độ ôn thi</span>
+              <span class="text-pastelpink-600 font-black"><span id="xp-value">0</span> / 100 XP</span>
+            </div>
+            <div class="w-full h-3 bg-white rounded-full border border-cream-200 overflow-hidden p-0.5">
+              <div
+                id="xp-bar"
+                class="h-full rounded-full bg-gradient-to-r from-butter-500 via-pastelpink-500 to-mint-500 transition-all duration-500"
+                style="width: 0%;"
+              ></div>
+            </div>
+          </div>
+          <div class="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-xl bg-mint-50 border border-mint-300 text-xs font-extrabold text-mint-600 shrink-0">
+            <span>🎯</span>
+            <span>Đáp án C</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4 Main Navigation Tabs -->
+      <nav aria-label="Điều hướng 4 phần học" class="grid grid-cols-2 lg:grid-cols-4 gap-2">
+        <button id="tab-btn-1" data-tab="1" class="tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2">
+          <span>💡</span>
+          <span>1. Bản chất &amp; Từ vựng</span>
+        </button>
+        <button id="tab-btn-2" data-tab="2" class="tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2">
+          <span>🔍</span>
+          <span>2. Từng dòng code</span>
+        </button>
+        <button id="tab-btn-3" data-tab="3" class="tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2">
+          <span>🧪</span>
+          <span>3. Phòng thí nghiệm</span>
+        </button>
+        <button id="tab-btn-4" data-tab="4" class="tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2">
+          <span>⚡</span>
+          <span>4. Mẹo 15s &amp; Quiz</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+
+    <!-- Cute Hand-Drawn Chibi Mascot Encouragement Bar -->
+    <div class="bg-white rounded-3xl border-2 border-cream-200 p-4 sm:p-5 shadow-xs flex items-center gap-4">
+      <!-- Hand-drawn Chibi Bunny-Mochi Mascot SVG -->
+      <div class="w-16 h-16 shrink-0 flex items-center justify-center">
+        <svg viewBox="0 0 100 100" class="w-16 h-16" aria-label="Linh vật Thỏ Bơ cổ vũ học tập">
+          <!-- Bunny Ears -->
+          <ellipse cx="34" cy="24" rx="10" ry="20" transform="rotate(-12 34 24)" fill="#FDE68A" stroke="#5C4033" stroke-width="3.8" />
+          <ellipse cx="34" cy="25" rx="5" ry="12" transform="rotate(-12 34 25)" fill="#F9A8D4" />
+          <ellipse cx="66" cy="24" rx="10" ry="20" transform="rotate(12 66 24)" fill="#FDE68A" stroke="#5C4033" stroke-width="3.8" />
+          <ellipse cx="66" cy="25" rx="5" ry="12" transform="rotate(12 66 25)" fill="#F9A8D4" />
+          <!-- Head -->
+          <ellipse cx="50" cy="60" rx="35" ry="31" fill="#FFF9F2" stroke="#5C4033" stroke-width="3.8" />
+          <!-- Rosy Cheeks -->
+          <ellipse cx="29" cy="65" rx="6.5" ry="4" fill="#F9A8D4" opacity="0.85" />
+          <ellipse cx="71" cy="65" rx="6.5" ry="4" fill="#F9A8D4" opacity="0.85" />
+          <!-- Eyes -->
+          <circle cx="37" cy="56" r="4.2" fill="#5C4033" />
+          <circle cx="35.6" cy="54.5" r="1.5" fill="#FFFFFF" />
+          <circle cx="63" cy="56" r="4.2" fill="#5C4033" />
+          <circle cx="61.6" cy="54.5" r="1.5" fill="#FFFFFF" />
+          <!-- Cute Nose & Smile -->
+          <polygon points="47,61 53,61 50,64.5" fill="#EC4899" />
+          <path d="M 43 66.5 Q 46.5 70 50 66.5 Q 53.5 70 57 66.5" fill="none" stroke="#5C4033" stroke-width="2.8" stroke-linecap="round" />
+          <!-- Sparkle -->
+          <path d="M 86 24 L 88 29 L 93 31 L 88 33 L 86 38 L 84 33 L 79 31 L 84 29 Z" fill="#F59E0B" />
+        </svg>
+      </div>
+      <div class="flex-1 bg-pastelpink-50 border-2 border-pastelpink-100 rounded-2xl px-4 py-3">
+        <p class="text-[11px] font-black uppercase tracking-wider text-pastelpink-600 mb-0.5">🐰 Bé Thỏ Bơ cổ vũ bạn:</p>
+        <p id="mascot-speech" class="text-xs sm:text-sm font-bold text-cocoa-800 leading-relaxed">
+          Chào bạn! Câu 09 cực kỳ thú vị: chỉ vì <strong>"người khổng lồ số 100"</strong> lọt vào thước đo mà cả trục ngang bị bóp dẹp lép, hút cả 3 điểm test về <strong>P3 (3, 9)</strong> luôn đó!
+        </p>
+      </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- TAB 1: BẢN CHẤT & TỪ VỰNG (+20 XP)                                  -->
+    <!-- =================================================================== -->
+    <section id="tab-panel-1" class="tab-panel space-y-8">
+      <!-- Hero Banner -->
+      <div class="bg-gradient-to-r from-pastelpink-500 via-rose-400 to-butter-500 text-white rounded-3xl p-6 sm:p-8 border-b-4 border-pastelpink-600/50 shadow-sm">
+        <div class="inline-flex items-center gap-2 bg-white/25 backdrop-blur px-3 py-1 rounded-full text-xs font-extrabold mb-3">
+          <span>📌 Tóm tắt Câu 09 trong 1 câu dễ hiểu nhất</span>
+        </div>
+        <h2 class="text-xl sm:text-2xl font-black leading-snug mb-3 font-display">
+          <span class="underline decoration-butter-200 decoration-4">Pipeline sạch</span> chỉ đo thước trên tập luyện X (ra <code class="bg-white/25 px-1.5 py-0.5 rounded-lg font-mono">[1, 0, 1]</code>, hàng xóm <code class="bg-white/25 px-1.5 py-0.5 rounded-lg font-mono">[2, 1, 3]</code>); còn <span class="underline decoration-white decoration-4">bad_scaler bị rò rỉ</span> cho số 100 vào làm bẹp trục ngang, hút cả 3 điểm test về <strong>P3</strong> (<code class="bg-white/25 px-1.5 py-0.5 rounded-lg font-mono">[3, 3, 3]</code>)!
+        </h2>
+        <p class="text-white/95 text-sm sm:text-base leading-relaxed">
+          Đọc 4 câu chuyện đời thường và lật ít nhất 4 thẻ Flashcard 3D bên dưới (hoặc bấm nút xác nhận) để nhận ngay <strong>+20 XP</strong> nhé!
+        </p>
+      </div>
+
+      <!-- 4 Everyday Metaphor Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- 1. KNN (n_neighbors=1) -->
+        <article class="bg-white rounded-3xl border-2 border-cream-200 p-6 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-butter-100 text-cocoa-800 border border-butter-200">
+                Ẩn dụ 1 • Hỏi đường
+              </span>
+              <span class="text-2xl">🏘️</span>
+            </div>
+            <h3 class="text-lg font-black text-cocoa-900 mb-2 font-display">
+              KNN (<code class="font-mono text-pastelpink-600">n_neighbors=1</code>) = "Hỏi đúng 1 hàng xóm gần nhất"
+            </h3>
+            <p class="text-sm text-cocoa-700 leading-relaxed mb-4">
+              Khi có một điểm mới (<code class="font-mono font-bold">test</code>), thuật toán đo khoảng cách tới 4 điểm quen biết trong <code class="font-mono font-bold">X</code>:
+            </p>
+            <div class="grid grid-cols-2 gap-2 text-xs font-mono">
+              <div class="p-2.5 rounded-2xl bg-butter-100/70 border border-butter-200">
+                <p class="font-sans font-extrabold text-butter-500 mb-1">Phe nhãn 0:</p>
+                <p>P0 = (0, 0)</p>
+                <p>P1 = (2, 0)</p>
+              </div>
+              <div class="p-2.5 rounded-2xl bg-pastelpink-50 border border-pastelpink-300">
+                <p class="font-sans font-extrabold text-pastelpink-600 mb-1">Phe nhãn 1:</p>
+                <p>P2 = (0, 10)</p>
+                <p>P3 = (3, 9)</p>
+              </div>
+            </div>
+            <p class="text-xs text-cocoa-500 mt-3 font-semibold">
+              Ai đứng gần nhất thì nhận luôn nhãn (0 hoặc 1) của người đó!
+            </p>
+          </div>
+        </article>
+
+        <!-- 2. StandardScaler -->
+        <article class="bg-white rounded-3xl border-2 border-butter-200 p-6 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-butter-100 text-cocoa-800 border border-butter-200">
+                Ẩn dụ 2 • Quy đổi đơn vị
+              </span>
+              <span class="text-2xl">📏</span>
+            </div>
+            <h3 class="text-lg font-black text-cocoa-900 mb-2 font-display">
+              StandardScaler = "Đổi về cùng thước đo công bằng"
+            </h3>
+            <p class="text-sm text-cocoa-700 leading-relaxed mb-4">
+              Nhìn tập <code class="font-mono font-bold">X</code>: cột ngang <code class="font-mono">x</code> chỉ nhỏ từ <strong>0 → 3</strong>, còn cột dọc <code class="font-mono">y</code> lớn gấp mấy lần từ <strong>0 → 10</strong>. Nếu không chuẩn hóa thì trục <code class="font-mono">y</code> sẽ áp đảo hoàn toàn trục <code class="font-mono">x</code>!
+            </p>
+            <div class="p-3.5 rounded-2xl bg-cream-100 border-2 border-butter-200 text-center font-mono text-xs font-bold text-cocoa-900">
+              Giá trị mới = (Giá trị cũ − Trung bình μ) / Độ lệch chuẩn σ
+            </div>
+          </div>
+        </article>
+
+        <!-- 3. Pipeline (Clean) -->
+        <article class="bg-white rounded-3xl border-2 border-mint-300 p-6 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-mint-50 text-mint-600 border border-mint-300">
+                Ẩn dụ 3 • Mô hình Sạch ✅
+              </span>
+              <span class="text-2xl">🙈</span>
+            </div>
+            <h3 class="text-lg font-black text-cocoa-900 mb-2 font-display">
+              Pipeline = "Bịt mắt không cho liếc đề thi!"
+            </h3>
+            <p class="text-sm text-cocoa-700 leading-relaxed mb-3">
+              <code class="font-mono font-bold text-mint-600">make_pipeline</code> cực kỳ trung thực: nó <strong>CHỈ học thước đo (<code class="font-mono">fit</code>) từ tập luyện X</strong>, tuyệt đối không được nhìn thấy tập <code class="font-mono">test</code>!
+            </p>
+            <div class="p-3.5 rounded-2xl bg-mint-50 border border-mint-300 text-xs text-cocoa-800 space-y-1">
+              <p>• Thước đo sạch: <strong class="font-mono text-mint-600">σx ≈ 1.30</strong> | <strong class="font-mono text-mint-600">σy ≈ 4.76</strong></p>
+              <p>• Sau đó mới mang thước đo này đi đo (<code class="font-mono">transform</code>) tập <code class="font-mono">test</code> → Giữ được khoảng cách ngang công bằng: <code class="font-mono font-bold">i1 = [2, 1, 3]</code>, dự đoán <code class="font-mono font-bold">[1, 0, 1]</code>!</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 4. Data Leakage -->
+        <article class="bg-white rounded-3xl border-2 border-coral-500 p-6 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-coral-50 text-coral-600 border border-coral-300">
+                Ẩn dụ 4 • Cái bẫy Rò rỉ 🚨
+              </span>
+              <span class="text-2xl">🦖</span>
+            </div>
+            <h3 class="text-lg font-black text-cocoa-900 mb-2 font-display">
+              Data Leakage = "Người khổng lồ số 100 bóp bẹp trục ngang!"
+            </h3>
+            <p class="text-sm text-cocoa-700 leading-relaxed mb-3">
+              <code class="font-mono font-bold text-coral-600">bad_scaler</code> phạm luật khi gộp cả <code class="font-mono">test</code> (có điểm ngoại lai khổng lồ <strong class="text-coral-600">x = 100</strong>) vào để tính thước đo!
+            </p>
+            <div class="p-3.5 rounded-2xl bg-coral-50 border border-coral-300 text-xs text-cocoa-900 space-y-1">
+              <p>• Hậu quả: <strong class="font-mono text-coral-600">σx phình gần 27 lần</strong> (từ <code class="font-mono">1.30</code> lên <code class="font-mono">34.60</code>)!</p>
+              <p>• Mọi khoảng cách ngang (0, 2, 3) bị chia cho 34.60 → <strong>ép dẹp lép gần như bằng 0</strong>! Lúc này chỉ còn trục dọc <code class="font-mono">y</code> quyết định, nên cả 3 điểm test đều bị hút về <strong>P3 (3, 9)</strong> → <code class="font-mono font-bold">i2 = [3, 3, 3]</code>!</p>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <!-- 8 Interactive 3D Flashcards -->
+      <div class="bg-white rounded-3xl border-2 border-cream-200 p-5 sm:p-6 shadow-xs space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <span class="inline-block px-3 py-0.5 rounded-full text-xs font-extrabold bg-butter-100 text-cocoa-800 mb-1">
+              📖 Từ điển Anh–Việt lật 3D (8 thẻ • Lật ≥ 4 thẻ để nhận +20 XP!)
+            </span>
+            <h3 class="text-base sm:text-lg font-black text-cocoa-900 font-display">
+              Nhấp vào từng thẻ để lật xem phiên âm dễ đọc &amp; nghĩa bình dân!
+            </h3>
+          </div>
+          <div class="flex items-center gap-2 self-start sm:self-auto">
+            <span class="text-xs font-extrabold text-pastelpink-600 bg-pastelpink-50 px-3 py-1.5 rounded-xl border border-pastelpink-200">
+              Đã lật: <span id="vocab-count">0</span> / 8
+            </span>
+            <button onclick="flipAllVocab()" class="px-3.5 py-1.5 rounded-xl bg-butter-100 hover:bg-butter-200 text-cocoa-800 text-xs font-extrabold border-2 border-butter-200 border-b-4 transition cursor-pointer">
+              🔄 Lật tất cả
+            </button>
+          </div>
+        </div>
+
+        <div id="vocab-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+          <!-- JS Populated -->
+        </div>
+
+        <!-- Complete Tab 1 Button -->
+        <div class="pt-3 border-t border-cream-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p id="tab1-xp-status" class="text-xs font-bold text-cocoa-500">
+            ✨ Lật ít nhất 4 thẻ từ vựng hoặc bấm nút bên phải để mở khóa +20 XP!
+          </p>
+          <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+            <button id="btn-complete-tab1" onclick="completeTab1()" class="flex-1 sm:flex-none px-4 py-2.5 rounded-2xl bg-mint-500 hover:bg-mint-600 text-white text-xs sm:text-sm font-extrabold border-b-4 border-mint-600 transition cursor-pointer">
+              ✅ Tôi đã hiểu bản chất (+20 XP)
+            </button>
+            <button onclick="switchTab('2')" class="flex-1 sm:flex-none px-4 py-2.5 rounded-2xl bg-pastelpink-500 hover:bg-pastelpink-600 text-white text-xs sm:text-sm font-extrabold border-b-4 border-pastelpink-600 transition cursor-pointer">
+              Sang Tab 2 →
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 2: TỪNG DÒNG CODE + LIVE STATE (+25 XP)                         -->
+    <!-- =================================================================== -->
+    <section id="tab-panel-2" class="tab-panel hidden space-y-5">
+      <div class="bg-white rounded-3xl border-2 border-cream-200 p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="text-base sm:text-lg font-black text-cocoa-900 font-display">Click từng dòng code để xem Thước đo &amp; Kết quả Live State trực tiếp</h2>
+          <p class="text-xs sm:text-sm text-cocoa-500">Xem đến dòng cuối cùng (Bước 10) hoặc bấm nút hoàn thành để nhận trọn <strong>+25 XP</strong>!</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 shrink-0">
+          <span class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-xl bg-mint-50 text-mint-600 border border-mint-300">
+            ✅ Pipeline Sạch
+          </span>
+          <span class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-xl bg-coral-50 text-coral-600 border border-coral-300">
+            🚨 bad_scaler Rò rỉ
+          </span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <!-- Left: Code Panel -->
+        <div class="lg:col-span-5 bg-cocoa-900 rounded-3xl shadow-md border-2 border-cocoa-700 overflow-hidden">
+          <div class="flex items-center justify-between px-4 py-3 bg-cocoa-800 border-b border-cocoa-700">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-coral-500"></span>
+              <span class="w-3 h-3 rounded-full bg-butter-400"></span>
+              <span class="w-3 h-3 rounded-full bg-mint-500"></span>
+              <span class="ml-2 text-xs font-mono text-cream-100">cau_09_knn_leakage.py</span>
+            </div>
+            <span class="text-[11px] font-semibold text-butter-200">Click từng dòng</span>
+          </div>
+          <div id="code-lines-container" class="p-3 overflow-x-auto font-mono text-xs sm:text-[13px] space-y-1">
+            <!-- JS Populated -->
+          </div>
+        </div>
+
+        <!-- Right: Explanation + Live State Panel -->
+        <div class="lg:col-span-7 lg:sticky lg:top-40">
+          <div class="bg-white rounded-3xl border-2 border-cream-200 shadow-sm overflow-hidden">
+            <!-- Step Navigation Bar -->
+            <div class="flex items-center justify-between px-5 py-3.5 bg-butter-100/60 border-b-2 border-cream-200">
+              <span id="step-counter" class="text-xs font-black text-cocoa-700 uppercase tracking-wider">
+                Bước 1 / 10
+              </span>
+              <div class="flex items-center gap-2">
+                <button id="prev-line-btn" class="px-3.5 py-1.5 rounded-xl bg-white hover:bg-cream-50 text-cocoa-800 border-2 border-cream-200 border-b-4 text-xs font-extrabold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+                  ← Dòng trước
+                </button>
+                <button id="next-line-btn" class="px-3.5 py-1.5 rounded-xl bg-pastelpink-500 hover:bg-pastelpink-600 text-white border-b-4 border-pastelpink-600 text-xs font-extrabold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+                  Dòng tiếp theo →
+                </button>
+              </div>
+            </div>
+
+            <!-- Dynamic Step Content -->
+            <div id="line-explanation-content" class="p-5 sm:p-6 space-y-5">
+              <!-- JS Populated -->
+            </div>
+
+            <!-- Bottom Complete Tab 2 Strip -->
+            <div class="px-5 py-3.5 bg-cream-50 border-t-2 border-cream-200 flex flex-wrap items-center justify-between gap-2">
+              <span id="tab2-xp-status" class="text-xs font-bold text-cocoa-500">Đọc tới Bước 10 hoặc bấm nút hoàn thành để nhận +25 XP</span>
+              <button id="btn-complete-tab2" onclick="completeTab2()" class="px-4 py-2 rounded-xl bg-mint-500 hover:bg-mint-600 text-white text-xs font-extrabold border-b-4 border-mint-600 transition cursor-pointer">
+                ✅ Hoàn thành Tab 2 (+25 XP)
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 3: PHÒNG THÍ NGHIỆM RÒ RỈ DỮ LIỆU (SVG 2D MAP) (+25 XP)         -->
+    <!-- =================================================================== -->
+    <section id="tab-panel-3" class="tab-panel hidden space-y-6">
+      <!-- Top Control Card -->
+      <div class="bg-white rounded-3xl border-2 border-cream-200 p-5 sm:p-6 shadow-xs space-y-4">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div>
+            <span class="inline-block px-3 py-0.5 rounded-full text-xs font-extrabold bg-pastelpink-100 text-pastelpink-600 mb-1">
+              🧪 Phòng thí nghiệm Bản đồ Tọa độ 2D (+25 XP)
+            </span>
+            <h2 class="text-lg sm:text-xl font-black text-cocoa-900 font-display">
+              Tận mắt xem "Số 100" bóp bẹp trục ngang &amp; kéo cả 3 điểm Test về P3!
+            </h2>
+            <p class="text-xs sm:text-sm text-cocoa-500 mt-0.5">
+              Bấm công tắc đổi giữa <strong>Sạch</strong> và <strong>Bị Rò Rỉ</strong>, rồi <strong>click chọn từng điểm Test (T0, T1, T2)</strong> để xem đường nối &amp; khoảng cách số học!
+            </p>
+          </div>
+
+          <!-- Big Mode Switch -->
+          <div class="inline-flex p-1.5 rounded-2xl bg-cream-100 border-2 border-cream-200 self-start lg:self-auto shrink-0">
+            <button id="map-clean-btn" onclick="setMapMode('clean')" class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition cursor-pointer">
+              ✅ Chế độ SẠCH (Pipeline)
+            </button>
+            <button id="map-leak-btn" onclick="setMapMode('leak')" class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition cursor-pointer">
+              🚨 BỊ RÒ RỈ (bad_scaler)
+            </button>
+          </div>
+        </div>
+
+        <!-- Mode Status Narration -->
+        <div id="map-mode-banner" class="p-4 rounded-2xl border-2 text-xs sm:text-sm font-semibold leading-relaxed transition-all">
+          <!-- JS Populated -->
+        </div>
+
+        <!-- Select Test Point Buttons -->
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-xs font-extrabold text-cocoa-700">👆 Chọn điểm Test để đo khoảng cách:</span>
+            <button id="tpt-btn-0" onclick="selectTestPoint(0)" class="tpt-btn px-3.5 py-2 rounded-xl border-2 text-xs font-extrabold transition cursor-pointer">
+              T0 (0, 6)
+            </button>
+            <button id="tpt-btn-1" onclick="selectTestPoint(1)" class="tpt-btn px-3.5 py-2 rounded-xl border-2 text-xs font-extrabold transition cursor-pointer">
+              T1 (2, 5.2) ⭐
+            </button>
+            <button id="tpt-btn-2" onclick="selectTestPoint(2)" class="tpt-btn px-3.5 py-2 rounded-xl border-2 text-xs font-extrabold transition cursor-pointer">
+              T2 (100, 4.8) 🦖
+            </button>
+          </div>
+          <span id="tab3-xp-status" class="text-xs font-extrabold text-cocoa-500 bg-cream-100 px-3 py-1 rounded-xl border border-cream-200">
+            Thử cả 2 chế độ &amp; bấm các điểm Test để nhận +25 XP
+          </span>
+        </div>
+      </div>
+
+      <!-- Main Lab Grid: Left SVG Coordinate Map + Right Distance Table -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <!-- SVG 2D Coordinate Map -->
+        <div class="lg:col-span-7 bg-white rounded-3xl border-2 border-cream-200 p-4 sm:p-5 shadow-xs space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2 text-xs font-bold">
+            <span id="svg-title" class="text-cocoa-900 font-black">📍 Bản đồ sau chuẩn hóa StandardScaler</span>
+            <div class="flex flex-wrap items-center gap-3 text-[11px]">
+              <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-butter-500 inline-block"></span> Train Phe 0 (P0, P1)</span>
+              <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-pastelpink-500 inline-block"></span> Train Phe 1 (P2, P3)</span>
+              <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rotate-45 bg-cocoa-800 inline-block"></span> Điểm Test</span>
+            </div>
+          </div>
+
+          <div class="w-full overflow-hidden rounded-2xl bg-cream-50 border-2 border-cream-200">
+            <svg id="knn-svg" viewBox="0 0 560 390" class="w-full h-auto block" role="img" aria-label="Bản đồ tọa độ chuẩn hóa KNN">
+              <!-- Populated by JS -->
+            </svg>
+          </div>
+
+          <p id="svg-footnote" class="text-[11px] sm:text-xs text-cocoa-500 font-semibold text-center">
+            <!-- JS Populated -->
+          </p>
+        </div>
+
+        <!-- Right: Exact Distance Inspector -->
+        <div class="lg:col-span-5 space-y-4">
+          <div id="distance-card" class="bg-white rounded-3xl border-2 border-cream-200 p-5 shadow-xs space-y-4">
+            <!-- JS Populated -->
+          </div>
+
+          <!-- Mini Explanation Box: Why T0 & T1 flip in Leak Mode -->
+          <div class="bg-cocoa-900 text-cream-50 rounded-3xl p-5 space-y-2 shadow-sm">
+            <p class="text-[11px] font-extrabold uppercase tracking-wider text-butter-200">💡 Tại sao khi bị Rò rỉ, cả T0 và T1 đều chạy về P3 (3, 9)?</p>
+            <p class="text-xs text-cream-100 leading-relaxed">
+              Vì số <strong>100</strong> làm <code class="font-mono text-coral-300 font-bold">σx = 34.60</code> (gấp gần 27 lần!), nên độ chênh ngang giữa <code class="font-mono">x = 0, 2, 3</code> bị co về gần bằng <strong>0</strong>! Lúc này máy chỉ so khoảng cách theo chiều dọc <strong>y</strong>:
+            </p>
+            <ul class="text-xs font-mono space-y-1 text-butter-100 pt-1">
+              <li>• <strong>T0 (y=6):</strong> |6−9| = <strong>3</strong> &lt; |6−10| = 4 ⇒ Bỏ P2, chạy sang <strong>P3</strong>!</li>
+              <li>• <strong>T1 (y=5.2):</strong> |5.2−9| = <strong>3.8</strong> &lt; |5.2−0| = 5.2 ⇒ Bỏ P1, chạy sang <strong>P3</strong>!</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 4: MẸO 15 GIÂY & MINI-QUIZ (+30 XP)                             -->
+    <!-- =================================================================== -->
+    <section id="tab-panel-4" class="tab-panel hidden space-y-8">
+      <!-- 15-Second Strategy -->
+      <div class="bg-white rounded-3xl border-2 border-cream-200 p-5 sm:p-6 shadow-xs">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+          <div>
+            <span class="inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-xs font-extrabold bg-pastelpink-100 text-pastelpink-600 mb-1">
+              ⚡ Chiến thuật khoanh 15 giây (Không cần bấm máy tính!)
+            </span>
+            <h2 class="text-lg sm:text-xl font-black text-cocoa-900 font-display">
+              Loại sạch D → B → A trong 3 bước tư duy logic, chốt chắc Đáp án C!
+            </h2>
+          </div>
+          <button onclick="toggleExamHints()" class="px-4 py-2 rounded-2xl bg-butter-100 hover:bg-butter-200 text-cocoa-800 text-xs font-extrabold border-2 border-butter-200 border-b-4 transition cursor-pointer self-start sm:self-auto">
+            👁️ Ẩn/Hiện đánh dấu sai
+          </button>
+        </div>
+
+        <!-- 3-Step Elimination Checklist -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+          <div class="p-4 rounded-2xl bg-coral-50 border-2 border-coral-300">
+            <p class="text-xs font-black text-coral-600">Bước 1 (4s): Loại ngay D</p>
+            <p class="text-xs text-cocoa-800 mt-1">Đề cố tình đặt tên <code class="font-mono font-bold">bad_scaler</code> và nhét số <code class="font-mono font-bold">100</code> vào test → Sạch và Rò rỉ chắc chắn phải ra <strong>KHÁC nhau</strong> → <strong>Loại D</strong> (2 bên y hệt nhau)!</p>
+          </div>
+          <div class="p-4 rounded-2xl bg-butter-100/80 border-2 border-butter-200">
+            <p class="text-xs font-black text-cocoa-900">Bước 2 (5s): Loại ngay B</p>
+            <p class="text-xs text-cocoa-800 mt-1">Điểm <code class="font-mono">T1 (2, 5.2)</code> đứng ngay trên đầu <code class="font-mono">P1 (2, 0)</code> (cùng x=2) → Mô hình sạch giữ đúng nhãn <code class="font-mono font-bold">0</code> ở giữa (<code class="font-mono">[1, 0, 1]</code>) → <strong>Loại B</strong> (bị đảo ngược)!</p>
+          </div>
+          <div class="p-4 rounded-2xl bg-mint-50 border-2 border-mint-300">
+            <p class="text-xs font-black text-mint-600">Bước 3 (6s): Loại A → CHỐT C!</p>
+            <p class="text-xs text-cocoa-800 mt-1">Khi bị rò rỉ, trục x bị bẹp, chỉ so trục y: <code class="font-mono">T0 (y=6)</code> gần <code class="font-mono">P3 (y=9)</code> hơn <code class="font-mono">P2 (y=10)</code> (3 &lt; 4) → <code class="font-mono font-bold">i2 = [3, 3, 3]</code> → <strong>Loại A! Chọn C!</strong></p>
+          </div>
+        </div>
+
+        <!-- 4 Options Comparison Cards -->
+        <div class="space-y-3.5">
+          <!-- Option A -->
+          <div class="rounded-2xl border-2 border-cream-200 bg-cream-50 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-cream-200 text-cocoa-900 font-black text-sm flex items-center justify-center">A</span>
+                <span class="text-sm font-extrabold text-cocoa-900">Phương án A</span>
+              </div>
+              <span class="exam-hint px-3 py-1 rounded-full text-xs font-extrabold bg-coral-50 text-coral-600 border border-coral-300">
+                ❌ LOẠI (Nhầm T0 vẫn theo P2 — quên rằng 6 gần 9 hơn 10!)
+              </span>
+            </div>
+            <pre class="bg-white rounded-xl p-3 border border-cream-200 text-[11px] sm:text-xs font-mono text-cocoa-800 overflow-x-auto">[1, 0, 1] [1, 1, 1] [2, 1, 3] <span class="bg-coral-100 text-coral-600 font-bold px-1 rounded">[2, 3, 3]</span></pre>
+          </div>
+
+          <!-- Option B -->
+          <div class="rounded-2xl border-2 border-cream-200 bg-cream-50 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-cream-200 text-cocoa-900 font-black text-sm flex items-center justify-center">B</span>
+                <span class="text-sm font-extrabold text-cocoa-900">Phương án B</span>
+              </div>
+              <span class="exam-hint px-3 py-1 rounded-full text-xs font-extrabold bg-coral-50 text-coral-600 border border-coral-300">
+                ❌ LOẠI (Đảo ngược hoàn toàn kết quả Sạch với Bị Rò Rỉ!)
+              </span>
+            </div>
+            <pre class="bg-white rounded-xl p-3 border border-cream-200 text-[11px] sm:text-xs font-mono text-cocoa-800 overflow-x-auto"><span class="bg-coral-100 text-coral-600 font-bold px-1 rounded">[1, 1, 1] [1, 0, 1] [3, 3, 3] [2, 1, 3]</span></pre>
+          </div>
+
+          <!-- Option C (CORRECT) -->
+          <div class="rounded-2xl border-2 border-mint-500 bg-mint-50 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-mint-500 text-white font-black text-sm flex items-center justify-center border-b-2 border-mint-600">C</span>
+                <span class="text-sm font-black text-mint-600">Phương án C</span>
+              </div>
+              <span class="exam-hint px-3 py-1 rounded-full text-xs font-extrabold bg-mint-500 text-white">
+                ✅ ĐÁP ÁN ĐÚNG 100%
+              </span>
+            </div>
+            <pre class="bg-white rounded-xl p-3 border-2 border-mint-300 text-[11px] sm:text-xs font-mono text-cocoa-900 overflow-x-auto"><span class="bg-mint-100 text-mint-600 font-bold px-1 rounded">[1, 0, 1]</span> <span class="bg-mint-100 text-mint-600 font-bold px-1 rounded">[1, 1, 1]</span> <span class="bg-mint-100 text-mint-600 font-bold px-1 rounded">[2, 1, 3]</span> <span class="bg-mint-100 text-mint-600 font-bold px-1 rounded">[3, 3, 3]</span></pre>
+            <p class="exam-hint text-xs text-mint-600 mt-2 font-semibold">
+              🎯 <strong>Chuẩn cả 4 danh sách:</strong> Sạch đoán <code class="font-mono">[1, 0, 1]</code> (hàng xóm <code class="font-mono">[2, 1, 3]</code>); Rò rỉ đoán <code class="font-mono">[1, 1, 1]</code> (cả 3 bị hút về P3: <code class="font-mono">[3, 3, 3]</code>)!
+            </p>
+          </div>
+
+          <!-- Option D -->
+          <div class="rounded-2xl border-2 border-cream-200 bg-cream-50 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-cream-200 text-cocoa-900 font-black text-sm flex items-center justify-center">D</span>
+                <span class="text-sm font-extrabold text-cocoa-900">Phương án D</span>
+              </div>
+              <span class="exam-hint px-3 py-1 rounded-full text-xs font-extrabold bg-coral-50 text-coral-600 border border-coral-300">
+                ❌ LOẠI (Tưởng rò rỉ dữ liệu không làm thay đổi kết quả!)
+              </span>
+            </div>
+            <pre class="bg-white rounded-xl p-3 border border-cream-200 text-[11px] sm:text-xs font-mono text-cocoa-800 overflow-x-auto">[1, 0, 1] <span class="bg-coral-100 text-coral-600 font-bold px-1 rounded">[1, 0, 1]</span> [2, 1, 3] <span class="bg-coral-100 text-coral-600 font-bold px-1 rounded">[2, 1, 3]</span></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mini-Quiz (4 Questions, +30 XP) -->
+      <div class="bg-white rounded-3xl border-2 border-cream-200 p-5 sm:p-6 shadow-xs">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-5 border-b-2 border-cream-100">
+          <div>
+            <span class="inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-xs font-extrabold bg-mint-50 text-mint-600 mb-1">
+              🎯 Mini-Quiz 4 câu (+30 XP khi đúng cả 4!)
+            </span>
+            <h3 class="text-lg font-black text-cocoa-900 font-display">
+              Trả lời đúng cả 4 câu &amp; hoàn thành các tab để chạm mốc 100 XP nhận pháo hoa!
+            </h3>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="px-4 py-1.5 rounded-2xl bg-pastelpink-50 border-2 border-pastelpink-300 text-sm font-black text-pastelpink-600">
+              Điểm: <span id="quiz-score">0</span> / 4
+            </div>
+            <button onclick="resetQuiz()" class="px-3.5 py-1.5 rounded-2xl bg-butter-100 hover:bg-butter-200 text-cocoa-800 text-xs font-extrabold border-2 border-butter-200 border-b-4 transition cursor-pointer">
+              🔄 Làm lại
+            </button>
+          </div>
+        </div>
+
+        <div id="quiz-container" class="space-y-5">
+          <!-- JS Populated -->
+        </div>
+
+        <!-- 100 XP Celebration Banner -->
+        <div id="xp-win-banner" class="hidden mt-6 p-6 rounded-3xl bg-gradient-to-r from-butter-400 via-pastelpink-500 to-mint-500 text-white text-center shadow-md border-b-4 border-cocoa-800/20">
+          <p class="text-3xl mb-2">🌸⭐🦋🏆🦋⭐🌸</p>
+          <p class="text-lg sm:text-xl font-black font-display">CHÚC MỪNG! BẠN ĐÃ ĐẠT 100 / 100 XP!</p>
+          <p class="text-xs sm:text-sm text-white/95 mt-1 font-semibold">
+            Bé Thỏ Bơ tự hào về bạn! Bí kíp Câu 09: <strong>Pipeline sạch → [1, 0, 1] &amp; [2, 1, 3] • Rò rỉ số 100 bẹp trục x → hút hết về P3 ([3, 3, 3]) → Chốt C!</strong>
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t-2 border-cream-200 py-4 mt-8">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 text-center text-xs text-cocoa-500 font-semibold">
+      Ôn thi Câu 09: KNN, Pipeline &amp; Rò Rỉ Dữ Liệu • Phong cách Duolingo Pastel dành cho Non-tech
+    </div>
+  </footer>
+
+  <!-- Complete Application JavaScript -->
+  <script>
+    // =========================================================================
+    // 0. GAMIFIED XP ENGINE (0 -> 100 XP) + MASCOT SPEECH + CELEBRATION
+    // =========================================================================
+    // Budget:
+    // - Tab 1: +20 XP (flip >= 4 flashcards OR click "Tôi đã hiểu bản chất")
+    // - Tab 2: +25 XP (reach final code step OR click "Hoàn thành Tab 2")
+    // - Tab 3: +25 XP (visit both Clean & Leak modes AND click at least 2 test points)
+    // - Tab 4: +30 XP (4 quiz questions -> [0, 8, 15, 23, 30])
+    // Total = 100 XP
+    const xpState = {
+      tab1Done: false,
+      tab2Done: false,
+      tab3Done: false,
+      seenModes: new Set(['clean']),
+      clickedPoints: new Set([1]),
+      quizCorrectCount: 0,
+      celebrated: false,
+    };
+
+    const quizXpTable = [0, 8, 15, 23, 30];
+
+    const mascotQuotes = {
+      '1': 'Chào bạn! Câu 09 cực kỳ thú vị: chỉ vì <strong>"người khổng lồ số 100"</strong> lọt vào thước đo mà cả trục ngang bị bóp dẹp lép, hút cả 3 điểm test về <strong>P3 (3, 9)</strong> luôn đó!',
+      '2': 'Ở Tab 2 này, bạn bấm từng dòng để so sánh trực tiếp thước đo của <strong>scaler sạch (σx=1.30)</strong> với <strong>bad_scaler rò rỉ (σx=34.60)</strong> nhé!',
+      '3': 'Thí nghiệm hay nhất đây rồi! Hãy gạt công tắc sang <strong>BỊ RÒ RỈ</strong> để tận mắt thấy 4 điểm train bị ép dẹp thành một đường thẳng đứng nha!',
+      '4': 'Chặng cuối rồi! Dùng mẹo 3 bước loại D → B → A và trả lời đúng 4 câu Mini-Quiz để chạm mốc <strong>100 XP</strong> nhận pháo hoa chúc mừng từ Thỏ Bơ!'
+    };
+
+    function launchCelebration() {
+      const layer = document.getElementById('celebration-layer');
+      if (!layer) return;
+      const icons = ['🌸', '⭐', '🦋', '✨', '🌼', '🎉', '💖'];
+      for (let i = 0; i < 42; i++) {
+        const span = document.createElement('span');
+        span.className = 'celebrate-particle';
+        span.textContent = icons[i % icons.length];
+        span.style.left = `${Math.random() * 96 + 2}vw`;
+        span.style.fontSize = `${Math.random() * 16 + 18}px`;
+        span.style.animationDelay = `${Math.random() * 1.3}s`;
+        span.style.animationDuration = `${Math.random() * 1.6 + 2.4}s`;
+        layer.appendChild(span);
+        setTimeout(() => span.remove(), 4800);
+      }
+    }
+
+    function updateXP() {
+      try {
+        const xp1 = xpState.tab1Done ? 20 : 0;
+        const xp2 = xpState.tab2Done ? 25 : 0;
+        const xp3 = xpState.tab3Done ? 25 : 0;
+        const xp4 = quizXpTable[xpState.quizCorrectCount] || 0;
+        const total = Math.min(100, xp1 + xp2 + xp3 + xp4);
+
+        const valEl = document.getElementById('xp-value');
+        const barEl = document.getElementById('xp-bar');
+        const winBanner = document.getElementById('xp-win-banner');
+
+        if (valEl) valEl.textContent = String(total);
+        if (barEl) barEl.style.width = `${total}%`;
+        if (winBanner) winBanner.classList.toggle('hidden', total < 100);
+
+        // Update Tab completion badges
+        if (xpState.tab1Done) {
+          const s1 = document.getElementById('tab1-xp-status');
+          const b1 = document.getElementById('btn-complete-tab1');
+          if (s1) s1.innerHTML = '🎉 <strong class="text-mint-600">Đã nhận trọn +20 XP ở Tab 1!</strong>';
+          if (b1) b1.textContent = '✅ Đã hoàn thành (+20 XP)';
+        }
+        if (xpState.tab2Done) {
+          const s2 = document.getElementById('tab2-xp-status');
+          const b2 = document.getElementById('btn-complete-tab2');
+          if (s2) s2.innerHTML = '🎉 <strong class="text-mint-600">Đã nhận trọn +25 XP ở Tab 2!</strong>';
+          if (b2) b2.textContent = '✅ Đã hoàn thành (+25 XP)';
+        }
+        if (xpState.tab3Done) {
+          const s3 = document.getElementById('tab3-xp-status');
+          if (s3) {
+            s3.className = 'text-xs font-extrabold text-mint-600 bg-mint-50 px-3 py-1 rounded-xl border border-mint-300';
+            s3.textContent = '🎉 Đã hoàn thành thí nghiệm (+25 XP)!';
+          }
+        }
+
+        if (total === 100 && !xpState.celebrated) {
+          xpState.celebrated = true;
+          launchCelebration();
+          const speech = document.getElementById('mascot-speech');
+          if (speech) {
+            speech.innerHTML = '🎉 <strong>TUYỆT VỜI! BẠN ĐÃ ĐẠT 100 / 100 XP!</strong> Vào phòng thi gặp Câu 09 cứ tự tin khoanh ngay <strong>Đáp án C</strong> nhé!';
+          }
+        }
+      } catch (err) {
+        console.error('XP update error:', err);
+      }
+    }
+
+    function completeTab1() {
+      xpState.tab1Done = true;
+      updateXP();
+    }
+
+    function completeTab2() {
+      xpState.tab2Done = true;
+      updateXP();
+    }
+
+    function checkTab3Completion() {
+      if (xpState.seenModes.has('clean') && xpState.seenModes.has('leak') && xpState.clickedPoints.size >= 2) {
+        xpState.tab3Done = true;
+        updateXP();
+      }
+    }
+
+    // =========================================================================
+    // 1. TAB 1: 8 INTERACTIVE 3D FLASHCARDS
+    // =========================================================================
+    const vocabList = [
+      {
+        term: 'StandardScaler',
+        phonetic: '/xtan-đớt xkê-lơ/',
+        short: 'Máy đổi về cùng thước đo chuẩn',
+        meaning: 'Trừ trung bình (μ) rồi chia cho độ lệch chuẩn (σ) của từng cột để các đặc trưng lớn nhỏ khác nhau trở nên công bằng.',
+        tip: 'Gặp số ngoại lai 100 là σ bị phình to ngay!'
+      },
+      {
+        term: 'KNeighborsClassifier',
+        phonetic: '/kây nây-bơ clát-xi-phai-ơ/',
+        short: 'Bộ phân loại hỏi hàng xóm gần nhất',
+        meaning: 'Thuật toán KNN: với n_neighbors=1, gặp điểm mới chỉ việc tìm đúng 1 điểm train gần nhất và lấy luôn nhãn của nó.',
+        tip: 'Khoảng cách thay đổi → hàng xóm gần nhất cũng đổi theo!'
+      },
+      {
+        term: 'make_pipeline',
+        phonetic: '/mếch pai-lai/',
+        short: 'Dây chuyền đóng gói chống rò rỉ',
+        meaning: 'Gắn nối tiếp StandardScaler và KNN thành 1 dây chuyền khép kín: khi fit(X, y), scaler CHỈ được phép học từ tập luyện X.',
+        tip: 'Dùng Pipeline = chuẩn sạch, không liếc đề thi test!'
+      },
+      {
+        term: 'fit vs transform',
+        phonetic: '/phít vs tran-pho-m/',
+        short: 'Học thước đo vs Lấy thước đi đo',
+        meaning: 'fit() là tính ra trung bình μ và độ lệch chuẩn σ; transform() là áp dụng công thức (x − μ)/σ để quy đổi dữ liệu.',
+        tip: 'Quy tắc vàng: Chỉ fit() trên X (train), không bao giờ fit() trên test!'
+      },
+      {
+        term: 'named_steps',
+        phonetic: '/nêm-đờ xtép-x/',
+        short: 'Ngăn kéo lấy từng bước trong Pipeline',
+        meaning: 'Cho phép lôi riêng từng bộ phận bên trong Pipeline ra dùng (ví dụ model.named_steps["standardscaler"] để lấy thước đo sạch).',
+        tip: 'Tên ngăn kéo tự động viết thường theo tên lớp.'
+      },
+      {
+        term: 'np.vstack',
+        phonetic: '/vi-xtắc (vertical stack)/',
+        short: 'Xếp chồng dọc 2 bảng lên nhau',
+        meaning: 'Ghép 4 dòng của X chồng lên 3 dòng của test thành 1 bảng 7 dòng. Chính dòng này gây ra rò rỉ dữ liệu ở bad_scaler!',
+        tip: 'v = vertical (dọc) → ghép thêm hàng xuống dưới.'
+      },
+      {
+        term: 'kneighbors()',
+        phonetic: '/kây nây-bơ-z/',
+        short: 'Tìm khoảng cách & chỉ số hàng xóm',
+        meaning: 'Trả về 2 bảng: d (khoảng cách tới hàng xóm gần nhất) và i (chỉ số 0, 1, 2 hoặc 3 của hàng xóm đó trong X).',
+        tip: 'i1 là hàng xóm sạch [2, 1, 3]; i2 là hàng xóm rò rỉ [3, 3, 3].'
+      },
+      {
+        term: 'ravel()',
+        phonetic: '/ra-vồ/',
+        short: 'Duỗi phẳng thành danh sách 1 chiều',
+        meaning: 'Biến mảng cột [[2], [1], [3]] (shape 3×1) thành hàng ngang gọn gàng [2, 1, 3] để in ra màn hình cho đẹp.',
+        tip: 'Chỉ làm phẳng để in, không đổi giá trị bên trong.'
+      }
+    ];
+
+    const flippedVocab = new Set();
+
+    function toggleVocab(idx) {
+      if (flippedVocab.has(idx)) flippedVocab.delete(idx);
+      else flippedVocab.add(idx);
+      if (flippedVocab.size >= 4) {
+        xpState.tab1Done = true;
+        updateXP();
+      }
+      renderVocab();
+    }
+
+    function flipAllVocab() {
+      if (flippedVocab.size === vocabList.length) {
+        flippedVocab.clear();
+      } else {
+        vocabList.forEach((_, i) => flippedVocab.add(i));
+        xpState.tab1Done = true;
+        updateXP();
+      }
+      renderVocab();
+    }
+
+    function renderVocab() {
+      const countEl = document.getElementById('vocab-count');
+      if (countEl) countEl.textContent = String(flippedVocab.size);
+      const grid = document.getElementById('vocab-grid');
+      if (!grid) return;
+
+      grid.innerHTML = vocabList.map((item, idx) => {
+        const isFlipped = flippedVocab.has(idx);
+        return `
+          <div class="flip-card ${isFlipped ? 'is-flipped' : ''}">
+            <button type="button" onclick="toggleVocab(${idx})" class="flip-card-inner w-full text-left cursor-pointer">
+              <!-- Front -->
+              <div class="flip-card-face p-4 rounded-2xl border-2 border-cream-200 bg-cream-50 hover:bg-butter-100/40 border-b-4 border-b-cream-200 flex flex-col justify-between">
+                <div>
+                  <span class="inline-block px-2 py-0.5 rounded-lg text-[10px] font-extrabold bg-pastelpink-100 text-pastelpink-600 mb-2">Thẻ #${idx + 1}</span>
+                  <p class="font-mono text-xs sm:text-sm font-black text-cocoa-900 break-words">${item.term}</p>
+                  <p class="text-[11px] italic text-cocoa-500 mt-0.5">${item.phonetic}</p>
+                  <p class="text-xs text-cocoa-700 mt-2 font-bold">${item.short}</p>
+                </div>
+                <span class="text-[11px] font-extrabold text-pastelpink-600">👆 Chạm để lật 3D →</span>
+              </div>
+              <!-- Back -->
+              <div class="flip-card-face flip-card-back p-4 rounded-2xl border-2 border-butter-400 bg-butter-100 border-b-4 border-b-butter-500 flex flex-col justify-between">
+                <div class="space-y-1.5">
+                  <p class="font-mono text-xs font-black text-pastelpink-600">${item.term}</p>
+                  <p class="text-xs text-cocoa-900 leading-relaxed font-semibold">${item.meaning}</p>
+                  <p class="text-[11px] bg-white/85 px-2 py-1 rounded-lg border border-butter-200 text-mint-600 font-extrabold">💡 ${item.tip}</p>
+                </div>
+                <span class="text-[10px] font-bold text-cocoa-500">👆 Chạm để úp lại</span>
+              </div>
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // =========================================================================
+    // 2. TAB 2: LINE-BY-LINE CODE EXPLANATION + LIVE STATE
+    // =========================================================================
+    const codeSteps = [
+      {
+        lines: '1-4',
+        code: 'import numpy as np\nfrom sklearn.preprocessing import StandardScaler\nfrom sklearn.neighbors import KNeighborsClassifier\nfrom sklearn.pipeline import make_pipeline',
+        badge: 'Khởi động',
+        theme: 'neutral',
+        title: 'Nhập 4 bộ công cụ: NumPy, StandardScaler, KNN và Pipeline',
+        everyday: 'Lấy sẵn máy chuẩn hóa thước đo (StandardScaler), thuật toán hỏi hàng xóm (KNN) và dây chuyền đóng gói chống rò rỉ (make_pipeline).',
+        state: {
+          showData: false,
+          cleanScaler: 'Chưa học (fit)',
+          badScaler: 'Chưa học (fit)',
+          cleanOut: '—',
+          badOut: '—',
+          hl: []
+        }
+      },
+      {
+        lines: '6-8',
+        code: 'X = np.array([[0., 0.], [2., 0.], [0., 10.], [3., 9.]])\ny = np.array([0, 0, 1, 1])\ntest = np.array([[0., 6.], [2., 5.2], [100., 4.8]])',
+        badge: '📊 Dữ liệu gốc & Số 100',
+        theme: 'butter',
+        title: 'Tạo 4 điểm train X (nhãn y) và 3 điểm test (chứa số khổng lồ 100!)',
+        everyday: 'Tập X có P0(0,0), P1(2,0) thuộc phe 0; P2(0,10), P3(3,9) thuộc phe 1. Tập test có 3 điểm T0(0,6), T1(2,5.2), và đặc biệt T2(100, 4.8) — chính số 100 này sẽ gây thảm họa nếu bị rò rỉ!',
+        state: {
+          showData: true,
+          cleanScaler: 'Chưa fit',
+          badScaler: 'Chưa fit',
+          cleanOut: '—',
+          badOut: '—',
+          hl: ['data']
+        }
+      },
+      {
+        lines: '10-11',
+        code: 'model = make_pipeline(StandardScaler(), KNeighborsClassifier(n_neighbors=1))\nmodel.fit(X, y)',
+        badge: '✅ Huấn luyện Pipeline Sạch',
+        theme: 'mint',
+        title: 'Pipeline CHỈ học thước đo trên X (μx=1.25, σx=1.30 | μy=4.75, σy=4.76)',
+        everyday: 'Dây chuyền make_pipeline tự động fit StandardScaler CHỈ trên 4 điểm X, rồi dùng dữ liệu đã chuẩn hóa đó để huấn luyện KNN (1 hàng xóm). Tuyệt đối không đụng vào tập test!',
+        state: {
+          showData: true,
+          cleanScaler: 'μx = 1.25, σx = 1.30  |  μy = 4.75, σy = 4.76 ✅',
+          badScaler: 'Chưa fit',
+          cleanOut: 'Đã sẵn sàng dự đoán sạch',
+          badOut: '—',
+          hl: ['cleanScaler']
+        }
+      },
+      {
+        lines: '13-14',
+        code: 'scaler = model.named_steps["standardscaler"]\nknn = model.named_steps["kneighborsclassifier"]',
+        badge: 'Mở ngăn kéo Pipeline',
+        theme: 'mint',
+        title: 'Lấy riêng bộ scaler sạch và bộ knn sạch từ bên trong Pipeline',
+        everyday: 'Chỉ là lấy 2 bộ phận đã học xong ra biến riêng để lát nữa gọi hàm kneighbors() lấy chỉ số hàng xóm i1.',
+        state: {
+          showData: true,
+          cleanScaler: 'μx = 1.25, σx = 1.30  |  μy = 4.75, σy = 4.76 ✅',
+          badScaler: 'Chưa fit',
+          cleanOut: 'Đang lấy ra scaler & knn sạch',
+          badOut: '—',
+          hl: []
+        }
+      },
+      {
+        lines: '16-17',
+        code: 'clean = scaler.transform(test)\nd1, i1 = knn.kneighbors(clean)',
+        badge: '✅ Tìm hàng xóm Sạch (i1)',
+        theme: 'mint',
+        title: 'Đo tập test bằng thước sạch → Hàng xóm i1 = [2, 1, 3], dự đoán [1, 0, 1]!',
+        everyday: 'Vì σx = 1.30 giữ khoảng cách ngang công bằng: T0(0,6) gần P2(0,10) nhất [nhãn 1]; T1(2,5.2) đứng thẳng trên P1(2,0) nên gần P1 nhất [nhãn 0]; T2(100,4.8) gần P3(3,9) nhất [nhãn 1].',
+        state: {
+          showData: true,
+          cleanScaler: 'μx = 1.25, σx = 1.30  |  μy = 4.75, σy = 4.76 ✅',
+          badScaler: 'Chưa fit',
+          cleanOut: 'i1 = [2, 1, 3]  ⇒  predict = [1, 0, 1] ✅',
+          badOut: '—',
+          hl: ['cleanOut']
+        }
+      },
+      {
+        lines: '19',
+        code: 'bad_scaler = StandardScaler().fit(np.vstack([X, test]))',
+        badge: '🚨 BẪY RÒ RỈ DỮ LIỆU!',
+        theme: 'coral',
+        title: 'Gộp cả X lẫn test (có số 100!) vào fit → σx phình gần 27 lần lên 34.60!',
+        everyday: 'ĐÂY LÀ LỖI RÒ RỈ DỮ LIỆU (Data Leakage)! Khi ghép 4 dòng X + 3 dòng test = 7 dòng, con số ngoại lai 100 kéo trung bình μx nhảy vọt lên 15.29 và độ lệch chuẩn σx phình khổng lồ thành 34.60!',
+        state: {
+          showData: true,
+          cleanScaler: 'μx = 1.25, σx = 1.30  |  μy = 4.75, σy = 4.76 ✅',
+          badScaler: 'μx = 15.29, σx = 34.60 😱  |  μy = 5.00, σy = 3.63',
+          cleanOut: 'i1 = [2, 1, 3]  ⇒  predict = [1, 0, 1] ✅',
+          badOut: 'Trục ngang x bị bóp bẹp!',
+          hl: ['badScaler']
+        }
+      },
+      {
+        lines: '20-21',
+        code: 'bad_train = bad_scaler.transform(X)\nbad_test = bad_scaler.transform(test)',
+        badge: '🚨 Bóp bẹp trục ngang',
+        theme: 'coral',
+        title: 'Quy đổi X và test bằng thước lỗi → Tọa độ x của 0, 2, 3 bị ép dính sát nhau!',
+        everyday: 'Lấy khoảng cách ngang (0, 2, 3) đem chia cho 34.60 thì chỉ còn vỏn vẹn 0.03 đến 0.09 (gần như bằng 0!). Mọi điểm train bị ép thành một đường thẳng đứng, chỉ còn trục dọc y quyết định!',
+        state: {
+          showData: true,
+          cleanScaler: 'μx = 1.25, σx = 1.30  |  μy = 4.75, σy = 4.76 ✅',
+          badScaler: 'μx = 15.29, σx = 34.60 😱  |  μy = 5.00, σy = 3.63',
+          cleanOut: 'i1 = [2, 1, 3]  ⇒  predict = [1, 0, 1] ✅',
+          badOut: 'Các điểm train dính sát nhau theo trục x',
+          hl: ['badScaler']
+        }
+      },
+      {
+        lines: '22-23',
+        code: 'bad = KNeighborsClassifier(n_neighbors=1).fit(bad_train, y)\nd2, i2 = bad.kneighbors(bad_test)',
+        badge: '🚨 Hút cả 3 điểm về P3!',
+        theme: 'coral',
+        title: 'Tìm hàng xóm trên dữ liệu rò rỉ → Cả 3 điểm test đều chọn P3: i2 = [3, 3, 3]!',
+        everyday: 'Vì trục x đã bị bóp bẹp, máy chỉ so khoảng cách theo trục y: T0(y=6) gần P3(y=9) hơn P2(y=10) vì 3 < 4; T1(y=5.2) gần P3(y=9) hơn P1(y=0) vì 3.8 < 5.2; T2(100,4.8) cũng gần P3 nhất → Cả 3 thành nhãn 1!',
+        state: {
+          showData: true,
+          cleanScaler: 'μx = 1.25, σx = 1.30  |  μy = 4.75, σy = 4.76 ✅',
+          badScaler: 'μx = 15.29, σx = 34.60 😱  |  μy = 5.00, σy = 3.63',
+          cleanOut: 'i1 = [2, 1, 3]  ⇒  predict = [1, 0, 1] ✅',
+          badOut: 'i2 = [3, 3, 3]  ⇒  predict = [1, 1, 1] 🚨',
+          hl: ['badOut']
+        }
+      },
+      {
+        lines: '25-26',
+        code: 'print(model.predict(test).tolist(), bad.predict(bad_test).tolist(),\n      i1.ravel().tolist(), i2.ravel().tolist())',
+        badge: '🎯 Giải mã lệnh print → Chốt C!',
+        theme: 'mint',
+        title: 'In 4 danh sách theo đúng thứ tự — Khớp 100% Phương án C!',
+        everyday: 'Nhớ thứ tự 4 món được in ra: (1) Dự đoán sạch [1, 0, 1], (2) Dự đoán rò rỉ [1, 1, 1], (3) Hàng xóm sạch i1 [2, 1, 3], (4) Hàng xóm rò rỉ i2 [3, 3, 3]. Chốt ngay Đáp án C!',
+        state: {
+          showData: true,
+          cleanScaler: 'μx = 1.25, σx = 1.30  |  μy = 4.75, σy = 4.76 ✅',
+          badScaler: 'μx = 15.29, σx = 34.60 😱  |  μy = 5.00, σy = 3.63',
+          cleanOut: 'predict sạch: [1, 0, 1]  |  i1: [2, 1, 3]',
+          badOut: 'predict rò rỉ: [1, 1, 1]  |  i2: [3, 3, 3]',
+          hl: ['cleanOut', 'badOut']
+        }
+      }
+    ];
+
+    let activeStepIdx = 0;
+
+    function switchTab(tabNum) {
+      if (!xpState.celebrated) {
+        const speech = document.getElementById('mascot-speech');
+        if (speech && mascotQuotes[String(tabNum)]) {
+          speech.innerHTML = mascotQuotes[String(tabNum)];
+        }
+      }
+
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        const isTarget = btn.getAttribute('data-tab') === String(tabNum);
+        btn.className = isTarget
+          ? 'tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2 bg-pastelpink-500 text-white border-pastelpink-500 border-b-4 border-b-pastelpink-600 shadow-xs'
+          : 'tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2 bg-white text-cocoa-700 border-cream-200 hover:bg-butter-100/50';
+      });
+      document.querySelectorAll('.tab-panel').forEach((panel) => {
+        panel.classList.toggle('hidden', panel.id !== `tab-panel-${tabNum}`);
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderCodeList() {
+      const container = document.getElementById('code-lines-container');
+      if (!container) return;
+      container.innerHTML = codeSteps.map((step, idx) => {
+        const isActive = idx === activeStepIdx;
+        const activeClass = isActive
+          ? 'bg-pastelpink-500/30 border-l-4 border-butter-400 text-white'
+          : 'border-l-4 border-transparent text-cream-100/80 hover:bg-cocoa-800';
+        const safeCode = step.code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return `
+          <button type="button" onclick="selectCodeStep(${idx})"
+            class="w-full text-left flex items-start gap-2.5 px-2.5 py-2 rounded-xl transition cursor-pointer ${activeClass}">
+            <span class="w-9 text-right text-butter-200/60 select-none shrink-0 text-[11px] pt-0.5">${step.lines}</span>
+            <pre class="whitespace-pre font-mono leading-relaxed text-xs">${safeCode}</pre>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function renderLineExplanation() {
+      const step = codeSteps[activeStepIdx];
+      document.getElementById('step-counter').textContent = `Bước ${activeStepIdx + 1} / ${codeSteps.length} (Dòng ${step.lines})`;
+      document.getElementById('prev-line-btn').disabled = activeStepIdx === 0;
+      document.getElementById('next-line-btn').disabled = activeStepIdx === codeSteps.length - 1;
+
+      const badgeColor = {
+        coral: 'bg-coral-50 text-coral-600 border-coral-300',
+        butter: 'bg-butter-100 text-cocoa-900 border-butter-200',
+        mint: 'bg-mint-50 text-mint-600 border-mint-300',
+        neutral: 'bg-cream-100 text-cocoa-800 border-cream-200'
+      }[step.theme];
+
+      const st = step.state;
+      const hl = st.hl || [];
+
+      const dataBox = st.showData
+        ? `
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 ${hl.includes('data') ? 'ring-2 ring-butter-400 rounded-2xl p-1' : ''}">
+            <div class="p-3 rounded-2xl bg-cream-50 border-2 border-cream-200 text-xs font-mono">
+              <p class="font-sans font-extrabold text-cocoa-700 mb-1">Tập luyện X (4 điểm):</p>
+              <p>P0:(0,0)[0] • P1:(2,0)[0]</p>
+              <p>P2:(0,10)[1] • P3:(3,9)[1]</p>
+            </div>
+            <div class="p-3 rounded-2xl bg-cream-50 border-2 border-cream-200 text-xs font-mono">
+              <p class="font-sans font-extrabold text-cocoa-700 mb-1">Tập test (3 điểm):</p>
+              <p>T0:(0,6) • T1:(2,5.2)</p>
+              <p class="text-coral-600 font-bold">T2:(100, 4.8) 🦖 Ngoại lai!</p>
+            </div>
+          </div>
+        `
+        : '';
+
+      document.getElementById('line-explanation-content').innerHTML = `
+        <div>
+          <span class="inline-flex items-center px-3 py-0.5 rounded-full text-xs font-extrabold border ${badgeColor} mb-2">
+            ${step.badge}
+          </span>
+          <h3 class="text-base sm:text-lg font-black text-cocoa-900 leading-snug font-display">${step.title}</h3>
+        </div>
+
+        <p class="text-sm text-cocoa-800 leading-relaxed">${step.everyday}</p>
+
+        <!-- Live State Comparison Panel -->
+        <div class="space-y-2.5">
+          <p class="text-xs font-extrabold text-cocoa-500 uppercase tracking-wider">📊 Bảng trạng thái trực tiếp (Live State)</p>
+          ${dataBox}
+
+          <div class="grid grid-cols-1 gap-2.5">
+            <!-- Clean Model Row -->
+            <div class="p-3.5 rounded-2xl border-2 transition ${hl.includes('cleanScaler') || hl.includes('cleanOut') ? 'bg-mint-50 border-mint-500 ring-2 ring-mint-100' : 'bg-mint-50/50 border-mint-200'}">
+              <p class="text-[11px] font-black text-mint-600 uppercase mb-1">✅ Mô hình Sạch (Pipeline — chỉ fit X)</p>
+              <p class="font-mono text-xs text-cocoa-800"><strong>Thước đo:</strong> ${st.cleanScaler}</p>
+              <p class="font-mono text-xs text-mint-600 font-bold mt-1"><strong>Kết quả:</strong> ${st.cleanOut}</p>
+            </div>
+
+            <!-- Leaked Model Row -->
+            <div class="p-3.5 rounded-2xl border-2 transition ${hl.includes('badScaler') || hl.includes('badOut') ? 'bg-coral-50 border-coral-500 ring-2 ring-coral-100' : 'bg-coral-50/40 border-coral-200'}">
+              <p class="text-[11px] font-black text-coral-600 uppercase mb-1">🚨 Mô hình Bị Rò Rỉ (bad_scaler — gộp test có số 100)</p>
+              <p class="font-mono text-xs text-cocoa-800"><strong>Thước đo:</strong> ${st.badScaler}</p>
+              <p class="font-mono text-xs text-coral-600 font-bold mt-1"><strong>Kết quả:</strong> ${st.badOut}</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function selectCodeStep(idx) {
+      if (idx < 0 || idx >= codeSteps.length) return;
+      activeStepIdx = idx;
+      if (idx === codeSteps.length - 1) {
+        xpState.tab2Done = true;
+        updateXP();
+      }
+      renderCodeList();
+      renderLineExplanation();
+    }
+
+    // =========================================================================
+    // 3. TAB 3: INTERACTIVE 2D SVG COORDINATE LAB (CLEAN VS LEAKAGE)
+    // =========================================================================
+    const trainPts = [
+      { id: 0, name: 'P0', raw: [0, 0], label: 0 },
+      { id: 1, name: 'P1', raw: [2, 0], label: 0 },
+      { id: 2, name: 'P2', raw: [0, 10], label: 1 },
+      { id: 3, name: 'P3', raw: [3, 9], label: 1 }
+    ];
+    const testPts = [
+      { id: 0, name: 'T0', raw: [0, 6] },
+      { id: 1, name: 'T1', raw: [2, 5.2] },
+      { id: 2, name: 'T2', raw: [100, 4.8] }
+    ];
+
+    // Exact scaler parameters
+    const scalers = {
+      clean: { mx: 1.25, sx: Math.sqrt(1.6875), my: 4.75, sy: Math.sqrt(22.6875) },
+      leak:  { mx: 107 / 7, sx: Math.sqrt(8379.42857142857 / 7), my: 5.0, sy: Math.sqrt(92.08 / 7) }
+    };
+
+    let mapMode = 'clean'; // 'clean' or 'leak'
+    let selectedTestIdx = 1; // Default T1 (2, 5.2) because it's the clearest flip!
+
+    function normPt(raw, mode) {
+      const s = scalers[mode];
+      return [(raw[0] - s.mx) / s.sx, (raw[1] - s.my) / s.sy];
+    }
+
+    function euclid(a, b) {
+      return Math.hypot(a[0] - b[0], a[1] - b[1]);
+    }
+
+    function setMapMode(mode) {
+      mapMode = mode;
+      xpState.seenModes.add(mode);
+      checkTab3Completion();
+      renderMapLab();
+    }
+
+    function selectTestPoint(idx) {
+      selectedTestIdx = idx;
+      xpState.clickedPoints.add(idx);
+      checkTab3Completion();
+      renderMapLab();
+    }
+
+    function renderMapLab() {
+      // Update Mode Buttons
+      const cBtn = document.getElementById('map-clean-btn');
+      const lBtn = document.getElementById('map-leak-btn');
+      if (mapMode === 'clean') {
+        cBtn.className = 'px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition cursor-pointer bg-mint-500 text-white shadow-xs';
+        lBtn.className = 'px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition cursor-pointer text-cocoa-700 hover:bg-cream-200';
+      } else {
+        lBtn.className = 'px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition cursor-pointer bg-coral-500 text-white shadow-xs';
+        cBtn.className = 'px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition cursor-pointer text-cocoa-700 hover:bg-cream-200';
+      }
+
+      // Update Mode Banner
+      const banner = document.getElementById('map-mode-banner');
+      if (mapMode === 'clean') {
+        banner.className = 'p-4 rounded-2xl border-2 text-xs sm:text-sm font-semibold leading-relaxed bg-mint-50 border-mint-300 text-cocoa-900';
+        banner.innerHTML = '✅ <strong>CHẾ ĐỘ SẠCH (Pipeline — chỉ fit X):</strong> Thước đo công bằng (<code class="font-mono font-bold text-mint-600">σx ≈ 1.30, σy ≈ 4.76</code>). Các điểm train trải rộng đều trên cả trục ngang lẫn trục dọc → <code class="font-mono font-bold">i1 = [2, 1, 3]</code>, dự đoán <code class="font-mono font-bold text-mint-600">[1, 0, 1]</code>!';
+      } else {
+        banner.className = 'p-4 rounded-2xl border-2 text-xs sm:text-sm font-semibold leading-relaxed bg-coral-50 border-coral-300 text-cocoa-900';
+        banner.innerHTML = '🚨 <strong>CHẾ ĐỘ BỊ RÒ RỈ (bad_scaler — gộp số 100 vào fit):</strong> Nhìn vào bản đồ bên dưới! Vì <code class="font-mono font-bold text-coral-600">σx phình lên 34.60</code>, cả 4 điểm train P0..P3 bị <strong>co rúm sát rạt thành 1 đường thẳng đứng</strong>! Trục ngang coi như biến mất → Cả 3 điểm test bị hút về <strong>P3 (3, 9)</strong> (<code class="font-mono font-bold text-coral-600">i2 = [3, 3, 3]</code>)!';
+      }
+
+      // Update Test Point Buttons
+      for (let i = 0; i < 3; i++) {
+        const b = document.getElementById(`tpt-btn-${i}`);
+        if (!b) continue;
+        b.className = i === selectedTestIdx
+          ? 'tpt-btn px-3.5 py-2 rounded-xl border-2 text-xs font-extrabold transition cursor-pointer bg-cocoa-800 text-white border-cocoa-900 shadow-xs'
+          : 'tpt-btn px-3.5 py-2 rounded-xl border-2 text-xs font-extrabold transition cursor-pointer bg-white text-cocoa-800 border-cream-200 hover:bg-butter-100';
+      }
+
+      // Coordinate projection into SVG (viewBox 560x390)
+      // Normalized range displayed: x in [-1.6, 3.3], y in [-1.8, 1.8]
+      const xMin = -1.6, xMax = 3.3;
+      const yMin = -1.8, yMax = 1.8;
+      const padL = 52, padR = 36, padT = 30, padB = 46;
+      const plotW = 560 - padL - padR;
+      const plotH = 390 - padT - padB;
+
+      const toSvgX = (zx) => padL + ((zx - xMin) / (xMax - xMin)) * plotW;
+      const toSvgY = (zy) => padT + ((yMax - zy) / (yMax - yMin)) * plotH;
+
+      // Compute normalized coordinates & distances for selected test point
+      const tPt = testPts[selectedTestIdx];
+      const tNorm = normPt(tPt.raw, mapMode);
+      const dists = trainPts.map((p) => {
+        const pNorm = normPt(p.raw, mapMode);
+        return { ...p, norm: pNorm, dist: euclid(tNorm, pNorm) };
+      });
+      const nearest = dists.reduce((best, cur) => (cur.dist < best.dist ? cur : best), dists[0]);
+
+      // Build SVG markup
+      const zeroX = toSvgX(0);
+      const zeroY = toSvgY(0);
+
+      // Grid lines
+      let gridSvg = '';
+      [-1, 0, 1, 2, 3].forEach((gx) => {
+        const sx = toSvgX(gx);
+        gridSvg += `<line x1="${sx}" y1="${padT}" x2="${sx}" y2="${390 - padB}" stroke="${gx === 0 ? '#D6C2AE' : '#EFE2D3'}" stroke-width="${gx === 0 ? 2 : 1}" stroke-dasharray="${gx === 0 ? '' : '4 4'}" />`;
+        gridSvg += `<text x="${sx}" y="${390 - padB + 18}" text-anchor="middle" font-size="11" font-family="JetBrains Mono" fill="#8D6E63">${gx}</text>`;
+      });
+      [-1.5, -1, -0.5, 0, 0.5, 1, 1.5].forEach((gy) => {
+        const sy = toSvgY(gy);
+        gridSvg += `<line x1="${padL}" y1="${sy}" x2="${560 - padR}" y2="${sy}" stroke="${gy === 0 ? '#D6C2AE' : '#EFE2D3'}" stroke-width="${gy === 0 ? 2 : 1}" stroke-dasharray="${gy === 0 ? '' : '4 4'}" />`;
+        gridSvg += `<text x="${padL - 10}" y="${sy + 4}" text-anchor="end" font-size="11" font-family="JetBrains Mono" fill="#8D6E63">${gy}</text>`;
+      });
+
+      // Highlight vertical compression band in Leak mode
+      let leakBandSvg = '';
+      if (mapMode === 'leak') {
+        const xLeft = toSvgX(normPt([0, 0], 'leak')[0]) - 10;
+        const xRight = toSvgX(normPt([3, 9], 'leak')[0]) + 10;
+        leakBandSvg = `
+          <rect x="${xLeft}" y="${padT + 4}" width="${xRight - xLeft}" height="${plotH - 8}" rx="12" fill="#EF4444" fill-opacity="0.10" stroke="#EF4444" stroke-width="1.5" stroke-dasharray="5 4" />
+          <text x="${(xLeft + xRight) / 2}" y="${padT + 18}" text-anchor="middle" font-size="10" font-weight="800" fill="#DC2626">Trục x bị ép bẹp!</text>
+        `;
+      }
+
+      // Compute display positions for test points (clamp T2 in clean mode so it stays visible on right edge)
+      const getTestDisplayXY = (pt) => {
+        const n = normPt(pt.raw, mapMode);
+        const clampedX = Math.min(n[0], 3.12);
+        return { sx: toSvgX(clampedX), sy: toSvgY(n[1]), isOffscreen: n[0] > 3.12, norm: n };
+      };
+
+      const selDisp = getTestDisplayXY(tPt);
+      const nearSvgX = toSvgX(nearest.norm[0]);
+      const nearSvgY = toSvgY(nearest.norm[1]);
+
+      // Dashed line to nearest neighbor
+      const lineColor = mapMode === 'clean' ? '#10B981' : '#EF4444';
+      const connectorSvg = `
+        <line x1="${selDisp.sx}" y1="${selDisp.sy}" x2="${nearSvgX}" y2="${nearSvgY}"
+          stroke="${lineColor}" stroke-width="3" stroke-dasharray="7 5" class="svg-point" />
+        <circle cx="${nearSvgX}" cy="${nearSvgY}" r="18" fill="none" stroke="${lineColor}" stroke-width="2.5" opacity="0.85" class="svg-point" />
+      `;
+
+      // Render 4 Train Points
+      const trainSvg = dists.map((p) => {
+        const sx = toSvgX(p.norm[0]);
+        const sy = toSvgY(p.norm[1]);
+        const fill = p.label === 0 ? '#F59E0B' : '#EC4899';
+        // Offset labels slightly in leak mode so P0/P1 and P2/P3 don't overlap!
+        let lx = sx + (p.id === 0 || p.id === 2 ? -12 : 12);
+        let anchor = p.id === 0 || p.id === 2 ? 'end' : 'start';
+        let ly = sy + (p.id === 1 ? 18 : p.id === 3 ? 16 : -10);
+        if (mapMode === 'clean') {
+          lx = sx;
+          anchor = 'middle';
+          ly = p.id === 0 || p.id === 1 ? sy + 22 : sy - 14;
+        }
+        return `
+          <g class="svg-point">
+            <circle cx="${sx}" cy="${sy}" r="9.5" fill="${fill}" stroke="#FFFFFF" stroke-width="2.5" />
+            <text x="${lx}" y="${ly}" text-anchor="${anchor}" font-size="11" font-weight="800" fill="#5C4033">${p.name} (${p.raw[0]},${p.raw[1]})</text>
+          </g>
+        `;
+      }).join('');
+
+      // Render 3 Test Points (Clickable Diamonds)
+      const testSvg = testPts.map((pt, idx) => {
+        const d = getTestDisplayXY(pt);
+        const isSel = idx === selectedTestIdx;
+        const size = isSel ? 10 : 7.5;
+        const fill = isSel ? '#3D281E' : '#8D6E63';
+        const ptsStr = `${d.sx},${d.sy - size} ${d.sx + size},${d.sy} ${d.sx},${d.sy + size} ${d.sx - size},${d.sy}`;
+        let lblY = d.sy - 14;
+        let lblX = d.sx;
+        let anchor = 'middle';
+        if (d.isOffscreen) {
+          lblX = d.sx - 12;
+          anchor = 'end';
+          lblY = d.sy - 12;
+        } else if (mapMode === 'leak' && idx === 0) {
+          lblX = d.sx - 14;
+          anchor = 'end';
+          lblY = d.sy + 4;
+        } else if (mapMode === 'leak' && idx === 1) {
+          lblX = d.sx + 14;
+          anchor = 'start';
+          lblY = d.sy + 4;
+        }
+        return `
+          <g onclick="selectTestPoint(${idx})" class="svg-point cursor-pointer">
+            <polygon points="${ptsStr}" fill="${fill}" stroke="${isSel ? '#FBBF24' : '#FFFFFF'}" stroke-width="2.5" />
+            <text x="${lblX}" y="${lblY}" text-anchor="${anchor}" font-size="11" font-weight="900" fill="${isSel ? '#3D281E' : '#6D4C41'}">
+              ${pt.name}${d.isOffscreen ? ' (x≈+76 →)' : ''}
+            </text>
+          </g>
+        `;
+      }).join('');
+
+      const svgEl = document.getElementById('knn-svg');
+      svgEl.innerHTML = `
+        ${gridSvg}
+        ${leakBandSvg}
+        ${connectorSvg}
+        ${trainSvg}
+        ${testSvg}
+        <text x="${padL + plotW / 2}" y="380" text-anchor="middle" font-size="11" font-weight="800" fill="#6D4C41">
+          Trục ngang x đã chuẩn hóa (${mapMode === 'clean' ? 'σx ≈ 1.30 — Rộng rãi' : 'σx ≈ 34.60 — Bị bóp bẹp!'})
+        </text>
+        <text x="16" y="${padT + plotH / 2}" text-anchor="middle" font-size="11" font-weight="800" fill="#6D4C41" transform="rotate(-90 16 ${padT + plotH / 2})">
+          Trục dọc y đã chuẩn hóa
+        </text>
+      `;
+
+      document.getElementById('svg-footnote').innerHTML = mapMode === 'clean'
+        ? '💡 Lưu ý: Ở chế độ Sạch, <strong>T2 (100, 4.8)</strong> có tọa độ chuẩn hóa <code class="font-mono">x ≈ +76.0</code> nằm tít ngoài lề phải (được ghim ở mép phải để bạn dễ bấm chọn).'
+        : '💡 Nhìn kìa! Ở chế độ Rò rỉ, số <strong>100</strong> kéo <strong>T2</strong> vào tận <code class="font-mono">x ≈ +2.45</code>, còn cả 4 điểm train P0..P3 bị ép dí vào dải hẹp màu đỏ (<code class="font-mono">x ∈ [-0.44, -0.35]</code>)!';
+
+      // Render Right Distance Inspector Card
+      const distRows = dists.map((p) => {
+        const isWin = p.id === nearest.id;
+        const rowCls = isWin
+          ? (mapMode === 'clean' ? 'bg-mint-50 border-mint-500 ring-2 ring-mint-100' : 'bg-coral-50 border-coral-500 ring-2 ring-coral-100')
+          : 'bg-cream-50 border-cream-200';
+        return `
+          <div class="p-3 rounded-2xl border-2 flex items-center justify-between gap-2 transition ${rowCls}">
+            <div>
+              <p class="text-xs font-black text-cocoa-900">
+                ${p.name} <span class="font-mono font-normal text-cocoa-500">(${p.raw[0]}, ${p.raw[1]})</span>
+                <span class="ml-1 px-1.5 py-0.5 rounded-md text-[10px] font-extrabold ${p.label === 0 ? 'bg-butter-100 text-cocoa-800' : 'bg-pastelpink-100 text-pastelpink-600'}">Nhãn ${p.label}</span>
+              </p>
+              <p class="font-mono text-[10px] text-cocoa-500 mt-0.5">Chuẩn hóa: (${p.norm[0].toFixed(2)}, ${p.norm[1].toFixed(2)})</p>
+            </div>
+            <div class="text-right shrink-0">
+              <p class="font-mono text-sm font-black ${isWin ? (mapMode === 'clean' ? 'text-mint-600' : 'text-coral-600') : 'text-cocoa-700'}">
+                d = ${p.dist.toFixed(3)}
+              </p>
+              ${isWin ? `<span class="text-[10px] font-black ${mapMode === 'clean' ? 'text-mint-600' : 'text-coral-600'}">🏆 GẦN NHẤT!</span>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('distance-card').innerHTML = `
+        <div class="flex items-center justify-between gap-2 pb-3 border-b border-cream-200">
+          <div>
+            <p class="text-[11px] font-extrabold uppercase tracking-wider text-cocoa-500">Đang đo khoảng cách cho</p>
+            <h3 class="text-base font-black text-cocoa-900 font-display">${tPt.name} (${tPt.raw[0]}, ${tPt.raw[1]})</h3>
+          </div>
+          <span class="px-3 py-1 rounded-full text-xs font-black ${mapMode === 'clean' ? 'bg-mint-500 text-white' : 'bg-coral-500 text-white'}">
+            Chọn ${nearest.name} → Nhãn ${nearest.label}
+          </span>
+        </div>
+
+        <p class="font-mono text-xs text-cocoa-700 bg-cream-100 px-3 py-2 rounded-xl">
+          Tọa độ ${tPt.name} sau chuẩn hóa: <strong>(${tNorm[0].toFixed(2)}, ${tNorm[1].toFixed(2)})</strong>
+        </p>
+
+        <div class="space-y-2">
+          ${distRows}
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // 4. TAB 4: HINTS TOGGLE & MINI-QUIZ (4 QUESTIONS)
+    // =========================================================================
+    let hintsVisible = true;
+    function toggleExamHints() {
+      hintsVisible = !hintsVisible;
+      document.querySelectorAll('.exam-hint').forEach((el) => {
+        el.classList.toggle('hidden', !hintsVisible);
+      });
+    }
+
+    const quizQuestions = [
+      {
+        id: 0,
+        question: 'Câu 1: Tại sao bad_scaler = StandardScaler().fit(np.vstack([X, test])) lại gây ra rò rỉ dữ liệu nghiêm trọng trong Câu 09?',
+        options: [
+          'A. Vì nó xóa mất nhãn y của tập huấn luyện',
+          'B. Vì nó gộp điểm ngoại lai x = 100 từ tập test vào tính thước đo, làm σx phình gần 27 lần (1.30 → 34.60) và bóp bẹp trục ngang',
+          'C. Vì nó làm tăng số lượng hàng xóm k từ 1 lên 3',
+          'D. Vì StandardScaler không thể chạy trên mảng 2 chiều'
+        ],
+        correct: 1,
+        explanation: 'Chính xác! Khi σx phình to lên 34.60, mọi khoảng cách ngang giữa 0, 2, 3 bị ép gần như bằng 0, chỉ còn trục dọc y quyết định!'
+      },
+      {
+        id: 1,
+        question: 'Câu 2: Khi bị rò rỉ dữ liệu (trục x bị bóp bẹp), tại sao điểm T0 (0, 6) lại bỏ hàng xóm P2 (0, 10) để chạy sang P3 (3, 9)?',
+        options: [
+          'A. Vì chỉ còn trục y quyết định: |6 − 9| = 3 nhỏ hơn |6 − 10| = 4 nên T0 gần P3 hơn P2!',
+          'B. Vì P2 bị xóa khỏi tập huấn luyện',
+          'C. Vì P3 có nhãn là 0',
+          'D. Vì 0 gần 3 hơn gần 0'
+        ],
+        correct: 0,
+        explanation: 'Chuẩn không cần chỉnh! Chính phép so sánh siêu dễ |6 − 9| = 3 < |6 − 10| = 4 này giúp bạn loại ngay Đáp án A ([2, 3, 3]) và chốt Đáp án C ([3, 3, 3])!'
+      },
+      {
+        id: 2,
+        question: 'Câu 3: Ở mô hình SẠCH (Pipeline chỉ fit trên X), điểm T1 (2, 5.2) chọn hàng xóm nào và được dự đoán nhãn mấy?',
+        options: [
+          'A. Chọn P3 (3, 9) → nhãn 1',
+          'B. Chọn P2 (0, 10) → nhãn 1',
+          'C. Chọn P1 (2, 0) (vì cùng tọa độ x = 2, khoảng cách d ≈ 1.092 < 1.109 tới P3) → nhãn 0',
+          'D. Chọn P0 (0, 0) → nhãn 0'
+        ],
+        correct: 2,
+        explanation: 'Tuyệt vời! Nhờ giữ được công bằng trên trục ngang, T1 (2, 5.2) giữ đúng hàng xóm P1 (nhãn 0), giúp dự đoán sạch là [1, 0, 1] và loại ngay Đáp án B!'
+      },
+      {
+        id: 3,
+        question: 'Câu 4: Khi đi thi, chỉ nhìn vào tên biến bad_scaler và điểm ngoại lai 100, ta có thể loại ngay phương án nào trong 3 giây đầu tiên?',
+        options: [
+          'A. Loại Phương án A',
+          'B. Loại Phương án B',
+          'C. Loại Phương án C',
+          'D. Loại Phương án D (vì D cho kết quả mô hình Sạch và Rò rỉ giống hệt nhau!)'
+        ],
+        correct: 3,
+        explanation: 'Quá đỉnh! Đề cố tình tạo bad_scaler và nhét số 100 để chứng minh tác hại của rò rỉ dữ liệu, nên hai bên không thể ra giống hệt nhau như Đáp án D được!'
+      }
+    ];
+
+    let quizAnswers = {};
+
+    function answerQuiz(qId, optIdx) {
+      quizAnswers[qId] = optIdx;
+      renderQuiz();
+    }
+
+    function resetQuiz() {
+      quizAnswers = {};
+      xpState.celebrated = false;
+      renderQuiz();
+    }
+
+    function renderQuiz() {
+      let score = 0;
+      quizQuestions.forEach((q) => {
+        if (quizAnswers[q.id] === q.correct) score++;
+      });
+      xpState.quizCorrectCount = score;
+      updateXP();
+
+      document.getElementById('quiz-score').textContent = String(score);
+      const container = document.getElementById('quiz-container');
+      if (!container) return;
+
+      container.innerHTML = quizQuestions.map((q) => {
+        const chosen = quizAnswers[q.id];
+        const hasAnswered = chosen !== undefined;
+        const isCorrect = chosen === q.correct;
+
+        const opts = q.options.map((text, idx) => {
+          let cls = 'bg-white border-cream-200 border-b-4 text-cocoa-800 hover:bg-butter-100/40';
+          if (hasAnswered) {
+            if (idx === q.correct) cls = 'bg-mint-50 border-mint-500 border-b-4 border-b-mint-600 text-emerald-950 font-extrabold';
+            else if (idx === chosen) cls = 'bg-coral-50 border-coral-500 border-b-4 border-b-coral-600 text-red-950 font-extrabold';
+            else cls = 'bg-cream-50 border-cream-100 text-cocoa-500/50';
+          }
+          return `
+            <button type="button" onclick="answerQuiz(${q.id}, ${idx})"
+              class="w-full text-left px-4 py-3 rounded-2xl border-2 text-xs sm:text-sm transition cursor-pointer ${cls}">
+              ${text}
+            </button>
+          `;
+        }).join('');
+
+        const fb = hasAnswered
+          ? `<div class="mt-3 p-3.5 rounded-2xl text-xs sm:text-sm border-2 ${isCorrect ? 'bg-mint-50 border-mint-300 text-emerald-950' : 'bg-coral-50 border-coral-300 text-red-950'}">
+              <strong>${isCorrect ? '✅ Chính xác!' : '❌ Chưa đúng rồi!'}</strong> ${q.explanation}
+            </div>`
+          : '';
+
+        return `
+          <div class="p-4 sm:p-5 rounded-3xl bg-cream-50 border-2 border-cream-200">
+            <p class="text-sm sm:text-base font-black text-cocoa-900 mb-3">${q.question}</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">${opts}</div>
+            ${fb}
+          </div>
+        `;
+      }).join('');
+    }
+
+    // =========================================================================
+    // INITIALIZATION
+    // =========================================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      try {
+        document.querySelectorAll('.tab-btn').forEach((btn) => {
+          btn.addEventListener('click', () => switchTab(btn.getAttribute('data-tab')));
+        });
+        document.getElementById('prev-line-btn').addEventListener('click', () => selectCodeStep(activeStepIdx - 1));
+        document.getElementById('next-line-btn').addEventListener('click', () => selectCodeStep(activeStepIdx + 1));
+
+        switchTab('1');
+        renderVocab();
+        renderCodeList();
+        renderLineExplanation();
+        renderMapLab();
+        renderQuiz();
+        updateXP();
+      } catch (err) {
+        console.error('Initialization error:', err);
+      }
+    });
+  </script>
+</body>
+</html>

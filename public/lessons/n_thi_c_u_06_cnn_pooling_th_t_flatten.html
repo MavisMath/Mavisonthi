@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ôn Thi Câu 06: CNN, Pooling &amp; Thứ Tự Flatten (Bản Non-tech)</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            cream: {
+              50: '#FFFDF7',
+              100: '#FFF9E6',
+              200: '#F2E5C6',
+            },
+            blush: {
+              50: '#FFF5F7',
+              100: '#FFD6E0',
+              200: '#FFB8C9',
+              400: '#F47294',
+              500: '#E15278',
+            },
+            cocoa: {
+              500: '#8A6F6B',
+              700: '#6B4F4B',
+              800: '#533C39',
+              900: '#382725',
+            },
+            mint: {
+              50: '#F0FAF0',
+              100: '#DCF4DD',
+              200: '#B8E8BA',
+              500: '#4CAF50',
+              600: '#3B913F',
+            },
+            honey: {
+              100: '#FFF3C4',
+              300: '#FCE08B',
+              400: '#F7C948',
+              500: '#DEAA20',
+            },
+            coral: {
+              50: '#FFF3F2',
+              200: '#FECACA',
+              400: '#F87171',
+              500: '#DC4C4C',
+            },
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    @keyframes floatCelebrate {
+      0% {
+        transform: translateY(0) rotate(0deg) scale(0.8);
+        opacity: 0;
+      }
+      15% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-95vh) rotate(360deg) scale(1.25);
+        opacity: 0;
+      }
+    }
+    .celebrate-particle {
+      position: fixed;
+      bottom: -40px;
+      pointer-events: none;
+      z-index: 9999;
+      animation: floatCelebrate 3.2s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="bg-cream-100 text-cocoa-800 font-sans antialiased selection:bg-blush-100 selection:text-cocoa-900 min-h-screen flex flex-col">
+
+  <!-- Celebration Particle Layer (100 XP) -->
+  <div id="celebration-layer" aria-hidden="true"></div>
+
+  <!-- Sticky Gamified Header -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur border-b-2 border-cream-200 shadow-xs">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 sm:py-4 space-y-3">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <!-- Title & Badge -->
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-blush-400 text-white flex items-center justify-center font-black text-xl border-b-4 border-blush-500 shadow-xs shrink-0">
+            06
+          </div>
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <h1 class="text-lg sm:text-xl font-black text-cocoa-900 tracking-tight">
+                CNN, Pooling &amp; Thứ Tự Flatten
+              </h1>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-blush-100 text-blush-500 border border-blush-200">
+                Bản Non-tech ✨
+              </span>
+            </div>
+            <p class="text-xs sm:text-sm text-cocoa-500 font-medium">
+              Kính lúp <code class="font-mono text-xs bg-cream-100 px-1.5 py-0.5 rounded-lg text-cocoa-800">conv2d</code> • Chặn âm <code class="font-mono text-xs bg-cream-100 px-1.5 py-0.5 rounded-lg text-cocoa-800">ReLU</code> • Xếp hàng <strong class="text-blush-500">permute NHWC</strong>
+            </p>
+          </div>
+        </div>
+
+        <!-- Duolingo XP Bar + Target Pill -->
+        <div class="flex items-center gap-3 bg-cream-100 border-2 border-cream-200 rounded-2xl px-3.5 py-2 self-start md:self-auto w-full md:w-auto">
+          <div class="text-xl shrink-0">🌟</div>
+          <div class="flex-1 md:w-44">
+            <div class="flex items-center justify-between text-[11px] font-extrabold mb-1">
+              <span class="text-cocoa-700 uppercase tracking-wide">Tiến độ ôn thi</span>
+              <span class="text-blush-500 font-black"><span id="xp-value">5</span> / 100 XP</span>
+            </div>
+            <div class="w-full h-3 bg-white rounded-full border border-cream-200 overflow-hidden p-0.5">
+              <div
+                id="xp-bar"
+                class="h-full rounded-full bg-gradient-to-r from-honey-400 via-blush-400 to-mint-500 transition-all duration-500"
+                style="width: 5%;"
+              ></div>
+            </div>
+          </div>
+          <div class="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-xl bg-mint-50 border border-mint-200 text-xs font-extrabold text-mint-600 shrink-0">
+            <span>🎯</span>
+            <span>Đáp án A</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4 Main Navigation Tabs -->
+      <nav aria-label="Điều hướng 4 phần học" class="grid grid-cols-2 lg:grid-cols-4 gap-2">
+        <button id="tab-btn-1" data-tab="1" class="tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2">
+          <span>💡</span>
+          <span>1. Bản chất &amp; Từ vựng</span>
+        </button>
+        <button id="tab-btn-2" data-tab="2" class="tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2">
+          <span>🔍</span>
+          <span>2. Từng dòng code</span>
+        </button>
+        <button id="tab-btn-3" data-tab="3" class="tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2">
+          <span>🧪</span>
+          <span>3. Phòng thí nghiệm CNN</span>
+        </button>
+        <button id="tab-btn-4" data-tab="4" class="tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2">
+          <span>⚡</span>
+          <span>4. Mẹo 15s &amp; Quiz</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
+
+    <!-- =================================================================== -->
+    <!-- TAB 1: BẢN CHẤT & TỪ VỰNG (NON-TECH)                                -->
+    <!-- =================================================================== -->
+    <section id="tab-panel-1" class="tab-panel space-y-8">
+      <!-- Hero Banner -->
+      <div class="bg-gradient-to-r from-blush-400 via-rose-400 to-honey-400 text-white rounded-3xl p-6 sm:p-8 border-b-4 border-blush-500/60 shadow-sm">
+        <div class="inline-flex items-center gap-2 bg-white/25 backdrop-blur px-3 py-1 rounded-full text-xs font-extrabold mb-3">
+          <span>📌 Tóm tắt Câu 06 trong 1 câu siêu dễ nhớ</span>
+        </div>
+        <h2 class="text-xl sm:text-2xl font-black leading-snug mb-3">
+          Ảnh 4×4 đi qua 4 trạm: Kính lúp <code class="bg-white/25 px-1.5 py-0.5 rounded-lg font-mono">conv2d</code> (không lật!) → Bảo vệ <code class="bg-white/25 px-1.5 py-0.5 rounded-lg font-mono">ReLU</code> xóa số âm → Chọn max 2×2 → <code class="bg-white/25 px-1.5 py-0.5 rounded-lg font-mono">permute</code> xếp xen kẽ <code class="bg-white/25 px-1.5 py-0.5 rounded-lg font-mono">0, 15, 0, 17...</code>!
+        </h2>
+        <p class="text-white/95 text-sm sm:text-base leading-relaxed">
+          Đọc 4 câu chuyện đời thường và lật 8 thẻ từ vựng dưới đây, bạn sẽ hiểu ngay toàn bộ đường đi của một mạng CNN mà không cần nhớ công thức phức tạp!
+        </p>
+      </div>
+
+      <!-- 4 Everyday Metaphor Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- 1. conv2d -->
+        <article class="bg-white rounded-3xl border-2 border-cream-200 p-6 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-cream-100 text-cocoa-800 border border-cream-200">
+                Trạm 1 • Quét ảnh 4×4
+              </span>
+              <span class="text-2xl">🔎</span>
+            </div>
+            <h3 class="text-lg font-black text-cocoa-900 mb-2">
+              <code class="font-mono text-blush-500">conv2d</code> = Kính lúp trượt trên lưới ảnh (KHÔNG lật!)
+            </h3>
+            <p class="text-sm text-cocoa-700 leading-relaxed mb-3">
+              Ta đặt 2 chiếc kính lúp 2×2 (<code class="font-mono font-bold">kernel</code>) trượt từng bước trên bảng ảnh 4×4, nhân từng ô chồng khớp rồi cộng thêm <code class="font-mono font-bold">bias</code>.
+            </p>
+            <div class="p-3.5 rounded-2xl bg-blush-50 border-2 border-blush-100 text-xs text-cocoa-800 space-y-1">
+              <p>🚨 <strong>Cực kỳ quan trọng:</strong> <code class="font-mono font-bold text-blush-500">F.conv2d</code> trong PyTorch <strong>KHÔNG lật ngược kính lúp</strong>!</p>
+              <p>Nhờ vậy Kính lúp 0 (<code class="font-mono">[[1,0],[0,-1]]</code> + bias 1) ở ô nào cũng cho ra <strong>-4</strong> (nếu lật ngược mới ra +6 là bẫy của đáp án C!).</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 2. ReLU -->
+        <article class="bg-white rounded-3xl border-2 border-mint-200 p-6 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-mint-50 text-mint-600 border border-mint-200">
+                Trạm 2 • Chặn số âm
+              </span>
+              <span class="text-2xl">🛡️</span>
+            </div>
+            <h3 class="text-lg font-black text-cocoa-900 mb-2">
+              <code class="font-mono text-mint-600">ReLU</code> = Chú bảo vệ chặn mọi số âm biến thành 0
+            </h3>
+            <p class="text-sm text-cocoa-700 leading-relaxed mb-4">
+              Luật của bảo vệ <code class="font-mono font-bold">ReLU</code> cực kỳ đơn giản: <em>"Số dương cho đi qua giữ nguyên; số âm (&lt; 0) thì gạt về đúng bằng <strong>0.0</strong>!"</em>
+            </p>
+            <div class="p-3.5 rounded-2xl bg-mint-50 border border-mint-200 text-xs text-cocoa-800 space-y-1">
+              <p>• Kênh 0 toàn số <strong>-4</strong> → Bị chú bảo vệ đổi sạch thành <strong>toàn số 0.0</strong>!</p>
+              <p>• Kênh 1 toàn số dương (<strong>5 → 25</strong>) → Đi qua an toàn, giữ nguyên!</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 3. max_pool2d -->
+        <article class="bg-white rounded-3xl border-2 border-honey-300 p-6 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-honey-100 text-cocoa-900 border border-honey-300">
+                Trạm 3 • Thu gọn ảnh
+              </span>
+              <span class="text-2xl">🏆</span>
+            </div>
+            <h3 class="text-lg font-black text-cocoa-900 mb-2">
+              <code class="font-mono text-cocoa-800">max_pool2d</code> = Chọn học sinh cao nhất trong mỗi nhóm 2×2
+            </h3>
+            <p class="text-sm text-cocoa-700 leading-relaxed mb-4">
+              Trượt khung 2×2 (mỗi lần bước 1 ô vì <code class="font-mono">stride=1</code>) trên lưới 3×3 để thu gọn thành lưới 2×2. Trong mỗi nhóm 4 số, chỉ giữ lại <strong>số lớn nhất</strong>!
+            </p>
+            <div class="p-3.5 rounded-2xl bg-cream-100 border border-honey-300 text-xs text-cocoa-800 space-y-1">
+              <p>• Kênh 0 (toàn 0) → Vẫn ra lưới 2×2 toàn <strong>0</strong>.</p>
+              <p>• Kênh 1 (5..25) → Chọn 4 số lớn nhất ở góc dưới-phải mỗi khung: <strong>[[15, 17], [23, 25]]</strong>!</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 4. permute(0, 2, 3, 1) -->
+        <article class="bg-white rounded-3xl border-2 border-blush-400 p-6 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-blush-100 text-blush-500 border border-blush-200">
+                Trạm 4 • Bẫy xếp hàng 🚨
+              </span>
+              <span class="text-2xl">🔀</span>
+            </div>
+            <h3 class="text-lg font-black text-cocoa-900 mb-2">
+              <code class="font-mono text-blush-500">permute(0, 2, 3, 1)</code> = Đổi từ "gom kênh" sang "xen kẽ từng ô"!
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs mt-3">
+              <div class="p-3 rounded-2xl bg-coral-50 border-2 border-coral-200">
+                <p class="font-black text-coral-500 mb-1">❌ Không permute (NCHW)</p>
+                <p class="text-cocoa-700">Đọc hết Kênh 0 rồi mới đọc Kênh 1:</p>
+                <p class="font-mono font-bold text-coral-500 mt-1">[0, 0, 0, 0, 15, 17, 23, 25]</p>
+                <p class="text-[11px] text-cocoa-500 mt-0.5">(Bẫy Đáp án B)</p>
+              </div>
+              <div class="p-3 rounded-2xl bg-mint-50 border-2 border-mint-200">
+                <p class="font-black text-mint-600 mb-1">✅ Có permute (NHWC)</p>
+                <p class="text-cocoa-700">Tại mỗi ô đọc xen kẽ [Kênh 0, Kênh 1]:</p>
+                <p class="font-mono font-bold text-mint-600 mt-1">[0, 15, 0, 17, 0, 23, 0, 25]</p>
+                <p class="text-[11px] text-cocoa-500 mt-0.5">(Chuẩn Đáp án A!)</p>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <!-- 8 Interactive Vocab Flashcards -->
+      <div class="bg-white rounded-3xl border-2 border-cream-200 p-5 sm:p-6 shadow-xs">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+          <div>
+            <span class="inline-block px-3 py-0.5 rounded-full text-xs font-extrabold bg-honey-100 text-cocoa-900 mb-1">
+              📖 Từ điển Anh–Việt cho Non-tech (8 thẻ)
+            </span>
+            <h3 class="text-base sm:text-lg font-black text-cocoa-900">
+              Nhấp vào từng thẻ từ vựng để lật xem nghĩa đời thường!
+            </h3>
+          </div>
+          <button onclick="flipAllVocab()" class="px-3.5 py-2 rounded-xl bg-cream-100 hover:bg-cream-200 text-cocoa-800 text-xs font-extrabold border-2 border-cream-200 border-b-4 transition cursor-pointer self-start sm:self-auto">
+            🔄 Lật tất cả thẻ
+          </button>
+        </div>
+
+        <div id="vocab-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <!-- JS Populated -->
+        </div>
+      </div>
+
+      <!-- CTA to Tab 2 -->
+      <div class="bg-white rounded-3xl border-2 border-cream-200 p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-2xl bg-honey-400 text-cocoa-900 flex items-center justify-center text-xl border-b-4 border-honey-500 shrink-0">
+            🦉
+          </div>
+          <div>
+            <h4 class="text-sm font-black text-cocoa-900">Đã thuộc lòng 4 trạm CNN rồi chứ?</h4>
+            <p class="text-xs text-cocoa-500">Sang Tab 2 để bấm từng dòng code và xem các lưới ảnh 4×4 → 3×3 → 2×2 → 1×8 biến hóa nhé!</p>
+          </div>
+        </div>
+        <button onclick="switchTab('2')" class="w-full sm:w-auto px-5 py-2.5 rounded-2xl bg-blush-400 hover:bg-blush-500 active:translate-y-0.5 text-white text-sm font-extrabold border-b-4 border-blush-500 transition cursor-pointer">
+          Đi tới Tab 2: Từng dòng code →
+        </button>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 2: TỪNG DÒNG CODE + LIVE STATE                                  -->
+    <!-- =================================================================== -->
+    <section id="tab-panel-2" class="tab-panel hidden space-y-5">
+      <div class="bg-white rounded-3xl border-2 border-cream-200 p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="text-base sm:text-lg font-black text-cocoa-900">Click từng dòng code để xem lời giải thích + Phép tính tay + Lưới Live State</h2>
+          <p class="text-xs sm:text-sm text-cocoa-500">Theo dõi sự thu gọn kích thước: <code class="font-mono">4×4</code> → <code class="font-mono">2 kênh 3×3</code> → <code class="font-mono">2 kênh 2×2</code> → <code class="font-mono">flat (8 số)</code> → <code class="font-mono">logits (2 số)</code>.</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 shrink-0">
+          <span class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-xl bg-honey-100 text-cocoa-900 border border-honey-300">
+            <span class="w-2 h-2 rounded-full bg-honey-500"></span> Dữ liệu / Kính lúp
+          </span>
+          <span class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-xl bg-blush-100 text-blush-500 border border-blush-200">
+            <span class="w-2 h-2 rounded-full bg-blush-500"></span> Bẫy dễ sai
+          </span>
+          <span class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-xl bg-mint-50 text-mint-600 border border-mint-200">
+            <span class="w-2 h-2 rounded-full bg-mint-500"></span> Kết quả chuẩn
+          </span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <!-- Left: Code Panel -->
+        <div class="lg:col-span-5 bg-cocoa-900 rounded-3xl shadow-md border-2 border-cocoa-700 overflow-hidden">
+          <div class="flex items-center justify-between px-4 py-3 bg-cocoa-800 border-b border-cocoa-700">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-coral-400"></span>
+              <span class="w-3 h-3 rounded-full bg-honey-400"></span>
+              <span class="w-3 h-3 rounded-full bg-mint-500"></span>
+              <span class="ml-2 text-xs font-mono text-cream-100">cau_06_cnn_pooling.py</span>
+            </div>
+            <span class="text-[11px] font-semibold text-honey-300">Click từng dòng</span>
+          </div>
+          <div id="code-lines-container" class="p-3 overflow-x-auto font-mono text-xs sm:text-[13px] space-y-1">
+            <!-- JS Populated -->
+          </div>
+        </div>
+
+        <!-- Right: Explanation + Visual Grids -->
+        <div class="lg:col-span-7 lg:sticky lg:top-40">
+          <div class="bg-white rounded-3xl border-2 border-cream-200 shadow-sm overflow-hidden">
+            <!-- Navigation Bar -->
+            <div class="flex items-center justify-between px-5 py-3.5 bg-cream-100 border-b-2 border-cream-200">
+              <span id="step-counter" class="text-xs font-black text-cocoa-700 uppercase tracking-wider">
+                Bước 1 / 12
+              </span>
+              <div class="flex items-center gap-2">
+                <button id="prev-line-btn" class="px-3.5 py-1.5 rounded-xl bg-white hover:bg-cream-50 text-cocoa-800 border-2 border-cream-200 border-b-4 text-xs font-extrabold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+                  ← Dòng trước
+                </button>
+                <button id="next-line-btn" class="px-3.5 py-1.5 rounded-xl bg-blush-400 hover:bg-blush-500 text-white border-b-4 border-blush-500 text-xs font-extrabold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+                  Dòng tiếp theo →
+                </button>
+              </div>
+            </div>
+
+            <!-- Dynamic Step Body -->
+            <div id="line-explanation-content" class="p-5 sm:p-6 space-y-5">
+              <!-- JS Populated -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 3: PHÒNG THÍ NGHIỆM CNN                                         -->
+    <!-- =================================================================== -->
+    <section id="tab-panel-3" class="tab-panel hidden space-y-8">
+
+      <!-- EXPERIMENT 1: INTERACTIVE 2x2 SLIDING WINDOW ON 4x4 IMAGE -->
+      <div class="bg-white rounded-3xl border-2 border-cream-200 p-5 sm:p-6 shadow-xs space-y-5">
+        <div class="pb-4 border-b-2 border-cream-100">
+          <span class="inline-block px-3 py-0.5 rounded-full text-xs font-extrabold bg-honey-100 text-cocoa-900 mb-1">
+            🔎 Thí nghiệm 1 (+10 XP)
+          </span>
+          <h2 class="text-lg font-black text-cocoa-900">
+            Tự tay trượt kính lúp 2×2 trên ảnh <code class="font-mono text-blush-500">x</code> (4×4)
+          </h2>
+          <p class="text-xs sm:text-sm text-cocoa-500 mt-0.5">
+            Click vào bất kỳ ô kết quả nào trong bảng 3×3 bên phải (từ vị trí <code class="font-mono">(0,0)</code> đến <code class="font-mono">(2,2)</code>) để xem kính lúp đặt lên 4 ô nào của ảnh và phép tính ra sao!
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <!-- Left: 4x4 Input Image x with Highlighted 2x2 Window -->
+          <div class="lg:col-span-5 flex flex-col items-center">
+            <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-cocoa-800 text-white mb-3">
+              Ảnh gốc x (4×4) — Khung 2×2 đang soi
+            </span>
+            <div id="exp1-x-grid" class="grid grid-cols-4 gap-2 bg-cream-100 p-3.5 rounded-2xl border-2 border-cream-200 font-mono">
+              <!-- JS Populated -->
+            </div>
+            <p id="exp1-window-label" class="text-xs font-bold text-blush-500 mt-2.5"></p>
+          </div>
+
+          <!-- Right: Clickable 3x3 Output Grids for Channel 0 & Channel 1 -->
+          <div class="lg:col-span-7 space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Channel 0 Output (3x3) -->
+              <div class="p-4 rounded-2xl bg-blush-50/70 border-2 border-blush-200 flex flex-col items-center">
+                <span class="text-xs font-black text-blush-500 mb-1">Kênh 0 (Kernel 0, bias +1)</span>
+                <p class="text-[11px] text-cocoa-500 mb-2.5">👆 Click ô nào cũng ra -4 → ReLU thành 0!</p>
+                <div id="exp1-ch0-grid" class="grid grid-cols-3 gap-1.5 font-mono">
+                  <!-- JS -->
+                </div>
+              </div>
+
+              <!-- Channel 1 Output (3x3) -->
+              <div class="p-4 rounded-2xl bg-mint-50/70 border-2 border-mint-200 flex flex-col items-center">
+                <span class="text-xs font-black text-mint-600 mb-1">Kênh 1 (Kernel 1, bias -2)</span>
+                <p class="text-[11px] text-cocoa-500 mb-2.5">👆 Click từng ô để trượt kính lúp</p>
+                <div id="exp1-ch1-grid" class="grid grid-cols-3 gap-1.5 font-mono">
+                  <!-- JS -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Live Arithmetic Inspector -->
+            <div id="exp1-inspector" class="bg-cocoa-900 text-cream-50 rounded-3xl p-4 sm:p-5 space-y-2.5 shadow-sm">
+              <!-- JS Populated -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EXPERIMENT 2: PERMUTE (NHWC) VS NO PERMUTE (NCHW) -->
+      <div class="bg-white rounded-3xl border-2 border-blush-200 p-5 sm:p-6 shadow-xs space-y-5">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b-2 border-cream-100">
+          <div>
+            <span class="inline-block px-3 py-0.5 rounded-full text-xs font-extrabold bg-blush-100 text-blush-500 mb-1">
+              🔀 Thí nghiệm 2 (+10 XP)
+            </span>
+            <h2 class="text-lg font-black text-cocoa-900">
+              So sánh thứ tự trải phẳng: Có <code class="font-mono text-mint-600">permute</code> (NHWC) vs Không <code class="font-mono text-coral-500">permute</code> (NCHW)
+            </h2>
+            <p class="text-xs sm:text-sm text-cocoa-500 mt-0.5">
+              Bật công tắc bên phải để thấy tại sao <strong>Đáp án B</strong> bị sai toàn tập từ <code class="font-mono">flat</code> đến <code class="font-mono">logits</code>!
+            </p>
+          </div>
+          <div class="inline-flex p-1.5 rounded-2xl bg-cream-100 border-2 border-cream-200 self-start md:self-auto">
+            <button id="perm-on-btn" onclick="setPermuteMode(true)" class="px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer">
+              ✅ Có permute (NHWC - ĐÚNG)
+            </button>
+            <button id="perm-off-btn" onclick="setPermuteMode(false)" class="px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer">
+              🚨 Không permute (NCHW - Bẫy B)
+            </button>
+          </div>
+        </div>
+
+        <!-- Visual Comparison Output -->
+        <div id="exp2-content" class="space-y-5">
+          <!-- JS Populated -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 4: MẸO KHOANH 15 GIÂY & MINI-QUIZ 4 CÂU                         -->
+    <!-- =================================================================== -->
+    <section id="tab-panel-4" class="tab-panel hidden space-y-8">
+      <!-- 15-Second Strategy -->
+      <div class="bg-white rounded-3xl border-2 border-cream-200 p-5 sm:p-6 shadow-xs">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+          <div>
+            <span class="inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-xs font-extrabold bg-blush-100 text-blush-500 mb-1">
+              ⚡ Chiến thuật phòng thi 15 giây
+            </span>
+            <h2 class="text-lg sm:text-xl font-black text-cocoa-900">
+              Loại nhanh C → B → D trong 15 giây, chốt ngay Đáp án A!
+            </h2>
+          </div>
+          <button onclick="toggleExamHints()" class="px-4 py-2 rounded-2xl bg-cream-100 hover:bg-cream-200 text-cocoa-800 text-xs font-extrabold border-2 border-cream-200 border-b-4 transition cursor-pointer self-start sm:self-auto">
+            👁️ Ẩn/Hiện đánh dấu sai
+          </button>
+        </div>
+
+        <!-- 3-Step Elimination Checklist -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+          <div class="p-4 rounded-2xl bg-coral-50 border-2 border-coral-200">
+            <p class="text-xs font-black text-coral-500">Bước 1 (4s): Nhìn Kênh 0 sau ReLU</p>
+            <p class="text-xs text-cocoa-800 mt-1"><code class="font-mono">conv2d</code> không lật kernel → Kênh 0 toàn <code class="font-mono">-4</code> → qua <code class="font-mono">ReLU</code> thành <strong>0.0</strong> (không thể có số <code class="font-mono">6.0</code>) → <strong>Loại ngay C!</strong></p>
+          </div>
+          <div class="p-4 rounded-2xl bg-honey-100/80 border-2 border-honey-300">
+            <p class="text-xs font-black text-cocoa-900">Bước 2 (5s): Nhìn thứ tự permute</p>
+            <p class="text-xs text-cocoa-800 mt-1"><code class="font-mono">permute(0, 2, 3, 1)</code> xếp <strong>xen kẽ</strong> Kênh 0 và Kênh 1 (<code class="font-mono">0, 15, 0, 17...</code>), không gom 4 số 0 đầu → <strong>Loại ngay B!</strong></p>
+          </div>
+          <div class="p-4 rounded-2xl bg-mint-50 border-2 border-mint-200">
+            <p class="text-xs font-black text-mint-600">Bước 3 (6s): Nhìn dấu của logits</p>
+            <p class="text-xs text-cocoa-800 mt-1"><code class="font-mono">weights[0]</code> đặt <code class="font-mono">-1</code> đúng vào vị trí lẻ (15, 17, 23, 25) → tổng chắc chắn ÂM (<code class="font-mono">-80</code>) → <strong>Loại D! Chốt A!</strong> (<code class="font-mono">-16 &gt; -80 ⇒ [1]</code>)</p>
+          </div>
+        </div>
+
+        <!-- 4 Options Cards -->
+        <div class="space-y-4">
+          <!-- Option A (CORRECT) -->
+          <div class="rounded-2xl border-2 border-mint-500 bg-mint-50/70 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-mint-500 text-white font-black text-sm flex items-center justify-center border-b-2 border-mint-600">A</span>
+                <span class="text-sm font-black text-mint-600">Phương án A</span>
+              </div>
+              <span class="exam-hint px-3 py-1 rounded-full text-xs font-extrabold bg-mint-500 text-white">
+                ✅ ĐÁP ÁN ĐÚNG 100%
+              </span>
+            </div>
+            <pre class="bg-white rounded-xl p-3 border-2 border-mint-200 text-[11px] sm:text-xs font-mono text-cocoa-900 overflow-x-auto leading-relaxed"><span class="bg-mint-100 text-emerald-950 font-bold px-1 rounded">[[0.0, 15.0, 0.0, 17.0, 0.0, 23.0, 0.0, 25.0]]</span> <span class="bg-mint-100 text-emerald-950 font-bold px-1 rounded">[[-80.0, -16.0]]</span> <span class="bg-mint-100 text-emerald-950 font-bold px-1 rounded">[1]</span></pre>
+            <p class="exam-hint text-xs text-mint-600 mt-2 font-semibold">
+              🎯 <strong>Chuẩn cả 3 tiêu chí:</strong> Kênh 0 thành 0; xen kẽ NHWC; <code class="font-mono">logits = [-80, -16]</code> và vì <code class="font-mono">-16 &gt; -80</code> nên <code class="font-mono">argmax = [1]</code>!
+            </p>
+          </div>
+
+          <!-- Option B -->
+          <div class="rounded-2xl border-2 border-cream-200 bg-cream-50/70 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-cream-200 text-cocoa-900 font-black text-sm flex items-center justify-center">B</span>
+                <span class="text-sm font-extrabold text-cocoa-900">Phương án B</span>
+              </div>
+              <span class="exam-hint px-3 py-1 rounded-full text-xs font-extrabold bg-coral-50 text-coral-500 border border-coral-200">
+                ❌ LOẠI (Quên permute — giữ nguyên thứ tự gom nhóm NCHW)
+              </span>
+            </div>
+            <pre class="bg-white rounded-xl p-3 border border-cream-200 text-[11px] sm:text-xs font-mono text-cocoa-800 overflow-x-auto leading-relaxed"><span class="bg-coral-200 text-red-900 font-bold px-1 rounded">[[0.0, 0.0, 0.0, 0.0, 15.0, 17.0, 23.0, 25.0]]</span> [[-4.0, -80.0]] [0]</pre>
+          </div>
+
+          <!-- Option C -->
+          <div class="rounded-2xl border-2 border-cream-200 bg-cream-50/70 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-cream-200 text-cocoa-900 font-black text-sm flex items-center justify-center">C</span>
+                <span class="text-sm font-extrabold text-cocoa-900">Phương án C</span>
+              </div>
+              <span class="exam-hint px-3 py-1 rounded-full text-xs font-extrabold bg-coral-50 text-coral-500 border border-coral-200">
+                ❌ LOẠI (Lật nhầm kernel 0 thành +6.0 thay vì -4.0 → ReLU 0.0)
+              </span>
+            </div>
+            <pre class="bg-white rounded-xl p-3 border border-cream-200 text-[11px] sm:text-xs font-mono text-cocoa-800 overflow-x-auto leading-relaxed">[[<span class="bg-coral-200 text-red-900 font-bold px-1 rounded">6.0</span>, 15.0, <span class="bg-coral-200 text-red-900 font-bold px-1 rounded">6.0</span>, 17.0, <span class="bg-coral-200 text-red-900 font-bold px-1 rounded">6.0</span>, 23.0, <span class="bg-coral-200 text-red-900 font-bold px-1 rounded">6.0</span>, 25.0]] [[-56.0, -16.0]] [1]</pre>
+          </div>
+
+          <!-- Option D -->
+          <div class="rounded-2xl border-2 border-cream-200 bg-cream-50/70 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-cream-200 text-cocoa-900 font-black text-sm flex items-center justify-center">D</span>
+                <span class="text-sm font-extrabold text-cocoa-900">Phương án D</span>
+              </div>
+              <span class="exam-hint px-3 py-1 rounded-full text-xs font-extrabold bg-coral-50 text-coral-500 border border-coral-200">
+                ❌ LOẠI (Đổi dấu nhầm logits thành dương [[80.0, 16.0]])
+              </span>
+            </div>
+            <pre class="bg-white rounded-xl p-3 border border-cream-200 text-[11px] sm:text-xs font-mono text-cocoa-800 overflow-x-auto leading-relaxed">[[0.0, 15.0, 0.0, 17.0, 0.0, 23.0, 0.0, 25.0]] <span class="bg-coral-200 text-red-900 font-bold px-1 rounded">[[80.0, 16.0]] [0]</span></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mini-Quiz (4 Questions) -->
+      <div class="bg-white rounded-3xl border-2 border-cream-200 p-5 sm:p-6 shadow-xs">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-5 border-b-2 border-cream-100">
+          <div>
+            <span class="inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-xs font-extrabold bg-mint-50 text-mint-600 mb-1">
+              🎯 Mini-Quiz 4 câu (+15 XP / câu đúng)
+            </span>
+            <h3 class="text-lg font-black text-cocoa-900">
+              Hoàn thành 4 câu &amp; trải nghiệm đủ các tab để cán mốc 100 XP nhận hiệu ứng chúc mừng!
+            </h3>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="px-4 py-1.5 rounded-2xl bg-blush-50 border-2 border-blush-200 text-sm font-black text-blush-500">
+              Điểm: <span id="quiz-score">0</span> / 4
+            </div>
+            <button onclick="resetQuiz()" class="px-3.5 py-1.5 rounded-2xl bg-cream-100 hover:bg-cream-200 text-cocoa-800 text-xs font-extrabold border-2 border-cream-200 border-b-4 transition cursor-pointer">
+              🔄 Làm lại
+            </button>
+          </div>
+        </div>
+
+        <div id="quiz-container" class="space-y-5">
+          <!-- JS Populated -->
+        </div>
+
+        <!-- 100 XP Celebration Banner -->
+        <div id="xp-win-banner" class="hidden mt-6 p-6 rounded-3xl bg-gradient-to-r from-honey-400 via-blush-400 to-mint-500 text-white text-center shadow-md border-b-4 border-cocoa-800/20">
+          <p class="text-3xl mb-2">✨🌸🦋🏆🦋🌸✨</p>
+          <p class="text-lg sm:text-xl font-black">TUYỆT VỜI! BẠN ĐÃ ĐẠT 100 / 100 XP!</p>
+          <p class="text-xs sm:text-sm text-white/95 mt-1 font-medium">
+            Chốt bí kíp Câu 06: <strong>conv2d không lật (-4 → ReLU 0) • permute xen kẽ NHWC • logits âm [-80, -16] ⇒ argmax [1] → Chọn A!</strong>
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t-2 border-cream-200 py-4 mt-8">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 text-center text-xs text-cocoa-500 font-medium">
+      Ôn thi Câu 06: CNN, Pooling &amp; Thứ Tự Flatten • Giao diện Gamified Pastel dành cho Non-tech
+    </div>
+  </footer>
+
+  <!-- Complete Application JavaScript -->
+  <script>
+    // =========================================================================
+    // 0. GAMIFIED XP ENGINE (0 -> 100 XP) + PARTICLE CELEBRATION
+    // =========================================================================
+    // 4 Tabs (5 XP each = 20) + Exp1 (10 XP) + Exp2 (10 XP) + 4 Quiz (15 XP each = 60) = 100 XP
+    const xpState = {
+      tabs: new Set(['1']),
+      exp1: false,
+      exp2: false,
+      quizCorrectCount: 0,
+      celebrated: false,
+    };
+
+    function launchCelebration() {
+      const layer = document.getElementById('celebration-layer');
+      if (!layer) return;
+      const icons = ['⭐', '✨', '🌸', '🦋', '🎉', '🌼', '💖'];
+      for (let i = 0; i < 38; i++) {
+        const span = document.createElement('span');
+        span.className = 'celebrate-particle';
+        span.textContent = icons[i % icons.length];
+        span.style.left = `${Math.random() * 96 + 2}vw`;
+        span.style.fontSize = `${Math.random() * 16 + 18}px`;
+        span.style.animationDelay = `${Math.random() * 1.2}s`;
+        span.style.animationDuration = `${Math.random() * 1.6 + 2.4}s`;
+        layer.appendChild(span);
+        setTimeout(() => span.remove(), 4600);
+      }
+    }
+
+    function updateXP() {
+      try {
+        const tabXP = xpState.tabs.size * 5;
+        const labXP = (xpState.exp1 ? 10 : 0) + (xpState.exp2 ? 10 : 0);
+        const quizXP = xpState.quizCorrectCount * 15;
+        const total = Math.min(100, tabXP + labXP + quizXP);
+
+        const valEl = document.getElementById('xp-value');
+        const barEl = document.getElementById('xp-bar');
+        const winBanner = document.getElementById('xp-win-banner');
+
+        if (valEl) valEl.textContent = String(total);
+        if (barEl) barEl.style.width = `${total}%`;
+        if (winBanner) winBanner.classList.toggle('hidden', total < 100);
+
+        if (total === 100 && !xpState.celebrated) {
+          xpState.celebrated = true;
+          launchCelebration();
+        }
+      } catch (err) {
+        console.error('XP error:', err);
+      }
+    }
+
+    // =========================================================================
+    // 1. TAB 1: 8 INTERACTIVE ANH-VIET FLASHCARDS
+    // =========================================================================
+    const vocabList = [
+      { term: 'conv2d', short: 'Trượt kính lúp quét ảnh', meaning: 'Hàm tích chập 2 chiều trong PyTorch. Trượt từng bộ lọc (kernel) lên ảnh đầu vào, nhân tương ứng từng ô rồi cộng lại. LƯU Ý: Không lật ngược kernel!' },
+      { term: 'kernel', short: 'Mặt kính lúp (Bộ lọc)', meaning: 'Ma trận nhỏ (ở bài này là 2×2) chứa các trọng số để phát hiện đặc trưng. Bài này có 2 kernel riêng biệt nên đầu ra có 2 kênh (Kênh 0 và Kênh 1).' },
+      { term: 'bias', short: 'Số cộng thêm cho mỗi kênh', meaning: 'Sau khi nhân và cộng 4 ô của kính lúp, ta cộng thêm hệ số bias của kênh đó: Kênh 0 cộng +1.0, Kênh 1 cộng -2.0.' },
+      { term: 'ReLU', short: 'Bảo vệ chặn số âm về 0', meaning: 'Hàm kích hoạt max(0, x). Số dương giữ nguyên, số âm bị biến hết thành 0.0. Nhờ ReLU mà toàn bộ Kênh 0 (-4) biến thành 0.0.' },
+      { term: 'max_pool2d', short: 'Chọn số lớn nhất trong khung', meaning: 'Lấy giá trị lớn nhất trong mỗi cửa sổ 2×2 (bước nhảy stride=1), giúp thu gọn bảng 3×3 xuống 2×2 mà vẫn giữ lại điểm nổi bật nhất.' },
+      { term: 'permute', short: 'Hoán đổi thứ tự các chiều', meaning: 'permute(0, 2, 3, 1) đổi từ NCHW (gom theo kênh) sang NHWC (gom theo tọa độ ô), khiến khi trải phẳng các kênh bị đọc xen kẽ nhau!' },
+      { term: 'reshape(1, -1)', short: 'Trải phẳng thành 1 hàng ngang', meaning: 'Duỗi toàn bộ các số trong khối 2×2×2 thành một hàng ngang duy nhất gồm 8 số (1×8). Số -1 nghĩa là để Python tự tính độ dài.' },
+      { term: 'argmax', short: 'Vị trí của số lớn nhất', meaning: 'Trả về CHỈ SỐ (0 hoặc 1) của phần tử lớn nhất, không phải giá trị! Vì -16.0 > -80.0 nên vị trí lớn nhất là [1].' }
+    ];
+
+    const flippedVocab = new Set();
+    function toggleVocab(idx) {
+      if (flippedVocab.has(idx)) flippedVocab.delete(idx);
+      else flippedVocab.add(idx);
+      renderVocab();
+    }
+    function flipAllVocab() {
+      if (flippedVocab.size === vocabList.length) flippedVocab.clear();
+      else vocabList.forEach((_, i) => flippedVocab.add(i));
+      renderVocab();
+    }
+    function renderVocab() {
+      const grid = document.getElementById('vocab-grid');
+      if (!grid) return;
+      grid.innerHTML = vocabList.map((item, idx) => {
+        const isFlipped = flippedVocab.has(idx);
+        if (isFlipped) {
+          return `
+            <button type="button" onclick="toggleVocab(${idx})"
+              class="text-left p-4 rounded-2xl border-2 border-honey-400 bg-honey-100/70 border-b-4 border-b-honey-500 transition cursor-pointer flex flex-col justify-between min-h-[140px]">
+              <div>
+                <p class="font-mono text-xs font-black text-blush-500 mb-1">${item.term}</p>
+                <p class="text-xs text-cocoa-900 leading-relaxed font-medium">${item.meaning}</p>
+              </div>
+              <span class="text-[10px] font-bold text-cocoa-500 mt-2">👆 Bấm để úp lại</span>
+            </button>
+          `;
+        }
+        return `
+          <button type="button" onclick="toggleVocab(${idx})"
+            class="text-left p-4 rounded-2xl border-2 border-cream-200 bg-cream-50 hover:bg-cream-100 border-b-4 border-b-cream-200 transition cursor-pointer flex flex-col justify-between min-h-[140px]">
+            <div>
+              <span class="inline-block px-2 py-0.5 rounded-lg text-[10px] font-extrabold bg-blush-100 text-blush-500 mb-2">Thẻ #${idx + 1}</span>
+              <p class="font-mono text-sm font-black text-cocoa-900 break-words">${item.term}</p>
+              <p class="text-xs text-cocoa-500 mt-1 font-semibold">${item.short}</p>
+            </div>
+            <span class="text-[11px] font-extrabold text-blush-500 mt-3">👆 Bấm để lật xem nghĩa →</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    // =========================================================================
+    // 2. TAB 2: LINE-BY-LINE CODE EXPLANATION + VISUAL LIVE STATE
+    // =========================================================================
+    const codeSteps = [
+      {
+        lines: '1-2',
+        code: 'import torch\nimport torch.nn.functional as F',
+        badge: 'Khởi động',
+        theme: 'neutral',
+        title: 'Mở PyTorch và kho công cụ hàm mạng nơ-ron (F)',
+        everyday: 'Đặt tên tắt là F để lát nữa gọi gọn F.conv2d, F.relu và F.max_pool2d.',
+        math: 'Chưa có dữ liệu hay phép tính nào.',
+        visual: null
+      },
+      {
+        lines: '3',
+        code: 'x = torch.arange(1., 17.).reshape(1, 1, 4, 4)',
+        badge: '🖼️ Tạo ảnh 4×4',
+        theme: 'honey',
+        title: 'Tạo bức ảnh đầu vào x gồm các số từ 1 đến 16 xếp thành lưới 4×4',
+        everyday: 'Hình dáng (1, 1, 4, 4) nghĩa là: 1 bức ảnh, 1 kênh màu xám, cao 4 ô, rộng 4 ô (thứ tự NCHW chuẩn của PyTorch).',
+        math: 'Hàng 0: 1..4 | Hàng 1: 5..8 | Hàng 2: 9..12 | Hàng 3: 13..16.\nMẹo hay: Ô chéo dưới-phải luôn lớn hơn ô trên-trái đúng 5 đơn vị!',
+        visual: {
+          type: 'single',
+          title: 'Ảnh đầu vào x (4×4)',
+          cols: 4,
+          accent: 'honey',
+          data: [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16]]
+        }
+      },
+      {
+        lines: '4-8',
+        code: 'kernel = torch.tensor([\n    [[[1., 0.], [0., -1.]]],\n    [[[0., 1.], [1., 0.]]]\n])\nbias = torch.tensor([1., -2.])',
+        badge: '🔎 2 Kính lúp & Bias',
+        theme: 'honey',
+        title: 'Chuẩn bị 2 kính lúp 2×2 (Kênh 0 & Kênh 1) kèm 2 số bias',
+        everyday: 'Kính lúp 0 lấy (trên-trái − dưới-phải) rồi cộng 1. Kính lúp 1 lấy (trên-phải + dưới-trái) rồi trừ 2.',
+        math: 'Kernel 0: [[1, 0], [0, -1]], bias = +1.\nKernel 1: [[0, 1], [1, 0]], bias = -2.',
+        visual: {
+          type: 'dual',
+          leftTitle: 'Kernel 0 (bias +1)',
+          leftCols: 2,
+          leftAccent: 'blush',
+          leftData: [['1', '0'], ['0', '-1']],
+          rightTitle: 'Kernel 1 (bias -2)',
+          rightCols: 2,
+          rightAccent: 'mint',
+          rightData: [['0', '1'], ['1', '0']]
+        }
+      },
+      {
+        lines: '9',
+        code: 'z = F.conv2d(x, kernel, bias=bias)',
+        badge: '🚨 Bẫy 1: KHÔNG lật kernel',
+        theme: 'blush',
+        title: 'Trượt 2 kính lúp lên ảnh 4×4 → Ra 2 bảng 3×3 (Kênh 0 toàn -4!)',
+        everyday: 'Vì F.conv2d KHÔNG lật ngược kính lúp, nên ở mọi vị trí Kênh 0 đều tính: a − (a+5) + 1 = -4! Còn Kênh 1 cộng 2 ô chéo rồi trừ 2, ra các số lẻ từ 5 đến 25.',
+        math: 'Ví dụ góc trên-trái [[1,2],[5,6]]:\n• Kênh 0: 1×1 + 0×2 + 0×5 + (-1)×6 + 1 = -4.\n• Kênh 1: 0×1 + 1×2 + 1×5 + 0×6 - 2 = 5.',
+        visual: {
+          type: 'dual',
+          leftTitle: 'z — Kênh 0 (3×3): Toàn -4!',
+          leftCols: 3,
+          leftAccent: 'blush',
+          leftData: [[-4, -4, -4], [-4, -4, -4], [-4, -4, -4]],
+          rightTitle: 'z — Kênh 1 (3×3): 5 → 25',
+          rightCols: 3,
+          rightAccent: 'mint',
+          rightData: [[5, 7, 9], [13, 15, 17], [21, 23, 25]]
+        }
+      },
+      {
+        lines: '10',
+        code: 'a = F.relu(z)',
+        badge: '🛡️ Bảo vệ ReLU',
+        theme: 'mint',
+        title: 'ReLU xóa sạch mọi số âm → Toàn bộ Kênh 0 biến thành 0.0!',
+        everyday: 'Chú bảo vệ ReLU thấy Kênh 0 toàn -4 nên biến hết thành 0.0 (loại ngay Đáp án C có số 6.0!). Kênh 1 toàn số dương nên đi qua nguyên vẹn.',
+        math: 'ReLU(-4) = 0.0 | ReLU(5..25) = 5..25.',
+        visual: {
+          type: 'dual',
+          leftTitle: 'a — Kênh 0 sau ReLU (Toàn 0)',
+          leftCols: 3,
+          leftAccent: 'honey',
+          leftData: [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
+          rightTitle: 'a — Kênh 1 sau ReLU (Giữ nguyên)',
+          rightCols: 3,
+          rightAccent: 'mint',
+          rightData: [[5, 7, 9], [13, 15, 17], [21, 23, 25]]
+        }
+      },
+      {
+        lines: '11',
+        code: 'p = F.max_pool2d(a, kernel_size=2, stride=1)',
+        badge: '🏆 Max Pooling 2×2',
+        theme: 'honey',
+        title: 'Chọn số lớn nhất trong mỗi ô vuông 2×2 → Thu gọn 3×3 xuống 2×2',
+        everyday: 'Trong bảng Kênh 1 (các số tăng dần sang phải và xuống dưới), số lớn nhất của mỗi khung 2×2 luôn nằm ở góc dưới-phải: 15, 17, 23, 25!',
+        math: '• Khung (0,0): max(5,7,13,15) = 15 | Khung (0,1): max(7,9,15,17) = 17\n• Khung (1,0): max(13,15,21,23) = 23 | Khung (1,1): max(15,17,23,25) = 25',
+        visual: {
+          type: 'dual',
+          leftTitle: 'p — Kênh 0 (2×2)',
+          leftCols: 2,
+          leftAccent: 'honey',
+          leftData: [[0, 0], [0, 0]],
+          rightTitle: 'p — Kênh 1 (2×2)',
+          rightCols: 2,
+          rightAccent: 'mint',
+          rightData: [[15, 17], [23, 25]]
+        }
+      },
+      {
+        lines: '12-13',
+        code: 'nhwc = p.permute(0, 2, 3, 1)\nflat = nhwc.reshape(1, -1)',
+        badge: '🚨 Bẫy 2: permute NHWC',
+        theme: 'blush',
+        title: 'Đổi thứ tự sang NHWC rồi trải phẳng → Số 0 và số dương XEN KẼ nhau!',
+        everyday: 'Đưa chiều Kênh (1) xuống cuối cùng khiến mỗi tọa độ (h, w) đọc cặp [Kênh 0, Kênh 1] cạnh nhau: [0, 15], [0, 17], [0, 23], [0, 25] → Loại ngay Đáp án B!',
+        math: 'flat = [[0.0, 15.0, 0.0, 17.0, 0.0, 23.0, 0.0, 25.0]] (độ dài 8).',
+        visual: {
+          type: 'flat',
+          title: 'flat sau permute (NHWC — Xen kẽ từng cặp!)',
+          items: [
+            { val: '0.0', ch: 0 }, { val: '15.0', ch: 1 },
+            { val: '0.0', ch: 0 }, { val: '17.0', ch: 1 },
+            { val: '0.0', ch: 0 }, { val: '23.0', ch: 1 },
+            { val: '0.0', ch: 0 }, { val: '25.0', ch: 1 }
+          ]
+        }
+      },
+      {
+        lines: '14-18',
+        code: 'weights = torch.tensor([\n    [1., -1., 1., -1., 1., -1., 1., -1.],\n    [1.,  1., 1.,  1., -1., -1., -1., -1.]\n])\nlogits = flat @ weights.T',
+        badge: '🚨 Bẫy 3: Dấu của logits',
+        theme: 'blush',
+        title: 'Nhân flat với weights.T → Cả 2 điểm logits đều ÂM: [[-80.0, -16.0]]',
+        everyday: 'Nhìn siêu nhanh: ở weights hàng 0, toàn bộ vị trí lẻ (chỗ đứng của 15, 17, 23, 25) đều nhân với -1 nên tổng âm -80.0! Loại ngay Đáp án D ghi dương +80.0!',
+        math: '• Logit 0 = -15 - 17 - 23 - 25 = -80.0\n• Logit 1 = +15 + 17 - 23 - 25 = 32 - 48 = -16.0',
+        visual: {
+          type: 'single',
+          title: 'logits = flat @ weights.T (1×2)',
+          cols: 2,
+          accent: 'blush',
+          data: [['-80.0 (Lớp 0)', '-16.0 (Lớp 1) 🏆']]
+        }
+      },
+      {
+        lines: '19',
+        code: 'print(flat.tolist(), logits.tolist(), logits.argmax(dim=1).tolist())',
+        badge: '🎯 In Đáp án A',
+        theme: 'mint',
+        title: 'In flat, logits và argmax → Vì -16.0 > -80.0 nên argmax = [1]!',
+        everyday: 'Cẩn thận so sánh số âm: -16 lớn hơn -80 (nợ 16 nghìn vẫn giàu hơn nợ 80 nghìn!). Vì -16 nằm ở vị trí số 1 nên argmax trả về [1]. Khớp 100% Đáp án A!',
+        math: 'Output: [[0.0, 15.0, 0.0, 17.0, 0.0, 23.0, 0.0, 25.0]] [[-80.0, -16.0]] [1]',
+        visual: {
+          type: 'single',
+          title: 'Chốt hạ Đáp án A',
+          cols: 2,
+          accent: 'mint',
+          data: [['logits: [-80.0, -16.0]', 'argmax: [1] ✅']]
+        }
+      }
+    ];
+
+    let activeStepIdx = 0;
+
+    function switchTab(tabNum) {
+      xpState.tabs.add(String(tabNum));
+      updateXP();
+
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        const isTarget = btn.getAttribute('data-tab') === String(tabNum);
+        btn.className = isTarget
+          ? 'tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2 bg-blush-400 text-white border-blush-400 border-b-4 border-b-blush-500 shadow-xs'
+          : 'tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 cursor-pointer border-2 bg-white text-cocoa-700 border-cream-200 hover:bg-cream-100';
+      });
+      document.querySelectorAll('.tab-panel').forEach((panel) => {
+        panel.classList.toggle('hidden', panel.id !== `tab-panel-${tabNum}`);
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderCodeList() {
+      const container = document.getElementById('code-lines-container');
+      if (!container) return;
+      container.innerHTML = codeSteps.map((step, idx) => {
+        const isActive = idx === activeStepIdx;
+        const activeClass = isActive
+          ? 'bg-blush-400/25 border-l-4 border-honey-400 text-white'
+          : 'border-l-4 border-transparent text-cream-100/80 hover:bg-cocoa-800';
+        const safeCode = step.code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return `
+          <button type="button" onclick="selectCodeStep(${idx})"
+            class="w-full text-left flex items-start gap-2.5 px-2.5 py-2 rounded-xl transition cursor-pointer ${activeClass}">
+            <span class="w-9 text-right text-honey-300/60 select-none shrink-0 text-[11px] pt-0.5">${step.lines}</span>
+            <pre class="whitespace-pre font-mono leading-relaxed text-xs">${safeCode}</pre>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function renderGridCard(title, cols, accent, data) {
+      const gridCols = cols === 4 ? 'grid-cols-4' : cols === 3 ? 'grid-cols-3' : 'grid-cols-2';
+      const wrapMap = {
+        honey: 'bg-cream-100 border-honey-300',
+        blush: 'bg-blush-50 border-blush-200',
+        mint: 'bg-mint-50 border-mint-200'
+      };
+      const cells = data.flat().map((v) => `
+        <div class="px-2 py-1.5 rounded-xl bg-white border-2 border-cream-200 font-mono text-xs font-bold text-cocoa-900 text-center shadow-2xs">${v}</div>
+      `).join('');
+      return `
+        <div class="p-3.5 rounded-2xl border-2 ${wrapMap[accent] || 'bg-cream-50 border-cream-200'}">
+          <p class="text-[11px] font-black text-cocoa-900 mb-2.5 text-center">${title}</p>
+          <div class="grid ${gridCols} gap-1.5">${cells}</div>
+        </div>
+      `;
+    }
+
+    function renderStepVisual(v) {
+      if (!v) {
+        return `<div class="p-4 rounded-2xl bg-cream-50 border-2 border-dashed border-cream-200 text-center text-xs text-cocoa-500 italic">Bấm "Dòng tiếp theo →" để xem lưới ảnh 4×4 xuất hiện!</div>`;
+      }
+      if (v.type === 'single') {
+        return renderGridCard(v.title, v.cols, v.accent, v.data);
+      }
+      if (v.type === 'dual') {
+        return `
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            ${renderGridCard(v.leftTitle, v.leftCols, v.leftAccent, v.leftData)}
+            ${renderGridCard(v.rightTitle, v.rightCols, v.rightAccent, v.rightData)}
+          </div>
+        `;
+      }
+      if (v.type === 'flat') {
+        return `
+          <div class="p-4 rounded-2xl bg-cream-100 border-2 border-blush-200">
+            <p class="text-xs font-black text-cocoa-900 mb-3 text-center">${v.title}</p>
+            <div class="grid grid-cols-4 sm:grid-cols-8 gap-1.5">
+              ${v.items.map((it, i) => `
+                <div class="p-2 rounded-xl border-2 text-center font-mono ${it.ch === 0 ? 'bg-blush-100 border-blush-200 text-blush-500' : 'bg-mint-100 border-mint-200 text-mint-600'}">
+                  <p class="text-[9px] font-sans font-bold opacity-80">K${it.ch} [#${i}]</p>
+                  <p class="text-xs font-black">${it.val}</p>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+      return '';
+    }
+
+    function renderLineExplanation() {
+      const step = codeSteps[activeStepIdx];
+      document.getElementById('step-counter').textContent = `Bước ${activeStepIdx + 1} / ${codeSteps.length} (Dòng ${step.lines})`;
+      document.getElementById('prev-line-btn').disabled = activeStepIdx === 0;
+      document.getElementById('next-line-btn').disabled = activeStepIdx === codeSteps.length - 1;
+
+      const badgeColor = {
+        blush: 'bg-blush-100 text-blush-500 border-blush-200',
+        honey: 'bg-honey-100 text-cocoa-900 border-honey-300',
+        mint: 'bg-mint-50 text-mint-600 border-mint-200',
+        neutral: 'bg-cream-100 text-cocoa-800 border-cream-200'
+      }[step.theme];
+
+      document.getElementById('line-explanation-content').innerHTML = `
+        <div>
+          <span class="inline-flex items-center px-3 py-0.5 rounded-full text-xs font-extrabold border ${badgeColor} mb-2">
+            ${step.badge}
+          </span>
+          <h3 class="text-base sm:text-lg font-black text-cocoa-900 leading-snug">${step.title}</h3>
+        </div>
+
+        <p class="text-sm text-cocoa-800 leading-relaxed">${step.everyday}</p>
+
+        <div class="p-3.5 rounded-2xl bg-cream-100 border-2 border-honey-300 text-xs text-cocoa-900 space-y-1">
+          <p class="font-extrabold text-cocoa-800 uppercase tracking-wider text-[11px]">🧮 Phép tính tay:</p>
+          <p class="font-mono leading-relaxed">${step.math.replace(/\n/g, '<br/>')}</p>
+        </div>
+
+        ${renderStepVisual(step.visual)}
+      `;
+    }
+
+    function selectCodeStep(idx) {
+      if (idx < 0 || idx >= codeSteps.length) return;
+      activeStepIdx = idx;
+      renderCodeList();
+      renderLineExplanation();
+    }
+
+    // =========================================================================
+    // 3. TAB 3: CNN LAB EXPERIMENTS
+    // =========================================================================
+
+    // --- EXP 1: 2x2 SLIDING WINDOW ON 4x4 IMAGE ---
+    const imgX = [
+      [1, 2, 3, 4],
+      [5, 6, 7, 8],
+      [9, 10, 11, 12],
+      [13, 14, 15, 16]
+    ];
+    const ch1Out = [
+      [5, 7, 9],
+      [13, 15, 17],
+      [21, 23, 25]
+    ];
+    let winPos = { r: 0, c: 0 };
+
+    function selectWindow(r, c, isInit = false) {
+      winPos = { r, c };
+      if (!isInit) {
+        xpState.exp1 = true;
+        updateXP();
+      }
+      renderExp1();
+    }
+
+    function renderExp1() {
+      const { r, c } = winPos;
+      const a = imgX[r][c];
+      const b = imgX[r][c + 1];
+      const d = imgX[r + 1][c];
+      const e = imgX[r + 1][c + 1];
+
+      // Render 4x4 x grid
+      const xGrid = document.getElementById('exp1-x-grid');
+      xGrid.innerHTML = imgX.map((row, ri) =>
+        row.map((val, ci) => {
+          const inWin = ri >= r && ri <= r + 1 && ci >= c && ci <= c + 1;
+          const cls = inWin
+            ? 'bg-blush-400 text-white border-blush-500 scale-105 shadow-sm font-black ring-2 ring-honey-400'
+            : 'bg-white text-cocoa-700 border-cream-200 font-bold';
+          return `<div class="w-12 h-12 rounded-xl border-2 flex items-center justify-center text-sm transition ${cls}">${val}</div>`;
+        }).join('')
+      ).join('');
+
+      document.getElementById('exp1-window-label').textContent = `Đang đặt kính lúp 2×2 tại góc (${r}, ${c}): [[${a}, ${b}], [${d}, ${e}]]`;
+
+      // Render clickable 3x3 Ch0 and Ch1
+      const ch0El = document.getElementById('exp1-ch0-grid');
+      const ch1El = document.getElementById('exp1-ch1-grid');
+
+      let ch0Html = '';
+      let ch1Html = '';
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+          const isSel = i === r && j === c;
+          const cls0 = isSel
+            ? 'bg-blush-500 text-white border-blush-500 scale-105 shadow-sm font-black'
+            : 'bg-white text-blush-500 border-blush-200 hover:bg-blush-100 font-bold';
+          const cls1 = isSel
+            ? 'bg-mint-500 text-white border-mint-600 scale-105 shadow-sm font-black'
+            : 'bg-white text-mint-600 border-mint-200 hover:bg-mint-100 font-bold';
+
+          ch0Html += `<button type="button" onclick="selectWindow(${i},${j})" class="w-12 h-11 rounded-xl border-2 text-xs transition cursor-pointer ${cls0}">-4</button>`;
+          ch1Html += `<button type="button" onclick="selectWindow(${i},${j})" class="w-12 h-11 rounded-xl border-2 text-xs transition cursor-pointer ${cls1}">${ch1Out[i][j]}</button>`;
+        }
+      }
+      ch0El.innerHTML = ch0Html;
+      ch1El.innerHTML = ch1Html;
+
+      const ch1Val = b + d - 2;
+      document.getElementById('exp1-inspector').innerHTML = `
+        <p class="text-[11px] font-extrabold uppercase tracking-wider text-honey-300">🧮 Phép tính tại vị trí (${r}, ${c}) — KHÔNG lật kính lúp!</p>
+        <div class="p-3 rounded-2xl bg-white/10 border border-white/15 font-mono text-xs space-y-1.5">
+          <p><span class="text-blush-200 font-bold">Kênh 0:</span> (1×${a}) + (0×${b}) + (0×${d}) + (-1×${e}) + bias(1) = ${a} − ${e} + 1 = <strong class="text-blush-200">-4.0</strong> → Qua ReLU thành <strong class="text-honey-300">0.0</strong></p>
+          <p><span class="text-mint-200 font-bold">Kênh 1:</span> (0×${a}) + (1×${b}) + (1×${d}) + (0×${e}) + bias(-2) = ${b} + ${d} − 2 = <strong class="text-mint-200">${ch1Val}.0</strong> → Qua ReLU giữ <strong class="text-mint-200">${ch1Val}.0</strong></p>
+        </div>
+      `;
+    }
+
+    // --- EXP 2: PERMUTE (NHWC) VS NO PERMUTE (NCHW) ---
+    let usePermute = true;
+    function setPermuteMode(on, isInit = false) {
+      usePermute = on;
+      if (!isInit) {
+        xpState.exp2 = true;
+        updateXP();
+      }
+      renderExp2();
+    }
+
+    function renderExp2() {
+      const onBtn = document.getElementById('perm-on-btn');
+      const offBtn = document.getElementById('perm-off-btn');
+      if (usePermute) {
+        onBtn.className = 'px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer bg-mint-500 text-white shadow-xs';
+        offBtn.className = 'px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer text-cocoa-700 hover:bg-cream-200';
+      } else {
+        offBtn.className = 'px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer bg-coral-400 text-white shadow-xs';
+        onBtn.className = 'px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer text-cocoa-700 hover:bg-cream-200';
+      }
+
+      const nhwcItems = [
+        { val: '0.0', ch: 0, pos: '(0,0)' }, { val: '15.0', ch: 1, pos: '(0,0)' },
+        { val: '0.0', ch: 0, pos: '(0,1)' }, { val: '17.0', ch: 1, pos: '(0,1)' },
+        { val: '0.0', ch: 0, pos: '(1,0)' }, { val: '23.0', ch: 1, pos: '(1,0)' },
+        { val: '0.0', ch: 0, pos: '(1,1)' }, { val: '25.0', ch: 1, pos: '(1,1)' }
+      ];
+      const nchwItems = [
+        { val: '0.0', ch: 0, pos: '(0,0)' }, { val: '0.0', ch: 0, pos: '(0,1)' },
+        { val: '0.0', ch: 0, pos: '(1,0)' }, { val: '0.0', ch: 0, pos: '(1,1)' },
+        { val: '15.0', ch: 1, pos: '(0,0)' }, { val: '17.0', ch: 1, pos: '(0,1)' },
+        { val: '23.0', ch: 1, pos: '(1,0)' }, { val: '25.0', ch: 1, pos: '(1,1)' }
+      ];
+
+      const items = usePermute ? nhwcItems : nchwItems;
+      const w0 = [1, -1, 1, -1, 1, -1, 1, -1];
+      const w1 = [1, 1, 1, 1, -1, -1, -1, -1];
+
+      const banner = usePermute
+        ? `<div class="p-4 rounded-2xl bg-mint-50 border-2 border-mint-200 text-xs sm:text-sm text-emerald-950 font-medium">✅ <strong>CÓ <code class="font-mono font-bold">permute(0, 2, 3, 1)</code> (NHWC — Đáp án A):</strong> Đọc từng tọa độ (0,0) → (0,1) → (1,0) → (1,1), mỗi tọa độ lấy xen kẽ <span class="font-bold text-blush-500">Kênh 0</span> rồi <span class="font-bold text-mint-600">Kênh 1</span>!</div>`
+        : `<div class="p-4 rounded-2xl bg-coral-50 border-2 border-coral-200 text-xs sm:text-sm text-red-950 font-medium">🚨 <strong>KHÔNG <code class="font-mono font-bold">permute</code> (NCHW — Bẫy của Đáp án B):</strong> Gom toàn bộ 4 số của <span class="font-bold text-blush-500">Kênh 0</span> lên đầu, rồi mới tới 4 số của <span class="font-bold text-mint-600">Kênh 1</span> → làm sai luôn cả <code class="font-mono">logits</code> và <code class="font-mono">argmax</code>!</div>`;
+
+      const logitsBox = usePermute
+        ? `
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-mono">
+            <div class="p-3.5 rounded-2xl bg-cream-100 border border-cream-200">
+              <p class="font-sans font-bold text-cocoa-800 mb-1">Nhân với weights[0] = [1, -1, 1, -1, 1, -1, 1, -1]:</p>
+              <p>-15 - 17 - 23 - 25 = <strong class="text-blush-500 text-sm">-80.0</strong></p>
+            </div>
+            <div class="p-3.5 rounded-2xl bg-mint-50 border-2 border-mint-200">
+              <p class="font-sans font-bold text-mint-600 mb-1">Nhân với weights[1] = [1, 1, 1, 1, -1, -1, -1, -1]:</p>
+              <p>+15 + 17 - 23 - 25 = <strong class="text-mint-600 text-sm">-16.0</strong> (Lớn hơn → argmax = [1] ✅)</p>
+            </div>
+          </div>
+        `
+        : `
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-mono">
+            <div class="p-3.5 rounded-2xl bg-coral-50 border-2 border-coral-200">
+              <p class="font-sans font-bold text-coral-500 mb-1">Nhân với weights[0] = [1, -1, 1, -1, 1, -1, 1, -1]:</p>
+              <p>+15 - 17 + 23 - 25 = <strong class="text-coral-500 text-sm">-4.0</strong> (Lớn hơn → ra sai argmax = [0] ❌)</p>
+            </div>
+            <div class="p-3.5 rounded-2xl bg-cream-100 border border-cream-200">
+              <p class="font-sans font-bold text-cocoa-800 mb-1">Nhân với weights[1] = [1, 1, 1, 1, -1, -1, -1, -1]:</p>
+              <p>-15 - 17 - 23 - 25 = <strong class="text-cocoa-800 text-sm">-80.0</strong></p>
+            </div>
+          </div>
+        `;
+
+      document.getElementById('exp2-content').innerHTML = `
+        ${banner}
+        <div class="grid grid-cols-4 sm:grid-cols-8 gap-2">
+          ${items.map((it, idx) => `
+            <div class="p-2.5 rounded-2xl border-2 text-center transition ${it.ch === 0 ? 'bg-blush-50 border-blush-200 text-blush-500' : 'bg-mint-50 border-mint-200 text-mint-600'}">
+              <p class="text-[10px] font-extrabold">K${it.ch} ${it.pos}</p>
+              <p class="font-mono text-sm font-black my-1">${it.val}</p>
+              <p class="font-mono text-[10px] text-cocoa-500">w0:${w0[idx]} | w1:${w1[idx]}</p>
+            </div>
+          `).join('')}
+        </div>
+        ${logitsBox}
+      `;
+    }
+
+    // =========================================================================
+    // 4. TAB 4: HINTS TOGGLE & MINI-QUIZ (4 QUESTIONS)
+    // =========================================================================
+    let hintsVisible = true;
+    function toggleExamHints() {
+      hintsVisible = !hintsVisible;
+      document.querySelectorAll('.exam-hint').forEach((el) => {
+        el.classList.toggle('hidden', !hintsVisible);
+      });
+    }
+
+    const quizQuestions = [
+      {
+        id: 0,
+        question: 'Câu 1: Tại sao toàn bộ Kênh 0 sau khi qua F.conv2d và F.relu lại trở thành 0.0 (loại ngay Đáp án C có số 6.0)?',
+        options: [
+          'A. Vì F.conv2d không lật kernel nên Kênh 0 toàn -4.0, qua ReLU bị chặn hết về 0.0',
+          'B. Vì bias của Kênh 0 bằng 0',
+          'C. Vì max_pool2d tự động xóa Kênh 0',
+          'D. Vì ảnh x có toàn số âm'
+        ],
+        correct: 0,
+        explanation: 'Chính xác! conv2d trong PyTorch không lật ngược bộ lọc, nên Kênh 0 tính ra toàn -4.0. Chú bảo vệ ReLU gạt hết số âm về 0.0!'
+      },
+      {
+        id: 1,
+        question: 'Câu 2: Lệnh nhwc = p.permute(0, 2, 3, 1) làm thay đổi thứ tự các phần tử trong flat như thế nào?',
+        options: [
+          'A. Gom hết 4 số của Kênh 0 rồi mới tới 4 số của Kênh 1: [0, 0, 0, 0, 15, 17, 23, 25]',
+          'B. Đọc xen kẽ Kênh 0 và Kênh 1 tại từng vị trí ô: [0.0, 15.0, 0.0, 17.0, 0.0, 23.0, 0.0, 25.0]',
+          'C. Đảo ngược toàn bộ thứ tự thành [25, 23, 17, 15, 0, 0, 0, 0]',
+          'D. Không thay đổi gì so với thứ tự gốc'
+        ],
+        correct: 1,
+        explanation: 'Chuẩn luôn! Đưa chiều kênh (1) xuống cuối cùng (NHWC) khiến các giá trị của Kênh 0 và Kênh 1 đứng xen kẽ nhau, giúp loại ngay Đáp án B!'
+      },
+      {
+        id: 2,
+        question: 'Câu 3: Nhìn vào weights[0] = [1, -1, 1, -1, 1, -1, 1, -1] nhân với flat = [0, 15, 0, 17, 0, 23, 0, 25], tại sao ta loại ngay Đáp án D?',
+        options: [
+          'A. Vì các vị trí số dương (15, 17, 23, 25) đều nhân với -1 nên tổng chắc chắn ÂM (-80.0), không thể là +80.0',
+          'B. Vì đáp án D có chứa số 6.0',
+          'C. Vì đáp án D gom 4 số 0 lên đầu',
+          'D. Vì weights toàn số dương'
+        ],
+        correct: 0,
+        explanation: 'Tuyệt vời! Chỉ cần liếc thấy toàn bộ 15, 17, 23, 25 đều bị nhân với -1 là biết ngay logit 0 phải là -80.0 (số âm), loại ngay D!'
+      },
+      {
+        id: 3,
+        question: 'Câu 4: Với logits = [[-80.0, -16.0]], lệnh logits.argmax(dim=1).tolist() trả về gì?',
+        options: [
+          'A. [-16.0]',
+          'B. [0] (vì 80 lớn hơn 16)',
+          'C. [1] (vì -16.0 lớn hơn -80.0 và nằm ở vị trí chỉ số 1)',
+          'D. [-80.0]'
+        ],
+        correct: 2,
+        explanation: 'Quá đỉnh! Nhớ hai điểm: argmax trả về VỊ TRÍ (chỉ số), và với số âm thì -16.0 > -80.0 nên vị trí lớn nhất là [1] → Chốt A!'
+      }
+    ];
+
+    let quizAnswers = {};
+    function answerQuiz(qId, optIdx) {
+      quizAnswers[qId] = optIdx;
+      renderQuiz();
+    }
+    function resetQuiz() {
+      quizAnswers = {};
+      xpState.celebrated = false;
+      renderQuiz();
+    }
+    function renderQuiz() {
+      let score = 0;
+      quizQuestions.forEach((q) => {
+        if (quizAnswers[q.id] === q.correct) score++;
+      });
+      xpState.quizCorrectCount = score;
+      updateXP();
+
+      document.getElementById('quiz-score').textContent = String(score);
+      const container = document.getElementById('quiz-container');
+      if (!container) return;
+
+      container.innerHTML = quizQuestions.map((q) => {
+        const chosen = quizAnswers[q.id];
+        const hasAnswered = chosen !== undefined;
+        const isCorrect = chosen === q.correct;
+
+        const opts = q.options.map((text, idx) => {
+          let cls = 'bg-white border-cream-200 border-b-4 text-cocoa-800 hover:bg-cream-100';
+          if (hasAnswered) {
+            if (idx === q.correct) cls = 'bg-mint-50 border-mint-500 border-b-4 border-b-mint-600 text-emerald-950 font-extrabold';
+            else if (idx === chosen) cls = 'bg-coral-50 border-coral-400 border-b-4 border-b-coral-500 text-red-950 font-extrabold';
+            else cls = 'bg-cream-50 border-cream-100 text-cocoa-500/50';
+          }
+          return `
+            <button type="button" onclick="answerQuiz(${q.id}, ${idx})"
+              class="w-full text-left px-4 py-3 rounded-2xl border-2 text-xs sm:text-sm transition cursor-pointer ${cls}">
+              ${text}
+            </button>
+          `;
+        }).join('');
+
+        const fb = hasAnswered
+          ? `<div class="mt-3 p-3.5 rounded-2xl text-xs sm:text-sm border-2 ${isCorrect ? 'bg-mint-50 border-mint-200 text-emerald-950' : 'bg-coral-50 border-coral-200 text-red-950'}">
+              <strong>${isCorrect ? '✅ Chính xác! (+15 XP)' : '❌ Chưa đúng rồi!'}</strong> ${q.explanation}
+            </div>`
+          : '';
+
+        return `
+          <div class="p-4 sm:p-5 rounded-3xl bg-cream-50 border-2 border-cream-200">
+            <p class="text-sm sm:text-base font-black text-cocoa-900 mb-3">${q.question}</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">${opts}</div>
+            ${fb}
+          </div>
+        `;
+      }).join('');
+    }
+
+    // =========================================================================
+    // INITIALIZATION
+    // =========================================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      try {
+        document.querySelectorAll('.tab-btn').forEach((btn) => {
+          btn.addEventListener('click', () => switchTab(btn.getAttribute('data-tab')));
+        });
+        document.getElementById('prev-line-btn').addEventListener('click', () => selectCodeStep(activeStepIdx - 1));
+        document.getElementById('next-line-btn').addEventListener('click', () => selectCodeStep(activeStepIdx + 1));
+
+        switchTab('1');
+        renderVocab();
+        renderCodeList();
+        renderLineExplanation();
+        selectWindow(0, 0, true);
+        setPermuteMode(true, true);
+        renderQuiz();
+        updateXP();
+      } catch (err) {
+        console.error('Initialization error:', err);
+      }
+    });
+  </script>
+</body>
+</html>

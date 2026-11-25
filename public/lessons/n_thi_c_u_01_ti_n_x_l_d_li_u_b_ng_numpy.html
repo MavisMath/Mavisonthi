@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ôn Thi Câu 01: Tiền Xử Lý Dữ Liệu Bằng NumPy (Cho Non-tech)</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            cream: {
+              50: '#FFFDF9',
+              100: '#FDF7EE',
+              200: '#F7EBD9',
+            },
+            cocoa: {
+              700: '#5C4636',
+              800: '#453326',
+              900: '#2E2118',
+            },
+          },
+        },
+      },
+    };
+  </script>
+</head>
+<body class="bg-cream-50 text-cocoa-800 font-sans antialiased selection:bg-rose-100 selection:text-rose-900 min-h-screen flex flex-col">
+
+  <!-- Header & Sticky Navigation -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-amber-200/70 shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-rose-400 to-amber-400 text-white flex items-center justify-center font-extrabold text-lg shadow-sm shrink-0">
+            01
+          </div>
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <h1 class="text-lg sm:text-xl font-extrabold text-cocoa-900 tracking-tight">
+                Tiền xử lý dữ liệu bằng NumPy
+              </h1>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-700 border border-rose-200">
+                Bản cho Non-tech
+              </span>
+            </div>
+            <p class="text-xs sm:text-sm text-cocoa-700/80">
+              View vs Copy • Bẫy cộng dồn <code class="font-mono text-xs bg-amber-100/80 px-1 rounded">+=</code> • Boolean Mask &amp; Tổng cột
+            </p>
+          </div>
+        </div>
+        <div class="hidden md:flex items-center gap-2 text-xs font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3.5 py-1.5 rounded-2xl">
+          <span>🎯</span>
+          <span>Đáp án chuẩn đề thi: <strong>Câu C</strong></span>
+        </div>
+      </div>
+
+      <!-- 4 Main Navigation Tabs -->
+      <nav aria-label="Điều hướng chính" class="grid grid-cols-2 lg:grid-cols-4 gap-2">
+        <button
+          id="tab-btn-1"
+          data-tab="1"
+          class="tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer border"
+        >
+          <span>💡</span>
+          <span>1. Hiểu bản chất</span>
+        </button>
+        <button
+          id="tab-btn-2"
+          data-tab="2"
+          class="tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer border"
+        >
+          <span>🔍</span>
+          <span>2. Giải thích từng dòng</span>
+        </button>
+        <button
+          id="tab-btn-3"
+          data-tab="3"
+          class="tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer border"
+        >
+          <span>🧪</span>
+          <span>3. Trực quan 3 bẫy</span>
+        </button>
+        <button
+          id="tab-btn-4"
+          data-tab="4"
+          class="tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer border"
+        >
+          <span>⚡</span>
+          <span>4. Mẹo 15s &amp; Quiz</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
+
+    <!-- ===================================================================== -->
+    <!-- TAB 1: HIỂU BẢN CHẤT (NON-TECH)                                       -->
+    <!-- ===================================================================== -->
+    <section id="tab-panel-1" class="tab-panel space-y-6">
+      <!-- Intro Banner -->
+      <div class="bg-gradient-to-r from-rose-400 via-amber-400 to-orange-300 text-white rounded-3xl p-6 sm:p-8 shadow-sm">
+        <div class="inline-flex items-center gap-2 bg-white/25 backdrop-blur px-3 py-1 rounded-full text-xs font-bold mb-3">
+          <span>📌 Tóm tắt toàn bộ Câu 01 trong 1 câu</span>
+        </div>
+        <h2 class="text-xl sm:text-2xl font-extrabold leading-snug mb-3 drop-shadow-xs">
+          Bài này kiểm tra 3 "chiêu lừa" kinh điển của NumPy: Khi nào sửa bảng con thì bảng gốc đổi theo, và khi nào phép cộng bị mất số!
+        </h2>
+        <p class="text-white/95 text-sm sm:text-base leading-relaxed">
+          Đừng lo lắng nếu bạn thấy nhiều dấu ngoặc vuông <code class="bg-white/25 px-1.5 py-0.5 rounded-lg font-mono text-xs sm:text-sm">[:, 1:3]</code> hay <code class="bg-white/25 px-1.5 py-0.5 rounded-lg font-mono text-xs sm:text-sm">x[mask]</code>. Chỉ cần nhớ đúng <strong>3 câu chuyện đời thường</strong> dưới đây là bạn làm chủ 100% Câu 01!
+        </p>
+      </div>
+
+      <!-- 3 Core Concept Cards -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Concept 1: View vs Copy -->
+        <article class="bg-white rounded-3xl border border-rose-200/80 shadow-sm p-6 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                Bẫy 1 • Chia sẻ bộ nhớ
+              </span>
+              <span class="text-2xl">📄</span>
+            </div>
+            <h3 class="text-lg font-extrabold text-cocoa-900 mb-2">
+              View (dấu <code class="font-mono text-rose-600">:</code>) vs Copy (danh sách <code class="font-mono text-amber-600">[1, 2]</code>)
+            </h3>
+            <p class="text-sm text-cocoa-700 leading-relaxed mb-4">
+              Cả hai đều cắt ra 2 cột giữa của bảng <code class="font-mono font-semibold">x</code>, nhưng bản chất hoàn toàn trái ngược:
+            </p>
+            <div class="space-y-3 text-xs">
+              <div class="p-3.5 rounded-2xl bg-rose-50/80 border border-rose-200">
+                <p class="font-bold text-rose-800 mb-1">🔗 View: <code class="font-mono">x[:, 1:3]</code> (Google Docs dùng chung)</p>
+                <p class="text-cocoa-700 leading-relaxed">
+                  Giống như gửi link Google Docs chung. Khi bạn sửa <code class="font-mono">view[0] *= -1</code> (đổi dấu thành số âm), <strong>bảng gốc <code class="font-mono">x</code> cũng bị đổi theo ngay lập tức!</strong>
+                </p>
+              </div>
+              <div class="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200">
+                <p class="font-bold text-amber-800 mb-1">🖨️ Copy: <code class="font-mono">x[:, [1, 2]]</code> (Photocopy ra tờ mới)</p>
+                <p class="text-cocoa-700 leading-relaxed">
+                  Giống như bấm <em>Make a copy</em>. Khi bạn cộng thêm 100 vào <code class="font-mono">copy[1]</code>, <strong>bảng gốc <code class="font-mono">x</code> không hề hấn gì!</strong>
+                </p>
+              </div>
+            </div>
+          </div>
+          <p class="mt-4 pt-3 border-t border-cream-200 text-xs text-cocoa-700/80">
+            <strong>Mẹo nhớ:</strong> Cắt liên tục bằng dấu hai chấm (<code class="font-mono">1:3</code>) là <strong>View</strong>; liệt kê từng cột bằng ngoặc vuông (<code class="font-mono">[1, 2]</code>) là <strong>Copy</strong>.
+          </p>
+        </article>
+
+        <!-- Concept 2: += vs np.add.at -->
+        <article class="bg-white rounded-3xl border border-amber-200/80 shadow-sm p-6 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                Bẫy 2 • Chỉ số trùng lặp
+              </span>
+              <span class="text-2xl">🏦</span>
+            </div>
+            <h3 class="text-lg font-extrabold text-cocoa-900 mb-2">
+              <code class="font-mono text-rose-600">+=</code> bị ghi đè vs <code class="font-mono text-emerald-700">np.add.at</code> cộng dồn
+            </h3>
+            <p class="text-sm text-cocoa-700 leading-relaxed mb-4">
+              Danh sách vị trí <code class="font-mono font-semibold">idx = [0, 0, 2]</code> có <strong>số 0 lặp lại 2 lần</strong>. Chuyện gì xảy ra khi cộng tiền vào ô số 0?
+            </p>
+            <div class="space-y-3 text-xs">
+              <div class="p-3.5 rounded-2xl bg-rose-50/80 border border-rose-200">
+                <p class="font-bold text-rose-800 mb-1">💥 Dùng <code class="font-mono">+=</code> (2 người cùng sửa 1 lúc)</p>
+                <p class="text-cocoa-700 leading-relaxed">
+                  Tài khoản đang có <strong>4</strong>. Người 1 đọc 4, cộng 10 thành 14. Người 2 <em>cũng đọc số 4 cũ</em>, cộng 20 thành 24 rồi ghi đè lên! Kết quả chỉ còn <strong>24</strong> (mất tiêu +10, không phải 34).
+                </p>
+              </div>
+              <div class="p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200">
+                <p class="font-bold text-emerald-800 mb-1">✅ Dùng <code class="font-mono">np.add.at</code> (Xếp hàng từng người)</p>
+                <p class="text-cocoa-700 leading-relaxed">
+                  Tài khoản đang có <strong>1</strong>. Người 1 cộng 1 thành 2. Người 2 thấy 2 rồi cộng tiếp 2 thành <strong>4</strong>. Cộng dồn đầy đủ, không rơi rớt số nào!
+                </p>
+              </div>
+            </div>
+          </div>
+          <p class="mt-4 pt-3 border-t border-cream-200 text-xs text-cocoa-700/80">
+            <strong>Mẹo nhớ:</strong> Thấy chỉ số trùng + dấu <code class="font-mono">+=</code> là <strong>lấy số cuối ghi đè</strong>; thấy <code class="font-mono">np.add.at</code> là <strong>cộng dồn hết</strong>.
+          </p>
+        </article>
+
+        <!-- Concept 3: Boolean Mask -->
+        <article class="bg-white rounded-3xl border border-emerald-200/80 shadow-sm p-6 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                Bẫy 3 • Lọc điều kiện
+              </span>
+              <span class="text-2xl">🧺</span>
+            </div>
+            <h3 class="text-lg font-extrabold text-cocoa-900 mb-2">
+              Boolean Mask (<code class="font-mono text-emerald-700">x[mask]</code>) luôn tạo bản sao!
+            </h3>
+            <p class="text-sm text-cocoa-700 leading-relaxed mb-4">
+              Lệnh <code class="font-mono">mask = x % 2 == 0</code> là tấm lưới lọc ra tất cả các <strong>số chẵn</strong> trong bảng <code class="font-mono">x</code>.
+            </p>
+            <div class="space-y-3 text-xs">
+              <div class="p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200">
+                <p class="font-bold text-emerald-800 mb-1">🧺 Nhặt ra giỏ riêng (<code class="font-mono">picked = x[mask]</code>)</p>
+                <p class="text-cocoa-700 leading-relaxed">
+                  Vì các số chẵn nằm rải rác khắp bảng, NumPy phải <strong>photocopy</strong> 8 số chẵn đó ra một danh sách 1 chiều riêng tên là <code class="font-mono">picked</code>.
+                </p>
+              </div>
+              <div class="p-3.5 rounded-2xl bg-cream-100 border border-amber-200">
+                <p class="font-bold text-cocoa-900 mb-1">🎨 Sơn màu giỏ riêng (<code class="font-mono">picked[:] = -99</code>)</p>
+                <p class="text-cocoa-700 leading-relaxed">
+                  Khi đổi toàn bộ <code class="font-mono">picked</code> thành <code class="font-mono">-99</code>, chỉ có cái giỏ <code class="font-mono">picked</code> thành 8 số <code class="font-mono">-99</code>, còn <strong>bảng gốc <code class="font-mono">x</code> vẫn sạch bong, không có số -99 nào!</strong>
+                </p>
+              </div>
+            </div>
+          </div>
+          <p class="mt-4 pt-3 border-t border-cream-200 text-xs text-cocoa-700/80">
+            <strong>Mẹo nhớ:</strong> Lọc bằng điều kiện Đúng/Sai (<code class="font-mono">mask</code>) luôn là <strong>Copy</strong>, sửa xong không ảnh hưởng bản gốc.
+          </p>
+        </article>
+      </div>
+
+      <!-- Call to Action -->
+      <div class="bg-white rounded-3xl border border-amber-200/80 p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-xl shrink-0">
+            ✨
+          </div>
+          <div>
+            <h4 class="text-sm font-bold text-cocoa-900">Đã nắm vững 3 ẩn dụ rồi chứ?</h4>
+            <p class="text-xs text-cocoa-700/80">Sang Tab 2 để click từng dòng code và xem các bảng số thay đổi trực tiếp theo từng bước nhé!</p>
+          </div>
+        </div>
+        <button
+          onclick="switchTab('2')"
+          class="w-full sm:w-auto px-5 py-2.5 rounded-2xl bg-rose-500 hover:bg-rose-600 text-white text-sm font-bold shadow-sm transition cursor-pointer"
+        >
+          Đi tới Tab 2: Giải thích từng dòng →
+        </button>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 2: GIẢI THÍCH TỪNG DÒNG CODE (TƯƠNG TÁC TỪNG BƯỚC)                -->
+    <!-- ===================================================================== -->
+    <section id="tab-panel-2" class="tab-panel hidden space-y-5">
+      <div class="bg-white rounded-3xl border border-amber-200/80 p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="text-base sm:text-lg font-extrabold text-cocoa-900">Click từng dòng code để xem bảng số biến đổi theo thời gian thực</h2>
+          <p class="text-xs sm:text-sm text-cocoa-700/80">Các ô vừa thay đổi ở bước hiện tại sẽ được tô màu nổi bật để bạn dễ theo dõi.</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 shrink-0">
+          <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-xl bg-rose-50 text-rose-700 border border-rose-200">
+            <span class="w-2 h-2 rounded-full bg-rose-500"></span> Bẫy / Đổi bản gốc
+          </span>
+          <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-xl bg-amber-50 text-amber-800 border border-amber-200">
+            <span class="w-2 h-2 rounded-full bg-amber-500"></span> Bản sao (Copy)
+          </span>
+          <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Cộng dồn / In kết quả
+          </span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <!-- Left: Code Panel -->
+        <div class="lg:col-span-5 bg-cocoa-900 rounded-3xl shadow-md border border-cocoa-700 overflow-hidden">
+          <div class="flex items-center justify-between px-4 py-3 bg-cocoa-800 border-b border-cocoa-700">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-rose-400"></span>
+              <span class="w-3 h-3 rounded-full bg-amber-300"></span>
+              <span class="w-3 h-3 rounded-full bg-emerald-400"></span>
+              <span class="ml-2 text-xs font-mono text-amber-100/90">cau_01_numpy.py</span>
+            </div>
+            <span class="text-[11px] font-medium text-amber-200/70">Click từng dòng</span>
+          </div>
+          <div id="code-lines-container" class="p-3 overflow-x-auto font-mono text-xs sm:text-[13px] space-y-1">
+            <!-- JS Populated -->
+          </div>
+        </div>
+
+        <!-- Right: Explanation & Live Matrices -->
+        <div class="lg:col-span-7 lg:sticky lg:top-36">
+          <div class="bg-white rounded-3xl border border-amber-200/80 shadow-sm overflow-hidden">
+            <!-- Step Controls -->
+            <div class="flex items-center justify-between px-5 py-3.5 bg-cream-100 border-b border-amber-200/70">
+              <span id="step-counter" class="text-xs font-bold text-cocoa-700 uppercase tracking-wider">
+                Bước 1 / 13
+              </span>
+              <div class="flex items-center gap-2">
+                <button
+                  id="prev-line-btn"
+                  class="px-3.5 py-1.5 rounded-xl bg-white hover:bg-cream-50 text-cocoa-800 border border-amber-300 text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  ← Dòng trước
+                </button>
+                <button
+                  id="next-line-btn"
+                  class="px-3.5 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  Dòng tiếp theo →
+                </button>
+              </div>
+            </div>
+
+            <!-- Dynamic Step Body -->
+            <div id="line-explanation-content" class="p-5 sm:p-6 space-y-5">
+              <!-- JS Populated -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 3: TRỰC QUAN HÓA 3 CÁI BẪY (THÍ NGHIỆM TƯƠNG TÁC)                 -->
+    <!-- ===================================================================== -->
+    <section id="tab-panel-3" class="tab-panel hidden space-y-6">
+      <!-- Experiment Selector -->
+      <div class="bg-white rounded-3xl border border-amber-200/80 p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-lg sm:text-xl font-extrabold text-cocoa-900">Phòng thí nghiệm: Tự tay bấm nút xem 3 cái bẫy hoạt động</h2>
+          <p class="text-xs sm:text-sm text-cocoa-700/80 mt-0.5">Chọn từng thí nghiệm bên phải để thực hành trực quan.</p>
+        </div>
+        <div class="inline-flex flex-wrap p-1.5 rounded-2xl bg-cream-100 border border-amber-200 gap-1">
+          <button id="exp-btn-1" onclick="setExperiment(1)" class="exp-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer">
+            1. View vs Copy
+          </button>
+          <button id="exp-btn-2" onclick="setExperiment(2)" class="exp-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer">
+            2. += vs add.at
+          </button>
+          <button id="exp-btn-3" onclick="setExperiment(3)" class="exp-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer">
+            3. Tổng cột axis=0
+          </button>
+        </div>
+      </div>
+
+      <!-- EXPERIMENT 1: VIEW VS COPY -->
+      <div id="exp-panel-1" class="exp-panel space-y-5">
+        <div class="bg-white rounded-3xl border border-amber-200/80 p-5 sm:p-6 shadow-sm space-y-5">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-cream-200">
+            <div>
+              <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-700 mb-1">Thí nghiệm 1</span>
+              <h3 class="text-base sm:text-lg font-extrabold text-cocoa-900">So sánh trực tiếp: Sửa <code class="font-mono text-rose-600">view</code> vs Sửa <code class="font-mono text-amber-600">copy</code></h3>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <button
+                onclick="runExp1('view')"
+                class="px-3.5 py-2 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold shadow-xs transition cursor-pointer"
+              >
+                ▶ Chạy view[0] *= -1
+              </button>
+              <button
+                onclick="runExp1('copy')"
+                class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-xs transition cursor-pointer"
+              >
+                ▶ Chạy copy[1] += 100
+              </button>
+              <button
+                onclick="runExp1('reset')"
+                class="px-3 py-2 rounded-xl bg-cream-100 hover:bg-cream-200 text-cocoa-800 border border-amber-300 text-xs font-bold transition cursor-pointer"
+              >
+                🔄 Đặt lại
+              </button>
+            </div>
+          </div>
+
+          <div id="exp1-status" class="p-4 rounded-2xl bg-cream-100 border border-amber-200 text-xs sm:text-sm text-cocoa-800 font-medium">
+            <!-- JS -->
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
+            <!-- x matrix -->
+            <div class="p-4 rounded-2xl bg-cream-50 border-2 border-cocoa-700/20 flex flex-col items-center">
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-cocoa-800 text-white mb-1">Bảng gốc x (3×4)</span>
+              <p class="text-[11px] text-cocoa-700/70 mb-3">Quan sát xem ô nào bị đổi theo!</p>
+              <div id="exp1-x-grid" class="grid grid-cols-4 gap-1.5 font-mono text-xs sm:text-sm"></div>
+            </div>
+
+            <!-- view matrix -->
+            <div class="p-4 rounded-2xl bg-rose-50/60 border-2 border-rose-200 flex flex-col items-center">
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-500 text-white mb-1">view = x[:, 1:3]</span>
+              <p class="text-[11px] text-rose-700 mb-3">🔗 Link dùng chung với cột 1, 2 của x</p>
+              <div id="exp1-view-grid" class="grid grid-cols-2 gap-1.5 font-mono text-xs sm:text-sm"></div>
+            </div>
+
+            <!-- copy matrix -->
+            <div class="p-4 rounded-2xl bg-amber-50/60 border-2 border-amber-200 flex flex-col items-center">
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500 text-white mb-1">copy = x[:, [1, 2]]</span>
+              <p class="text-[11px] text-amber-800 mb-3">🖨️ Bản photocopy độc lập hoàn toàn</p>
+              <div id="exp1-copy-grid" class="grid grid-cols-2 gap-1.5 font-mono text-xs sm:text-sm"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EXPERIMENT 2: += VS NP.ADD.AT -->
+      <div id="exp-panel-2" class="exp-panel hidden space-y-5">
+        <div class="bg-white rounded-3xl border border-amber-200/80 p-5 sm:p-6 shadow-sm space-y-5">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-cream-200">
+            <div>
+              <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 mb-1">Thí nghiệm 2</span>
+              <h3 class="text-base sm:text-lg font-extrabold text-cocoa-900">Tại sao <code class="font-mono text-rose-600">x[0, 3]</code> ra <code class="font-mono text-rose-600">24</code> (không phải 34), còn <code class="font-mono text-emerald-700">x[0, 0]</code> lại ra <code class="font-mono text-emerald-700">4</code>?</h3>
+            </div>
+            <button
+              onclick="toggleExp2Step()"
+              id="exp2-toggle-btn"
+              class="px-4 py-2 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold shadow-xs transition cursor-pointer shrink-0"
+            >
+              ▶ Chạy mô phỏng từng bước
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Left: += Trap -->
+            <div class="rounded-2xl border-2 border-rose-200 bg-rose-50/40 p-5 space-y-4">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-1 rounded-xl text-xs font-bold bg-rose-500 text-white">💥 Cách dùng += (Bị ghi đè)</span>
+                <code class="font-mono text-xs font-bold text-rose-800">x[[0,0,2], 3] += [10,20,30]</code>
+              </div>
+              <p class="text-xs text-cocoa-700">Xét riêng ô <strong>x[0, 3]</strong> (ban đầu đang là <strong>4</strong>) nhận 2 lệnh cộng là <strong>+10</strong> và <strong>+20</strong>:</p>
+              <div id="exp2-left-steps" class="space-y-2.5 text-xs">
+                <!-- JS -->
+              </div>
+              <div class="p-3 rounded-xl bg-white border border-rose-300 flex items-center justify-between">
+                <span class="text-xs font-bold text-rose-800">Kết quả cuối ô x[0, 3]:</span>
+                <span id="exp2-left-res" class="font-mono text-lg font-extrabold text-rose-600">4</span>
+              </div>
+            </div>
+
+            <!-- Right: np.add.at -->
+            <div class="rounded-2xl border-2 border-emerald-200 bg-emerald-50/40 p-5 space-y-4">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-1 rounded-xl text-xs font-bold bg-emerald-600 text-white">✅ Cách dùng np.add.at (Cộng dồn)</span>
+                <code class="font-mono text-xs font-bold text-emerald-800">np.add.at(x[:,0], [0,0,2], [1,2,3])</code>
+              </div>
+              <p class="text-xs text-cocoa-700">Xét riêng ô <strong>x[0, 0]</strong> (ban đầu đang là <strong>1</strong>) nhận 2 lệnh cộng là <strong>+1</strong> và <strong>+2</strong>:</p>
+              <div id="exp2-right-steps" class="space-y-2.5 text-xs">
+                <!-- JS -->
+              </div>
+              <div class="p-3 rounded-xl bg-white border border-emerald-300 flex items-center justify-between">
+                <span class="text-xs font-bold text-emerald-800">Kết quả cuối ô x[0, 0]:</span>
+                <span id="exp2-right-res" class="font-mono text-lg font-extrabold text-emerald-700">1</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EXPERIMENT 3: AXIS=0 COLUMN SUM -->
+      <div id="exp-panel-3" class="exp-panel hidden space-y-5">
+        <div class="bg-white rounded-3xl border border-amber-200/80 p-5 sm:p-6 shadow-sm space-y-5">
+          <div class="pb-4 border-b border-cream-200">
+            <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 mb-1">Thí nghiệm 3</span>
+            <h3 class="text-base sm:text-lg font-extrabold text-cocoa-900">Hiểu lệnh <code class="font-mono text-emerald-700">x.sum(axis=0)</code>: Cộng từ trên xuống dưới theo từng cột</h3>
+            <p class="text-xs sm:text-sm text-cocoa-700/80 mt-1">
+              Mẹo nhớ: <code class="font-mono font-bold">axis=0</code> là chiều dọc (đè bẹp các hàng lại → tính <strong>tổng từng cột</strong>). Hãy <strong>click vào từng cột</strong> bên dưới để xem phép cộng!
+            </p>
+          </div>
+
+          <div class="flex flex-col items-center">
+            <div id="exp3-grid" class="grid grid-cols-4 gap-3 sm:gap-4 w-full max-w-xl">
+              <!-- JS -->
+            </div>
+
+            <div id="exp3-inspector" class="mt-6 w-full max-w-xl bg-cocoa-900 text-amber-50 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <!-- JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 4: MẸO KHOANH 15 GIÂY & MINI-QUIZ                                 -->
+    <!-- ===================================================================== -->
+    <section id="tab-panel-4" class="tab-panel hidden space-y-8">
+      <!-- 15-Second Strategy -->
+      <div class="bg-white rounded-3xl border border-amber-200/80 p-5 sm:p-6 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+          <div>
+            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-700 mb-1">
+              ⚡ Chiến thuật phòng thi
+            </span>
+            <h2 class="text-lg sm:text-xl font-extrabold text-cocoa-900">
+              Mẹo loại trừ A, B, D trong 15 giây để chốt ngay đáp án C!
+            </h2>
+          </div>
+          <button
+            onclick="toggleExamHints()"
+            class="px-4 py-2 rounded-xl bg-cream-100 hover:bg-cream-200 text-cocoa-800 text-xs font-bold border border-amber-300 transition cursor-pointer self-start sm:self-auto"
+          >
+            👁️ Ẩn/Hiện phân tích loại trừ
+          </button>
+        </div>
+
+        <!-- 3-Step Checklist -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+          <div class="p-4 rounded-2xl bg-rose-50 border border-rose-200">
+            <p class="text-xs font-extrabold text-rose-800">Bước 1 (4 giây): Soi số -99 trong x</p>
+            <p class="text-xs text-cocoa-700 mt-1"><code class="font-mono">picked = x[mask]</code> là bản sao → <code class="font-mono">x</code> không thể có <code class="font-mono">-99</code> → <strong>Loại ngay D!</strong></p>
+          </div>
+          <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200">
+            <p class="text-xs font-extrabold text-amber-800">Bước 2 (5 giây): Soi số 106, 107 trong x</p>
+            <p class="text-xs text-cocoa-700 mt-1"><code class="font-mono">copy = x[:, [1, 2]]</code> là bản sao → <code class="font-mono">x</code> không thể có <code class="font-mono">106, 107</code> → <strong>Loại ngay B!</strong></p>
+          </div>
+          <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200">
+            <p class="text-xs font-extrabold text-emerald-800">Bước 3 (6 giây): Soi ô cuối hàng 1 (24 hay 34?)</p>
+            <p class="text-xs text-cocoa-700 mt-1"><code class="font-mono">+=</code> với chỉ số trùng bị ghi đè (<code class="font-mono">4 + 20 = 24</code>, không phải <code class="font-mono">34</code>) → <strong>Loại A! Chọn C!</strong></p>
+          </div>
+        </div>
+
+        <!-- 4 Options Cards -->
+        <div class="space-y-4">
+          <!-- Option A -->
+          <div class="rounded-2xl border border-amber-200/80 bg-cream-50/50 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-amber-200/70 text-cocoa-900 font-extrabold text-sm flex items-center justify-center">A</span>
+                <span class="text-sm font-bold text-cocoa-900">Phương án A</span>
+              </div>
+              <span class="exam-hint-badge px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-700 border border-rose-200">
+                ❌ LOẠI (Nhầm += có cộng dồn)
+              </span>
+            </div>
+            <pre class="bg-white rounded-xl p-3 border border-amber-200/70 text-[11px] sm:text-xs font-mono text-cocoa-800 overflow-x-auto leading-relaxed">x: [[4, -2, -3, <span class="bg-rose-200 text-rose-900 font-bold px-1 rounded">34</span>], [5, 6, 7, 8], [12, 10, 11, 42]]
+view: [[-2, -3], [6, 7], [10, 11]]
+copy: [[2, 3], [106, 107], [10, 11]]
+picked: [-99, -99, -99, -99, -99, -99, -99, -99]
+sums: [21, 14, 15, <span class="bg-rose-200 text-rose-900 font-bold px-1 rounded">84</span>]</pre>
+            <p class="exam-hint-text text-xs text-rose-700 mt-2 font-medium">
+              🚫 <strong>Lý do loại:</strong> Sai ở số <code class="font-mono">34</code> (và tổng cột cuối <code class="font-mono">84</code>). Phép <code class="font-mono">+=</code> với chỉ số trùng không cộng dồn <code class="font-mono">4+10+20</code> mà bị ghi đè thành <code class="font-mono">4+20 = 24</code>.
+            </p>
+          </div>
+
+          <!-- Option B -->
+          <div class="rounded-2xl border border-amber-200/80 bg-cream-50/50 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-amber-200/70 text-cocoa-900 font-extrabold text-sm flex items-center justify-center">B</span>
+                <span class="text-sm font-bold text-cocoa-900">Phương án B</span>
+              </div>
+              <span class="exam-hint-badge px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-700 border border-rose-200">
+                ❌ LOẠI (Nhầm copy sửa được x)
+              </span>
+            </div>
+            <pre class="bg-white rounded-xl p-3 border border-amber-200/70 text-[11px] sm:text-xs font-mono text-cocoa-800 overflow-x-auto leading-relaxed">x: [[4, -2, -3, 24], [5, <span class="bg-rose-200 text-rose-900 font-bold px-1 rounded">106, 107</span>, 8], [12, 10, 11, 42]]
+view: [[-2, -3], [<span class="bg-rose-200 text-rose-900 font-bold px-1 rounded">106, 107</span>], [10, 11]]
+copy: [[2, 3], [106, 107], [10, 11]]
+picked: [-99, -99, -99, -99, -99, -99, -99, -99]
+sums: [21, 114, 115, 74]</pre>
+            <p class="exam-hint-text text-xs text-rose-700 mt-2 font-medium">
+              🚫 <strong>Lý do loại:</strong> <code class="font-mono">copy = x[:, [1, 2]]</code> là bản sao độc lập, nên khi cộng 100 vào <code class="font-mono">copy[1]</code> thì <code class="font-mono">x</code> và <code class="font-mono">view</code> không thể xuất hiện <code class="font-mono">106, 107</code>.
+            </p>
+          </div>
+
+          <!-- Option C (CORRECT) -->
+          <div class="rounded-2xl border-2 border-emerald-400 bg-emerald-50/50 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-emerald-600 text-white font-extrabold text-sm flex items-center justify-center">C</span>
+                <span class="text-sm font-bold text-emerald-900">Phương án C</span>
+              </div>
+              <span class="exam-hint-badge px-3 py-1 rounded-full text-xs font-bold bg-emerald-600 text-white">
+                ✅ ĐÁP ÁN ĐÚNG
+              </span>
+            </div>
+            <pre class="bg-white rounded-xl p-3 border border-emerald-300 text-[11px] sm:text-xs font-mono text-cocoa-900 overflow-x-auto leading-relaxed">x: [[<span class="bg-emerald-100 text-emerald-900 font-bold px-1 rounded">4</span>, <span class="bg-emerald-100 text-emerald-900 font-bold px-1 rounded">-2, -3</span>, <span class="bg-emerald-100 text-emerald-900 font-bold px-1 rounded">24</span>], [5, 6, 7, 8], [12, 10, 11, 42]]
+view: [[-2, -3], [6, 7], [10, 11]]
+copy: [[2, 3], [106, 107], [10, 11]]
+picked: [-99, -99, -99, -99, -99, -99, -99, -99]
+sums: [<span class="bg-emerald-100 text-emerald-900 font-bold px-1 rounded">21, 14, 15, 74</span>]</pre>
+            <p class="exam-hint-text text-xs text-emerald-800 mt-2 font-medium">
+              🎯 <strong>Chuẩn cả 3 tiêu chí:</strong> <code class="font-mono">view</code> đổi dấu làm <code class="font-mono">x</code> có <code class="font-mono">-2, -3</code>; <code class="font-mono">copy</code> và <code class="font-mono">picked</code> không làm bẩn <code class="font-mono">x</code>; <code class="font-mono">x[0, 3] = 24</code> (ghi đè) và <code class="font-mono">x[0, 0] = 4</code> (cộng dồn).
+            </p>
+          </div>
+
+          <!-- Option D -->
+          <div class="rounded-2xl border border-amber-200/80 bg-cream-50/50 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-amber-200/70 text-cocoa-900 font-extrabold text-sm flex items-center justify-center">D</span>
+                <span class="text-sm font-bold text-cocoa-900">Phương án D</span>
+              </div>
+              <span class="exam-hint-badge px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-700 border border-rose-200">
+                ❌ LOẠI (Nhầm x[mask] sửa được x)
+              </span>
+            </div>
+            <pre class="bg-white rounded-xl p-3 border border-amber-200/70 text-[11px] sm:text-xs font-mono text-cocoa-800 overflow-x-auto leading-relaxed">x: [[<span class="bg-rose-200 text-rose-900 font-bold px-1 rounded">-99, -99</span>, -3, <span class="bg-rose-200 text-rose-900 font-bold px-1 rounded">-99</span>], [5, <span class="bg-rose-200 text-rose-900 font-bold px-1 rounded">-99</span>, 7, <span class="bg-rose-200 text-rose-900 font-bold px-1 rounded">-99</span>], [-99, -99, 11, -99]]
+view: [[-99, -3], [-99, 7], [-99, 11]]
+copy: [[2, 3], [106, 107], [10, 11]]
+picked: [-99, -99, -99, -99, -99, -99, -99, -99]
+sums: [-193, -297, 15, -297]</pre>
+            <p class="exam-hint-text text-xs text-rose-700 mt-2 font-medium">
+              🚫 <strong>Lý do loại:</strong> Lọc bằng Boolean mask (<code class="font-mono">x[mask]</code>) luôn tạo bản sao mới, nên <code class="font-mono">picked[:] = -99</code> không bao giờ làm thay đổi bảng gốc <code class="font-mono">x</code>.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mini-Quiz -->
+      <div class="bg-white rounded-3xl border border-amber-200/80 p-5 sm:p-6 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-5 border-b border-cream-200">
+          <div>
+            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 mb-1">
+              📝 Kiểm tra nhanh kiến thức
+            </span>
+            <h3 class="text-lg font-extrabold text-cocoa-900">
+              Mini-Quiz 3 câu chốt hạ Câu 01
+            </h3>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="px-3.5 py-1.5 rounded-xl bg-rose-50 border border-rose-200 text-sm font-bold text-rose-800">
+              Điểm: <span id="quiz-score">0</span> / 3
+            </div>
+            <button
+              onclick="resetQuiz()"
+              class="px-3.5 py-1.5 rounded-xl bg-cream-100 hover:bg-cream-200 text-cocoa-800 text-xs font-bold border border-amber-300 transition cursor-pointer"
+            >
+              🔄 Làm lại
+            </button>
+          </div>
+        </div>
+
+        <div id="quiz-container" class="space-y-5">
+          <!-- JS Populated -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-amber-200/70 py-4 mt-8">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 text-center text-xs text-cocoa-700/70">
+      Ứng dụng ôn thi Câu 01: Tiền xử lý dữ liệu bằng NumPy • Thiết kế dễ hiểu cho người không chuyên kỹ thuật (Non-tech)
+    </div>
+  </footer>
+
+  <script>
+    // =========================================================================
+    // DATA FOR TAB 2: LINE-BY-LINE EXPLANATION + LIVE STATE SNAPSHOTS
+    // =========================================================================
+    const codeSteps = [
+      {
+        lines: '1',
+        code: 'import numpy as np',
+        badge: 'Khởi động',
+        theme: 'neutral',
+        title: 'Mở thư viện tính toán bảng số NumPy',
+        vocab: 'import = nhập vào • as np = đặt tên viết tắt là np cho gọn',
+        everyday: 'Giống như bật ứng dụng Excel trước khi làm việc. Mọi lệnh bắt đầu bằng np. phía sau đều là gọi công cụ của thư viện này.',
+        tip: 'Dòng này chỉ khởi động công cụ, chưa tạo bảng số nào cả.',
+        state: { x: null, view: null, copy: null, picked: null, highlight: {} }
+      },
+      {
+        lines: '2',
+        code: 'x = np.arange(1, 13).reshape(3, 4)',
+        badge: 'Tạo bảng gốc',
+        theme: 'neutral',
+        title: 'Tạo bảng số x gồm 3 hàng × 4 cột từ 1 đến 12',
+        vocab: 'arange(1, 13) = tạo dãy số từ 1 đến 12 (dừng trước 13) • reshape(3, 4) = xếp lại thành 3 hàng, 4 cột',
+        everyday: 'Máy tạo một dãy số 1, 2, 3... đến 12 rồi xếp gọn gàng theo từng hàng ngang thành một bảng 3 hàng × 4 cột.',
+        tip: 'Nhớ quy tắc Python: arange(1, 13) luôn dừng trước số cuối, nên chỉ lấy tới 12!',
+        state: {
+          x: [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]],
+          view: null, copy: null, picked: null,
+          highlight: { x: 'all' }
+        }
+      },
+      {
+        lines: '3',
+        code: 'view = x[:, 1:3]',
+        badge: '🔗 Tạo VIEW',
+        theme: 'rose',
+        title: 'Cắt 2 cột giữa bằng dấu ":" → Tạo VIEW (dùng chung bộ nhớ!)',
+        vocab: ': = lấy tất cả các hàng • 1:3 = lấy từ cột 1 đến trước cột 3 (tức cột 1 và cột 2)',
+        everyday: 'Cắt lấy 2 cột ở giữa của x. Vì dùng dấu hai chấm (Slicing), view giống như link Google Docs dùng chung với x: sửa view là x đổi theo!',
+        tip: 'Trong Python, cột đầu tiên đánh số 0. Nên cột 1:3 là cột thứ 2 và cột thứ 3.',
+        state: {
+          x: [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]],
+          view: [[2, 3], [6, 7], [10, 11]],
+          copy: null, picked: null,
+          highlight: { view: 'all' }
+        }
+      },
+      {
+        lines: '4',
+        code: 'copy = x[:, [1, 2]]',
+        badge: '🖨️ Tạo COPY',
+        theme: 'amber',
+        title: 'Cắt 2 cột giữa bằng danh sách [1, 2] → Tạo COPY (bản sao độc lập!)',
+        vocab: '[1, 2] = liệt kê danh sách chỉ số cột (Fancy Indexing)',
+        everyday: 'Nhìn kết quả giống hệt view, nhưng vì viết dạng danh sách [1, 2] nên NumPy photocopy ra một tờ giấy mới hoàn toàn độc lập với x.',
+        tip: 'Sửa copy thoải mái, bảng gốc x và view sẽ không bị ảnh hưởng chút nào!',
+        state: {
+          x: [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]],
+          view: [[2, 3], [6, 7], [10, 11]],
+          copy: [[2, 3], [6, 7], [10, 11]],
+          picked: null,
+          highlight: { copy: 'all' }
+        }
+      },
+      {
+        lines: '5',
+        code: 'view[0] *= -1',
+        badge: '⚠️ Bẫy 1 kích hoạt',
+        theme: 'rose',
+        title: 'Nhân hàng đầu của view với -1 → Bảng gốc x cũng bị đổi dấu theo!',
+        vocab: 'view[0] = hàng đầu tiên của view • *= -1 = nhân chính nó với -1 (đổi dấu)',
+        everyday: 'Hàng đầu của view là [2, 3] bị đổi thành [-2, -3]. Vì view dùng chung bộ nhớ với x, nên hai ô đó trong x cũng lập tức biến thành -2, -3! Còn copy vẫn giữ nguyên 2, 3.',
+        tip: 'Hãy nhìn bảng x bên dưới: ô (0,1) và (0,2) vừa đổi thành -2, -3!',
+        state: {
+          x: [[1, -2, -3, 4], [5, 6, 7, 8], [9, 10, 11, 12]],
+          view: [[-2, -3], [6, 7], [10, 11]],
+          copy: [[2, 3], [6, 7], [10, 11]],
+          picked: null,
+          highlight: { x: ['0,1', '0,2'], view: ['0,0', '0,1'] }
+        }
+      },
+      {
+        lines: '6',
+        code: 'copy[1] += 100',
+        badge: 'An toàn (Copy)',
+        theme: 'amber',
+        title: 'Cộng 100 vào hàng giữa của copy → Chỉ copy đổi, x đứng yên!',
+        vocab: 'copy[1] = hàng thứ 2 (đánh số từ 0) • += 100 = cộng thêm 100',
+        everyday: 'Hàng giữa [6, 7] của copy tăng thành [106, 107]. Vì copy là bản photocopy riêng, bảng gốc x và view vẫn giữ nguyên 6, 7 (giúp bạn loại ngay đáp án B!).',
+        tip: 'Gặp đáp án nào có số 106, 107 nằm trong x là gạch bỏ ngay lập tức.',
+        state: {
+          x: [[1, -2, -3, 4], [5, 6, 7, 8], [9, 10, 11, 12]],
+          view: [[-2, -3], [6, 7], [10, 11]],
+          copy: [[2, 3], [106, 107], [10, 11]],
+          picked: null,
+          highlight: { copy: ['1,0', '1,1'] }
+        }
+      },
+      {
+        lines: '7',
+        code: 'idx = np.array([0, 0, 2])',
+        badge: 'Chuẩn bị bẫy 2',
+        theme: 'neutral',
+        title: 'Tạo danh sách vị trí hàng có số 0 bị lặp lại 2 lần',
+        vocab: 'idx = viết tắt của index (chỉ số / vị trí)',
+        everyday: 'Tạo danh sách các hàng cần sửa: hàng 0, lại hàng 0 một lần nữa, và hàng 2. Chính sự lặp lại của số 0 này là mồi nhử cho 2 dòng tiếp theo.',
+        tip: 'Để ý kỹ: số 0 xuất hiện 2 lần liên tiếp!',
+        state: {
+          x: [[1, -2, -3, 4], [5, 6, 7, 8], [9, 10, 11, 12]],
+          view: [[-2, -3], [6, 7], [10, 11]],
+          copy: [[2, 3], [106, 107], [10, 11]],
+          picked: null,
+          highlight: {}
+        }
+      },
+      {
+        lines: '8',
+        code: 'x[idx, 3] += np.array([10, 20, 30])',
+        badge: '💥 Bẫy 2: Ghi đè',
+        theme: 'rose',
+        title: 'Cộng vào cột cuối (cột 3) bằng += → Ô lặp bị GHI ĐÈ thành 24!',
+        vocab: 'x[idx, 3] = lấy các hàng 0, 0, 2 ở cột cuối cùng (cột 3)',
+        everyday: 'Ô x[0, 3] đang là 4. Máy tính đồng thời 4+10=14 và 4+20=24 rồi ghi đè kết quả sau cùng là 24 (mất +10!). Còn ô x[2, 3] không bị trùng nên 12+30 = 42.',
+        tip: 'Đây là điểm phân định đáp án C (24) và đáp án A (34). Nhớ: += với index trùng KHÔNG cộng dồn!',
+        state: {
+          x: [[1, -2, -3, 24], [5, 6, 7, 8], [9, 10, 11, 42]],
+          view: [[-2, -3], [6, 7], [10, 11]],
+          copy: [[2, 3], [106, 107], [10, 11]],
+          picked: null,
+          highlight: { x: ['0,3', '2,3'] }
+        }
+      },
+      {
+        lines: '9',
+        code: 'np.add.at(x[:, 0], idx, [1, 2, 3])',
+        badge: '✅ Cộng dồn thật',
+        theme: 'emerald',
+        title: 'Dùng np.add.at vào cột đầu (cột 0) → Cộng dồn ĐẦY ĐỦ thành 4!',
+        vocab: 'np.add.at = hàm chuyên dụng để cộng dồn tại chỗ từng bước một • x[:, 0] = toàn bộ cột đầu tiên',
+        everyday: 'Ô x[0, 0] đang là 1. Nhờ np.add.at xếp hàng cộng lần lượt: 1 + 1 = 2, rồi 2 + 2 = 4! Ô x[2, 0] đang là 9 cộng 3 thành 12.',
+        tip: 'So sánh cặp đôi: += bị ghi đè, còn np.add.at thì cộng dồn đầy đủ.',
+        state: {
+          x: [[4, -2, -3, 24], [5, 6, 7, 8], [12, 10, 11, 42]],
+          view: [[-2, -3], [6, 7], [10, 11]],
+          copy: [[2, 3], [106, 107], [10, 11]],
+          picked: null,
+          highlight: { x: ['0,0', '2,0'] }
+        }
+      },
+      {
+        lines: '10',
+        code: 'mask = x % 2 == 0',
+        badge: 'Tạo bộ lọc',
+        theme: 'neutral',
+        title: 'Tạo tấm lưới kiểm tra xem ô nào trong x là số chẵn',
+        vocab: '% 2 == 0 = chia cho 2 lấy dư bằng 0 (tức là số chẵn) • mask = mặt nạ / bộ lọc Đúng-Sai',
+        everyday: 'Máy rà soát cả 12 ô trong x, ô nào là số chẵn thì đánh dấu True (Đúng), số lẻ đánh dấu False (Sai). Có đúng 8 số chẵn: 4, -2, 24, 6, 8, 12, 10, 42.',
+        tip: 'Số âm -2 chia 2 vẫn dư 0 nên vẫn được tính là số chẵn nhé!',
+        state: {
+          x: [[4, -2, -3, 24], [5, 6, 7, 8], [12, 10, 11, 42]],
+          view: [[-2, -3], [6, 7], [10, 11]],
+          copy: [[2, 3], [106, 107], [10, 11]],
+          picked: null,
+          highlight: { x: ['0,0', '0,1', '0,3', '1,1', '1,3', '2,0', '2,1', '2,3'] }
+        }
+      },
+      {
+        lines: '11',
+        code: 'picked = x[mask]',
+        badge: '🖨️ Lọc tạo COPY',
+        theme: 'amber',
+        title: 'Nhặt 8 số chẵn ra một danh sách mới (picked) — Luôn là bản sao!',
+        vocab: 'picked = các số đã được nhặt ra',
+        everyday: 'NumPy nhặt 8 số chẵn ra xếp thành 1 hàng ngang mới tên là picked. Vì lọc bằng mask, picked là bản photocopy độc lập với x.',
+        tip: 'Cứ thấy lọc bằng điều kiện x[mask] thì 100% là tạo bản sao mới.',
+        state: {
+          x: [[4, -2, -3, 24], [5, 6, 7, 8], [12, 10, 11, 42]],
+          view: [[-2, -3], [6, 7], [10, 11]],
+          copy: [[2, 3], [106, 107], [10, 11]],
+          picked: [4, -2, 24, 6, 8, 12, 10, 42],
+          highlight: { picked: 'all' }
+        }
+      },
+      {
+        lines: '12',
+        code: 'picked[:] = -99',
+        badge: 'Bẫy 3: Không bẩn x',
+        theme: 'amber',
+        title: 'Đổi toàn bộ picked thành -99 → Bảng gốc x vẫn nguyên vẹn!',
+        vocab: 'picked[:] = toàn bộ các phần tử bên trong picked',
+        everyday: 'Cả 8 phần tử của picked đều biến thành -99. Nhưng vì picked là bản sao nên bảng x không hề bị dính một số -99 nào (loại ngay đáp án D!).',
+        tip: 'Đây là dấu hiệu dễ nhận ra nhất để loại đáp án D trong 3 giây.',
+        state: {
+          x: [[4, -2, -3, 24], [5, 6, 7, 8], [12, 10, 11, 42]],
+          view: [[-2, -3], [6, 7], [10, 11]],
+          copy: [[2, 3], [106, 107], [10, 11]],
+          picked: [-99, -99, -99, -99, -99, -99, -99, -99],
+          highlight: { picked: 'all' }
+        }
+      },
+      {
+        lines: '13-17',
+        code: 'print("x:", x.tolist())\nprint("view:", view.tolist())\nprint("copy:", copy.tolist())\nprint("picked:", picked.tolist())\nprint("sums:", x.sum(axis=0).tolist())',
+        badge: '✅ In đáp án C',
+        theme: 'emerald',
+        title: 'In 5 dòng kết quả cuối cùng & tính tổng từng cột (axis=0)',
+        vocab: 'tolist() = đổi sang dạng danh sách chuẩn có dấu phẩy • sum(axis=0) = cộng tổng theo chiều dọc (từng cột)',
+        everyday: 'In toàn bộ 4 bảng đã tính ở trên. Riêng dòng cuối cộng dọc từng cột của x: cột 0 (4+5+12=21), cột 1 (-2+6+10=14), cột 2 (-3+7+11=15), cột 3 (24+8+42=74) → [21, 14, 15, 74].',
+        tip: 'Khớp 100% với Phương án C!',
+        state: {
+          x: [[4, -2, -3, 24], [5, 6, 7, 8], [12, 10, 11, 42]],
+          view: [[-2, -3], [6, 7], [10, 11]],
+          copy: [[2, 3], [106, 107], [10, 11]],
+          picked: [-99, -99, -99, -99, -99, -99, -99, -99],
+          sums: [21, 14, 15, 74],
+          highlight: {}
+        }
+      }
+    ];
+
+    let activeStepIdx = 0;
+
+    // =========================================================================
+    // TAB SWITCHING
+    // =========================================================================
+    function switchTab(tabNum) {
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        const isTarget = btn.getAttribute('data-tab') === String(tabNum);
+        btn.className = isTarget
+          ? 'tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer border bg-rose-500 text-white border-rose-500 shadow-sm'
+          : 'tab-btn flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer border bg-white text-cocoa-700 border-amber-200 hover:bg-cream-100';
+      });
+      document.querySelectorAll('.tab-panel').forEach((panel) => {
+        panel.classList.toggle('hidden', panel.id !== `tab-panel-${tabNum}`);
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // =========================================================================
+    // TAB 2 RENDERING
+    // =========================================================================
+    function renderCodeList() {
+      const container = document.getElementById('code-lines-container');
+      container.innerHTML = codeSteps.map((step, idx) => {
+        const isActive = idx === activeStepIdx;
+        const activeClass = isActive
+          ? 'bg-rose-500/25 border-l-4 border-rose-400 text-white'
+          : 'border-l-4 border-transparent text-amber-100/80 hover:bg-cocoa-800';
+        const safeCode = step.code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return `
+          <button
+            type="button"
+            onclick="selectCodeStep(${idx})"
+            class="w-full text-left flex items-start gap-2.5 px-2.5 py-2 rounded-xl transition cursor-pointer ${activeClass}"
+          >
+            <span class="w-8 text-right text-amber-200/50 select-none shrink-0 text-[11px] pt-0.5">${step.lines}</span>
+            <pre class="whitespace-pre font-mono leading-relaxed text-xs">${safeCode}</pre>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function renderMiniMatrix(title, matrix, cols, hlList, accent) {
+      if (!matrix) {
+        return `
+          <div class="p-3 rounded-2xl bg-cream-50 border border-dashed border-amber-300/70 text-center">
+            <p class="text-[11px] font-bold text-cocoa-700/60">${title}</p>
+            <p class="text-[11px] text-cocoa-700/40 mt-1 italic">Chưa tạo</p>
+          </div>
+        `;
+      }
+      const gridCols = cols === 4 ? 'grid-cols-4' : 'grid-cols-2';
+      const cells = matrix.map((row, r) =>
+        row.map((val, c) => {
+          const isHl = hlList === 'all' || (Array.isArray(hlList) && hlList.includes(`${r},${c}`));
+          const cellClass = isHl
+            ? (accent === 'rose'
+                ? 'bg-rose-500 text-white border-rose-600 font-extrabold scale-105 shadow-xs'
+                : accent === 'emerald'
+                  ? 'bg-emerald-500 text-white border-emerald-600 font-extrabold scale-105 shadow-xs'
+                  : 'bg-amber-400 text-cocoa-900 border-amber-500 font-extrabold scale-105 shadow-xs')
+            : 'bg-white text-cocoa-800 border-amber-200/80 font-semibold';
+          return `<div class="px-1.5 py-1.5 rounded-lg border font-mono text-xs text-center transition ${cellClass}">${val}</div>`;
+        }).join('')
+      ).join('');
+
+      return `
+        <div class="p-3 rounded-2xl bg-cream-50 border border-amber-200/80">
+          <p class="text-[11px] font-extrabold text-cocoa-900 mb-2 text-center">${title}</p>
+          <div class="grid ${gridCols} gap-1">${cells}</div>
+        </div>
+      `;
+    }
+
+    function renderLineExplanation() {
+      const step = codeSteps[activeStepIdx];
+      document.getElementById('step-counter').textContent = `Bước ${activeStepIdx + 1} / ${codeSteps.length} (Dòng ${step.lines})`;
+      document.getElementById('prev-line-btn').disabled = activeStepIdx === 0;
+      document.getElementById('next-line-btn').disabled = activeStepIdx === codeSteps.length - 1;
+
+      const badgeColor = {
+        rose: 'bg-rose-100 text-rose-700 border-rose-200',
+        amber: 'bg-amber-100 text-amber-800 border-amber-200',
+        emerald: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+        neutral: 'bg-cream-200 text-cocoa-800 border-amber-300'
+      }[step.theme];
+
+      const accent = step.theme === 'neutral' ? 'amber' : step.theme;
+      const st = step.state;
+
+      const pickedHtml = st.picked
+        ? `
+          <div class="p-3 rounded-2xl bg-cream-50 border border-amber-200/80">
+            <p class="text-[11px] font-extrabold text-cocoa-900 mb-2">picked (mảng 1 chiều gồm 8 số chẵn):</p>
+            <div class="flex flex-wrap gap-1.5">
+              ${st.picked.map((v) => `
+                <span class="px-2 py-1 rounded-lg border font-mono text-xs font-bold ${st.highlight.picked === 'all' ? 'bg-amber-400 text-cocoa-900 border-amber-500' : 'bg-white text-cocoa-800 border-amber-200'}">${v}</span>
+              `).join('')}
+            </div>
+          </div>
+        `
+        : '';
+
+      const sumsHtml = st.sums
+        ? `
+          <div class="p-3 rounded-2xl bg-emerald-50 border border-emerald-300 flex items-center justify-between flex-wrap gap-2">
+            <span class="text-xs font-bold text-emerald-900">sums = x.sum(axis=0):</span>
+            <span class="font-mono text-xs sm:text-sm font-extrabold text-emerald-800">[${st.sums.join(', ')}]</span>
+          </div>
+        `
+        : '';
+
+      document.getElementById('line-explanation-content').innerHTML = `
+        <div>
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border ${badgeColor} mb-2">
+            ${step.badge}
+          </span>
+          <h3 class="text-base sm:text-lg font-extrabold text-cocoa-900 leading-snug">${step.title}</h3>
+        </div>
+
+        <div class="p-3 rounded-2xl bg-amber-50/70 border border-amber-200/80 text-xs text-cocoa-800">
+          <span class="font-bold text-amber-900">📖 Dịch từ khóa:</span> ${step.vocab}
+        </div>
+
+        <p class="text-sm text-cocoa-800 leading-relaxed">${step.everyday}</p>
+
+        <!-- Live Matrices State -->
+        <div class="space-y-3">
+          <p class="text-xs font-bold text-cocoa-700/70 uppercase tracking-wider">📊 Trạng thái bảng số tại bước này</p>
+          <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+            <div class="sm:col-span-6">${renderMiniMatrix('x (3×4)', st.x, 4, st.highlight.x, accent)}</div>
+            <div class="sm:col-span-3">${renderMiniMatrix('view (3×2)', st.view, 2, st.highlight.view, accent)}</div>
+            <div class="sm:col-span-3">${renderMiniMatrix('copy (3×2)', st.copy, 2, st.highlight.copy, accent)}</div>
+          </div>
+          ${pickedHtml}
+          ${sumsHtml}
+        </div>
+
+        <div class="bg-rose-50/70 border border-rose-200 rounded-2xl p-3.5 flex items-start gap-2.5">
+          <span class="text-base shrink-0">💡</span>
+          <p class="text-xs text-cocoa-800 leading-relaxed"><strong>Mẹo đi thi:</strong> ${step.tip}</p>
+        </div>
+      `;
+    }
+
+    function selectCodeStep(idx) {
+      if (idx < 0 || idx >= codeSteps.length) return;
+      activeStepIdx = idx;
+      renderCodeList();
+      renderLineExplanation();
+    }
+
+    // =========================================================================
+    // TAB 3: 3 EXPERIMENTS LOGIC
+    // =========================================================================
+    function setExperiment(num) {
+      document.querySelectorAll('.exp-tab-btn').forEach((btn, i) => {
+        const isTarget = i + 1 === num;
+        btn.className = isTarget
+          ? 'exp-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer bg-rose-500 text-white shadow-xs'
+          : 'exp-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer text-cocoa-700 hover:bg-cream-200';
+      });
+      document.querySelectorAll('.exp-panel').forEach((p, i) => {
+        p.classList.toggle('hidden', i + 1 !== num);
+      });
+    }
+
+    // Experiment 1: View vs Copy
+    let exp1State = { viewDone: false, copyDone: false, lastAction: 'init' };
+    function runExp1(action) {
+      if (action === 'reset') {
+        exp1State = { viewDone: false, copyDone: false, lastAction: 'init' };
+      } else if (action === 'view') {
+        exp1State.viewDone = true;
+        exp1State.lastAction = 'view';
+      } else if (action === 'copy') {
+        exp1State.copyDone = true;
+        exp1State.lastAction = 'copy';
+      }
+      renderExp1();
+    }
+
+    function renderExp1() {
+      const xData = [
+        [1, exp1State.viewDone ? -2 : 2, exp1State.viewDone ? -3 : 3, 4],
+        [5, 6, 7, 8],
+        [9, 10, 11, 12]
+      ];
+      const vData = [
+        [exp1State.viewDone ? -2 : 2, exp1State.viewDone ? -3 : 3],
+        [6, 7],
+        [10, 11]
+      ];
+      const cData = [
+        [2, 3],
+        [exp1State.copyDone ? 106 : 6, exp1State.copyDone ? 107 : 7],
+        [10, 11]
+      ];
+
+      const statusEl = document.getElementById('exp1-status');
+      if (exp1State.lastAction === 'init') {
+        statusEl.innerHTML = '👆 Hãy bấm nút <strong>Chạy view[0] *= -1</strong> hoặc <strong>Chạy copy[1] += 100</strong> ở trên để xem sự khác biệt!';
+      } else if (exp1State.lastAction === 'view') {
+        statusEl.innerHTML = '🔗 <strong>Kết quả:</strong> Bạn vừa sửa <code class="font-mono">view[0]</code> thành <code class="font-mono">-2, -3</code> → Bảng gốc <strong>x cũng bị đổi màu và đổi số theo!</strong> (Vì View dùng chung bộ nhớ).';
+      } else {
+        statusEl.innerHTML = '🖨️ <strong>Kết quả:</strong> Bạn vừa cộng 100 vào <code class="font-mono">copy[1]</code> thành <code class="font-mono">106, 107</code> → <strong>Bảng gốc x vẫn đứng yên</strong> (6, 7 giữ nguyên vì Copy là bản photocopy riêng).';
+      }
+
+      document.getElementById('exp1-x-grid').innerHTML = xData.map((row, r) =>
+        row.map((val, c) => {
+          const isViewChanged = exp1State.viewDone && r === 0 && (c === 1 || c === 2);
+          const cls = isViewChanged
+            ? 'bg-rose-500 text-white border-rose-600 font-extrabold scale-105 shadow-sm'
+            : 'bg-white text-cocoa-800 border-amber-200 font-semibold';
+          return `<div class="w-11 h-10 rounded-xl border-2 flex items-center justify-center transition ${cls}">${val}</div>`;
+        }).join('')
+      ).join('');
+
+      document.getElementById('exp1-view-grid').innerHTML = vData.map((row, r) =>
+        row.map((val) => {
+          const isHl = exp1State.viewDone && r === 0;
+          const cls = isHl
+            ? 'bg-rose-500 text-white border-rose-600 font-extrabold scale-105 shadow-sm'
+            : 'bg-white text-rose-900 border-rose-200 font-semibold';
+          return `<div class="w-12 h-10 rounded-xl border-2 flex items-center justify-center transition ${cls}">${val}</div>`;
+        }).join('')
+      ).join('');
+
+      document.getElementById('exp1-copy-grid').innerHTML = cData.map((row, r) =>
+        row.map((val) => {
+          const isHl = exp1State.copyDone && r === 1;
+          const cls = isHl
+            ? 'bg-amber-500 text-white border-amber-600 font-extrabold scale-105 shadow-sm'
+            : 'bg-white text-amber-900 border-amber-200 font-semibold';
+          return `<div class="w-12 h-10 rounded-xl border-2 flex items-center justify-center transition ${cls}">${val}</div>`;
+        }).join('')
+      ).join('');
+    }
+
+    // Experiment 2: += vs np.add.at
+    let exp2Step = 0; // 0 = initial, 1 = step 1, 2 = step 2 (final)
+    function toggleExp2Step() {
+      exp2Step = (exp2Step + 1) % 3;
+      renderExp2();
+    }
+
+    function renderExp2() {
+      const btn = document.getElementById('exp2-toggle-btn');
+      btn.textContent = exp2Step === 0 ? '▶ Bước 1: Thực hiện lần cộng thứ nhất' : exp2Step === 1 ? '▶ Bước 2: Thực hiện lần cộng thứ hai (Trùng vị trí!)' : '🔄 Chạy lại từ đầu';
+
+      const leftSteps = [
+        { active: exp2Step >= 1, text: 'Lần 1 (+10): Đọc giá trị ban đầu là <strong>4</strong> → tính 4 + 10 = <strong>14</strong>, ghi vào ô.' },
+        { active: exp2Step >= 2, text: 'Lần 2 (+20): Lại đọc giá trị <em>cũ ban đầu</em> là <strong>4</strong> → tính 4 + 20 = <strong>24</strong>, <strong>ghi đè mất số 14!</strong>' }
+      ];
+      const rightSteps = [
+        { active: exp2Step >= 1, text: 'Lần 1 (+1): Đọc giá trị ban đầu là <strong>1</strong> → tính 1 + 1 = <strong>2</strong>, lưu ngay vào ô.' },
+        { active: exp2Step >= 2, text: 'Lần 2 (+2): Đọc giá trị <em>mới vừa lưu</em> là <strong>2</strong> → tính 2 + 2 = <strong>4</strong> (cộng dồn trọn vẹn!).' }
+      ];
+
+      document.getElementById('exp2-left-steps').innerHTML = leftSteps.map((s) => `
+        <div class="p-3 rounded-xl border transition ${s.active ? 'bg-white border-rose-300 text-cocoa-900 shadow-xs' : 'bg-rose-50/30 border-dashed border-rose-200 text-cocoa-700/40'}">
+          ${s.text}
+        </div>
+      `).join('');
+      document.getElementById('exp2-left-res').textContent = exp2Step === 0 ? '4' : exp2Step === 1 ? '14' : '24 (Mất +10!)';
+
+      document.getElementById('exp2-right-steps').innerHTML = rightSteps.map((s) => `
+        <div class="p-3 rounded-xl border transition ${s.active ? 'bg-white border-emerald-300 text-cocoa-900 shadow-xs' : 'bg-emerald-50/30 border-dashed border-emerald-200 text-cocoa-700/40'}">
+          ${s.text}
+        </div>
+      `).join('');
+      document.getElementById('exp2-right-res').textContent = exp2Step === 0 ? '1' : exp2Step === 1 ? '2' : '4 (Đủ cả +1 và +2)';
+    }
+
+    // Experiment 3: axis=0
+    const finalX = [
+      [4, -2, -3, 24],
+      [5, 6, 7, 8],
+      [12, 10, 11, 42]
+    ];
+    const colSums = [21, 14, 15, 74];
+    let selectedCol = 3;
+
+    function selectExp3Col(c) {
+      selectedCol = c;
+      renderExp3();
+    }
+
+    function renderExp3() {
+      const grid = document.getElementById('exp3-grid');
+      grid.innerHTML = [0, 1, 2, 3].map((c) => {
+        const isSel = c === selectedCol;
+        const wrapCls = isSel
+          ? 'bg-emerald-50 border-emerald-400 ring-2 ring-emerald-200 scale-[1.02]'
+          : 'bg-cream-50 border-amber-200 hover:bg-cream-100';
+        return `
+          <button
+            type="button"
+            onclick="selectExp3Col(${c})"
+            class="flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition cursor-pointer ${wrapCls}"
+          >
+            <span class="text-[11px] font-bold ${isSel ? 'text-emerald-800' : 'text-cocoa-700/70'}">Cột ${c}</span>
+            <div class="w-full py-2 rounded-xl bg-white border border-amber-200 font-mono font-bold text-sm text-cocoa-900">${finalX[0][c]}</div>
+            <div class="w-full py-2 rounded-xl bg-white border border-amber-200 font-mono font-bold text-sm text-cocoa-900">${finalX[1][c]}</div>
+            <div class="w-full py-2 rounded-xl bg-white border border-amber-200 font-mono font-bold text-sm text-cocoa-900">${finalX[2][c]}</div>
+            <span class="text-base font-extrabold ${isSel ? 'text-emerald-600' : 'text-amber-500'}">↓</span>
+            <div class="w-full py-2 rounded-xl font-mono font-extrabold text-sm ${isSel ? 'bg-emerald-600 text-white' : 'bg-amber-200/70 text-cocoa-900'}">${colSums[c]}</div>
+          </button>
+        `;
+      }).join('');
+
+      const a = finalX[0][selectedCol];
+      const b = finalX[1][selectedCol];
+      const d = finalX[2][selectedCol];
+      const fmt = (n) => (n < 0 ? `(${n})` : `${n}`);
+      document.getElementById('exp3-inspector').innerHTML = `
+        <div>
+          <p class="text-xs text-amber-200/80 mb-1">Đang xem phép cộng dọc của <strong>Cột ${selectedCol}</strong>:</p>
+          <p class="text-sm sm:text-base font-bold font-mono">${fmt(a)} + ${fmt(b)} + ${fmt(d)} = <span class="text-emerald-300 text-lg">${colSums[selectedCol]}</span></p>
+        </div>
+        <div class="shrink-0 text-xs font-mono bg-white/10 px-3 py-1.5 rounded-xl border border-white/20">
+          sums = [21, 14, 15, 74]
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // TAB 4: HINTS TOGGLE & MINI-QUIZ
+    // =========================================================================
+    let hintsVisible = true;
+    function toggleExamHints() {
+      hintsVisible = !hintsVisible;
+      document.querySelectorAll('.exam-hint-badge, .exam-hint-text').forEach((el) => {
+        el.classList.toggle('hidden', !hintsVisible);
+      });
+    }
+
+    const quizQuestions = [
+      {
+        id: 0,
+        question: 'Câu 1: Trong 3 cách cắt mảng sau đây, cách nào tạo ra VIEW (sửa bảng con thì bảng gốc x đổi theo)?',
+        options: [
+          'A. view = x[:, 1:3] (Cắt bằng dấu hai chấm)',
+          'B. copy = x[:, [1, 2]] (Cắt bằng danh sách chỉ số)',
+          'C. picked = x[mask] (Lọc bằng điều kiện Đúng/Sai)',
+          'D. Cả 3 cách đều làm đổi bảng gốc x'
+        ],
+        correct: 0,
+        explanation: 'Chính xác! Chỉ có Slicing (dùng dấu hai chấm :) mới tạo View dùng chung bộ nhớ. Hai cách còn lại đều tạo Copy độc lập.'
+      },
+      {
+        id: 1,
+        question: 'Câu 2: Nếu ô x[0, 3] đang là 4, sau lệnh x[[0, 0, 2], 3] += [10, 20, 30] thì ô x[0, 3] có giá trị bao nhiêu?',
+        options: [
+          'A. 14',
+          'B. 24 (bị ghi đè bởi 4 + 20, mất +10)',
+          'C. 34 (cộng dồn 4 + 10 + 20)',
+          'D. Báo lỗi vì chỉ số 0 bị lặp'
+        ],
+        correct: 1,
+        explanation: 'Chuẩn luôn! Phép += với chỉ số trùng không cộng dồn mà ghi đè giá trị sau cùng (4 + 20 = 24). Muốn cộng dồn phải dùng np.add.at.'
+      },
+      {
+        id: 2,
+        question: 'Câu 3: Khi đi thi, chỉ cần nhìn thấy bảng x có chứa số -99 thì bạn loại ngay đáp án nào?',
+        options: [
+          'A. Loại đáp án A',
+          'B. Loại đáp án B',
+          'C. Loại đáp án C',
+          'D. Loại đáp án D (vì picked = x[mask] là bản sao, không thể làm bẩn x)'
+        ],
+        correct: 3,
+        explanation: 'Tuyệt vời! picked[:] = -99 chỉ sửa bản sao picked, không bao giờ làm thay đổi x nên đáp án D sai chắc chắn.'
+      }
+    ];
+
+    let quizAnswers = {};
+    function answerQuiz(qId, optIdx) {
+      quizAnswers[qId] = optIdx;
+      renderQuiz();
+    }
+    function resetQuiz() {
+      quizAnswers = {};
+      renderQuiz();
+    }
+    function renderQuiz() {
+      let score = 0;
+      quizQuestions.forEach((q) => {
+        if (quizAnswers[q.id] === q.correct) score++;
+      });
+      document.getElementById('quiz-score').textContent = String(score);
+
+      document.getElementById('quiz-container').innerHTML = quizQuestions.map((q) => {
+        const chosen = quizAnswers[q.id];
+        const hasAnswered = chosen !== undefined;
+        const isCorrect = chosen === q.correct;
+
+        const opts = q.options.map((text, idx) => {
+          let cls = 'bg-white border-amber-200 text-cocoa-800 hover:bg-cream-100';
+          if (hasAnswered) {
+            if (idx === q.correct) cls = 'bg-emerald-50 border-emerald-500 text-emerald-900 font-bold';
+            else if (idx === chosen) cls = 'bg-rose-50 border-rose-500 text-rose-900 font-bold';
+            else cls = 'bg-cream-50 border-amber-100 text-cocoa-700/40';
+          }
+          return `
+            <button type="button" onclick="answerQuiz(${q.id}, ${idx})" class="w-full text-left px-4 py-3 rounded-2xl border-2 text-xs sm:text-sm transition cursor-pointer ${cls}">
+              ${text}
+            </button>
+          `;
+        }).join('');
+
+        const fb = hasAnswered
+          ? `<div class="mt-3 p-3.5 rounded-2xl text-xs sm:text-sm border ${isCorrect ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : 'bg-rose-50 border-rose-200 text-rose-900'}">
+              <strong>${isCorrect ? '✅ Chính xác!' : '❌ Chưa đúng rồi!'}</strong> ${q.explanation}
+            </div>`
+          : '';
+
+        return `
+          <div class="p-4 sm:p-5 rounded-2xl bg-cream-50 border border-amber-200/80">
+            <p class="text-sm sm:text-base font-bold text-cocoa-900 mb-3">${q.question}</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">${opts}</div>
+            ${fb}
+          </div>
+        `;
+      }).join('');
+    }
+
+    // =========================================================================
+    // INIT
+    // =========================================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => switchTab(btn.getAttribute('data-tab')));
+      });
+      document.getElementById('prev-line-btn').addEventListener('click', () => selectCodeStep(activeStepIdx - 1));
+      document.getElementById('next-line-btn').addEventListener('click', () => selectCodeStep(activeStepIdx + 1));
+
+      switchTab('1');
+      renderCodeList();
+      renderLineExplanation();
+      setExperiment(1);
+      renderExp1();
+      renderExp2();
+      renderExp3();
+      renderQuiz();
+    });
+  </script>
+</body>
+</html>
