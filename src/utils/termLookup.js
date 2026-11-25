@@ -263,12 +263,62 @@ function findLocalExamMatches(term) {
   return { glossaryHit, flashcardHit };
 }
 
+const GEMINI_TIMEOUT_MS = 5000;
+
+async function requestGeminiExplain({ term, wikiSummary, context }) {
+  // Skip relative API call outside browser (e.g. SSR) unless explicitly running with origin
+  if (typeof fetch !== 'function' || typeof window === 'undefined') {
+    return null;
+  }
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
+
+  try {
+    const res = await fetch('/api/explain', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        term,
+        wikiSummary,
+        context,
+      }),
+      signal: controller.signal,
+    });
+
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (
+      data?.ok &&
+      typeof data.whatIsIt === 'string' &&
+      typeof data.aiRole === 'string' &&
+      typeof data.formulaPlain === 'string' &&
+      data.whatIsIt.trim() &&
+      data.aiRole.trim() &&
+      data.formulaPlain.trim()
+    ) {
+      return {
+        model: data.model || 'gemini',
+        whatIsIt: data.whatIsIt.trim(),
+        aiRole: data.aiRole.trim(),
+        formulaPlain: data.formulaPlain.trim(),
+      };
+    }
+    return null;
+  } catch {
+    // Timeout (>5s), offline, or unavailable -> safe fallback to Wikipedia
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 /**
- * Live online lookup for any user-highlighted term:
- * 1. Resolves canonical AI/Math/CS Wikipedia page (vi + en via langlinks)
- * 2. Translates EN summary cleanly to Vietnamese when VI article doesn't exist
- * 3. Cross-references local VinUni exam bank for exam-specific notes
- * 4. Formats into Flashcard (question/answer) + 3-part Non-tech Glossary (whatIsIt/aiRole/formulaPlain)
+ * Live online lookup for any user-highlighted term (Wikipedia + Gemini 5s timeout fallback):
+ * 1. Fetches authoritative summary from Wikipedia (VI + EN via langlinks + EN->VI fallback)
+ * 2. Sends wikiSummary to /api/explain (Gemini) with a strict 5-second AbortController timeout
+ * 3. If Gemini responds in time -> returns plain-language Vietnamese explanation ("✨ AI + Wikipedia")
+ *    Otherwise -> falls back seamlessly to Wikipedia result ("🌐 Wikipedia") without error or delay
  */
 export async function lookupTermOnline(rawTerm, contextSentence = '') {
   const term = rawTerm.trim().replace(/^[.,;:!?()[\]"'“”‘’]+|[.,;:!?()[\]"'“”‘’]+$/g, '');
@@ -319,23 +369,46 @@ export async function lookupTermOnline(rawTerm, contextSentence = '') {
     }
   }
 
-  // Step 2: Obtain clean Vietnamese explanation text from live online results
-  let onlineViText = '';
+  // Raw Wikipedia context prepared for both fallback AND Gemini prompt
+  const wikiRawForGemini =
+    viSummary?.extract || enSummary?.extract || flashcardHit?.answer || '';
+
   let sourceUrl = '';
   let sourceTitle = '';
-  let sourceLabel = '';
+  let wikiOriginLabel = '';
 
   if (viSummary && viSummary.extract.length >= 60) {
-    onlineViText = viSummary.extract;
     sourceUrl = viSummary.url;
     sourceTitle = viSummary.title;
-    sourceLabel = `Wikipedia Tiếng Việt (${viSummary.title})`;
+    wikiOriginLabel = `Wikipedia Tiếng Việt (${viSummary.title})`;
   } else if (enSummary) {
-    const enSentences = splitSentences(enSummary.extract).slice(0, 3).join(' ');
-    onlineViText = await translateEnToVi(enSentences);
     sourceUrl = enSummary.url;
     sourceTitle = enSummary.title;
-    sourceLabel = `Wikipedia Tiếng Anh — đã dịch tự động (${enSummary.title})`;
+    wikiOriginLabel = `Wikipedia (${enSummary.title})`;
+  }
+
+  // Step 2: Try Gemini (/api/explain) with 5s timeout.
+  // Only translate EN->VI via MyMemory if we don't have VI wiki AND Gemini isn't used (or run fallback cleanly).
+  const geminiResult = !glossaryHit
+    ? await requestGeminiExplain({
+        term,
+        wikiSummary: wikiRawForGemini,
+        context: contextSentence,
+      })
+    : null;
+
+  // Step 3: Build Wikipedia fallback text only if needed (or already in Vietnamese)
+  let onlineViText = '';
+  if (viSummary && viSummary.extract.length >= 60) {
+    onlineViText = viSummary.extract;
+  } else if (enSummary) {
+    if (geminiResult) {
+      onlineViText = enSummary.extract;
+    } else {
+      const enSentences = splitSentences(enSummary.extract).slice(0, 3).join(' ');
+      onlineViText = await translateEnToVi(enSentences);
+      wikiOriginLabel = `Wikipedia Tiếng Anh — dịch tự động (${enSummary.title})`;
+    }
   }
 
   const combinedText = `${term} ${onlineViText} ${enSummary?.extract ?? ''} ${contextSentence}`;
@@ -344,11 +417,48 @@ export async function lookupTermOnline(rawTerm, contextSentence = '') {
     flashcardHit?.module ||
     detectModule(term, combinedText, 'M3');
 
+  const displayTitle =
+    sourceTitle && sourceTitle.toLowerCase() !== lower
+      ? `${term} (${sourceTitle})`
+      : term;
+
+  const question = `${displayTitle} là gì và dùng để giải quyết bài toán nào?`;
+
+  // Branch A: Gemini succeeded within 5 seconds -> "✨ AI + Wikipedia"
+  if (geminiResult) {
+    const hasWiki = Boolean(viSummary || enSummary);
+    const badgeLabel = hasWiki ? '✨ AI + Wikipedia' : '✨ AI';
+    const sourceLabel = hasWiki
+      ? `AI (Gemini) viết lại dễ hiểu từ ${wikiOriginLabel}`
+      : 'AI (Gemini) giải thích cho Non-tech';
+
+    return {
+      foundOnline: true,
+      explainMode: 'ai',
+      badgeLabel,
+      hasLocalMatch: Boolean(flashcardHit),
+      term,
+      module: detectedModule,
+      tag: flashcardHit?.tag || 'AI + Wikipedia',
+      question,
+      answer: `${geminiResult.whatIsIt} Vai trò trong AI: ${geminiResult.aiRole}`,
+      whatIsIt: geminiResult.whatIsIt,
+      aiRole: geminiResult.aiRole,
+      formulaPlain: geminiResult.formulaPlain,
+      sourceUrl,
+      sourceTitle,
+      sourceLabel,
+      googleSearchUrl: `https://www.google.com/search?q=${encodeURIComponent(
+        `${term} là gì trong AI Machine Learning`
+      )}`,
+    };
+  }
+
+  // Branch B: Fallback to Wikipedia (or local built-in glossary/flashcard if offline) -> "🌐 Wikipedia"
   const viSentences = splitSentences(onlineViText);
   const firstSentence = viSentences[0] || '';
   const secondSentence = viSentences.slice(1, 3).join(' ');
 
-  // Build structured 3-part Non-tech explanation + Flashcard fields
   const whatIsIt =
     glossaryHit?.whatIsIt ||
     firstSentence ||
@@ -371,13 +481,6 @@ export async function lookupTermOnline(rawTerm, contextSentence = '') {
         ? `Tóm tắt nhanh: ${term} (${enSummary.title}) — ${onlineViText.slice(0, 240)}${onlineViText.length > 240 ? '…' : ''}`
         : `Mẹo ghi nhớ: Gắn "${term}" với 1 ví dụ số nhỏ hoặc câu hỏi thực tế trong bài học rồi tự nhẩm lại bằng lời của bạn.`);
 
-  const displayTitle =
-    sourceTitle && sourceTitle.toLowerCase() !== lower
-      ? `${term} (${sourceTitle})`
-      : term;
-
-  const question = `${displayTitle} là gì và dùng để giải quyết bài toán nào?`;
-
   const answerParts = [];
   if (firstSentence) answerParts.push(firstSentence);
   if (secondSentence && answerParts.join(' ').length < 220) {
@@ -386,18 +489,21 @@ export async function lookupTermOnline(rawTerm, contextSentence = '') {
   if (flashcardHit && !onlineViText) {
     answerParts.push(flashcardHit.answer);
   }
-  const answer =
-    glossaryHit
-      ? `${glossaryHit.whatIsIt} Ứng dụng AI: ${glossaryHit.aiRole}`
-      : answerParts.join(' ') ||
-        `Chưa tìm thấy mục Wikipedia khớp trực tiếp cho "${term}" — bạn có thể bấm nút Google phía dưới hoặc tự nhập định nghĩa ngắn gọn để lưu Flashcard.`;
+  const answer = glossaryHit
+    ? `${glossaryHit.whatIsIt} Ứng dụng AI: ${glossaryHit.aiRole}`
+    : answerParts.join(' ') ||
+      `Chưa tìm thấy mục Wikipedia khớp trực tiếp cho "${term}" — bạn có thể bấm nút Google phía dưới hoặc tự nhập định nghĩa ngắn gọn để lưu Flashcard.`;
+
+  const hasWiki = Boolean(onlineViText);
 
   return {
-    foundOnline: Boolean(onlineViText),
+    foundOnline: hasWiki,
+    explainMode: hasWiki ? 'wiki' : 'local',
+    badgeLabel: hasWiki ? '🌐 Wikipedia' : '📚 Nội bộ',
     hasLocalMatch: Boolean(glossaryHit || flashcardHit),
     term,
     module: detectedModule,
-    tag: flashcardHit?.tag || 'Tra mạng · Tự thêm',
+    tag: flashcardHit?.tag || 'Wikipedia · Tự thêm',
     question,
     answer,
     whatIsIt,
@@ -406,7 +512,7 @@ export async function lookupTermOnline(rawTerm, contextSentence = '') {
     sourceUrl,
     sourceTitle,
     sourceLabel:
-      sourceLabel ||
+      wikiOriginLabel ||
       (glossaryHit
         ? 'Từ điển có sẵn trong app'
         : flashcardHit

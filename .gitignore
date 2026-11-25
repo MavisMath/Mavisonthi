@@ -13,8 +13,9 @@ dist-ssr
 raw_docs/
 study_guides/
 
-# Local environment
+# Local environment (NEVER commit API keys)
 .env
+.env*
 .env.local
 .env.*.local
 

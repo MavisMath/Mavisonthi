@@ -105,6 +105,8 @@ export default function SelectionLookupAssistant({
     setLoading(false);
     setLookupMeta({
       foundOnline: result.foundOnline,
+      explainMode: result.explainMode,
+      badgeLabel: result.badgeLabel,
       hasLocalMatch: result.hasLocalMatch,
       sourceLabel: result.sourceLabel,
       sourceUrl: result.sourceUrl,
@@ -472,10 +474,10 @@ export default function SelectionLookupAssistant({
                     <Loader2 className="h-5 w-5 shrink-0 animate-spin text-blue-600" />
                     <div>
                       <p className="font-semibold">
-                        Đang tra cứu trực tuyến cho &ldquo;{form.term}&rdquo;...
+                        Đang tra cứu Wikipedia &amp; nhờ AI viết lại dễ hiểu cho &ldquo;{form.term}&rdquo;...
                       </p>
                       <p className="mt-0.5 text-xs text-blue-700">
-                        Tự động dò bài viết chuyên ngành AI/Toán trên Wikipedia (Tiếng Việt &amp; Tiếng Anh), dịch mượt và điền sẵn 3 phần giải thích.
+                        Tự động lấy kiến thức chuẩn từ Wikipedia, nhờ Gemini diễn giải bình dân (timeout tối đa 5 giây — nếu chậm sẽ tự dùng ngay bản Wikipedia).
                       </p>
                     </div>
                   </div>
@@ -483,15 +485,27 @@ export default function SelectionLookupAssistant({
                   lookupMeta && (
                     <div
                       className={`flex flex-wrap items-center justify-between gap-2 rounded-xl border px-3.5 py-2.5 text-xs ${
-                        lookupMeta.foundOnline
-                          ? 'border-teal-200 bg-teal-50/70 text-teal-900'
-                          : 'border-amber-200 bg-amber-50/70 text-amber-900'
+                        lookupMeta.explainMode === 'ai'
+                          ? 'border-indigo-200 bg-indigo-50/70 text-indigo-950'
+                          : lookupMeta.foundOnline
+                            ? 'border-teal-200 bg-teal-50/70 text-teal-900'
+                            : 'border-amber-200 bg-amber-50/70 text-amber-900'
                       }`}
                     >
-                      <div className="flex items-center gap-2">
-                        <Globe className="h-3.5 w-3.5 shrink-0" />
-                        <span>
-                          <strong>Nguồn tự động:</strong> {lookupMeta.sourceLabel}
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span
+                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 font-semibold ${
+                            lookupMeta.explainMode === 'ai'
+                              ? 'bg-indigo-600 text-white'
+                              : lookupMeta.foundOnline
+                                ? 'bg-teal-600 text-white'
+                                : 'bg-amber-600 text-white'
+                          }`}
+                        >
+                          {lookupMeta.badgeLabel || '🌐 Wikipedia'}
+                        </span>
+                        <span className="text-slate-700">
+                          {lookupMeta.sourceLabel}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -500,9 +514,9 @@ export default function SelectionLookupAssistant({
                             href={lookupMeta.sourceUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 rounded-lg border border-teal-300/80 bg-white px-2 py-1 font-semibold text-teal-800 hover:bg-teal-50"
+                            className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 font-semibold text-slate-700 hover:bg-slate-50"
                           >
-                            <span>Xem Wikipedia</span>
+                            <span>Wikipedia</span>
                             <ExternalLink className="h-3 w-3" />
                           </a>
                         )}
