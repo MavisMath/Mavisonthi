@@ -3,16 +3,20 @@ import {
   BriefcaseBusiness,
   ClipboardList,
   Code2,
+  Compass,
+  Flame,
   LayoutGrid,
   Zap,
 } from 'lucide-react';
 import { NAV_TABS } from '../constants/modules';
 
 const TAB_ICONS = {
+  topics: Compass,
   flashcards: Zap,
   quizzes: ClipboardList,
   python: Code2,
   'case-study': BriefcaseBusiness,
+  traps: Flame,
 };
 
 export default function Navbar({ activeTab, onSelectTab }) {
@@ -21,14 +25,14 @@ export default function Navbar({ activeTab, onSelectTab }) {
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/95 backdrop-blur-md">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="flex flex-col gap-2.5 py-2.5 xl:h-16 xl:flex-row xl:items-center xl:justify-between xl:gap-4 xl:py-0">
+        <div className="flex flex-col gap-2.5 py-2.5 2xl:h-16 2xl:flex-row 2xl:items-center 2xl:justify-between 2xl:gap-3 2xl:py-0">
           {/* Brand & Overview trigger */}
-          <div className="flex shrink-0 items-center justify-between gap-3">
+          <div className="flex shrink-0 items-center justify-between gap-2.5">
             <button
               type="button"
-              onClick={() => onSelectTab('overview')}
-              className="group flex items-center gap-2.5 text-left focus:outline-none"
-              title="Về trang Tổng quan"
+              onClick={() => onSelectTab('topics')}
+              className="group flex items-center gap-2 text-left focus:outline-none"
+              title="Về 12 Chuyên đề"
             >
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-900 text-white transition-colors group-hover:bg-blue-700">
                 <BookOpen className="h-4 w-4" strokeWidth={2} />
@@ -38,7 +42,7 @@ export default function Navbar({ activeTab, onSelectTab }) {
                   AI Thực chiến VinUni
                 </span>
                 <span className="whitespace-nowrap font-mono text-[11px] text-slate-500">
-                  SFIA Level 3 · Study Hub
+                  SFIA Level 3 · AI20K
                 </span>
               </span>
             </button>
@@ -57,10 +61,10 @@ export default function Navbar({ activeTab, onSelectTab }) {
             </button>
           </div>
 
-          {/* 4 Main Navigation Tabs — wraps cleanly on small screens, fits 1 row with zero scrollbar on desktop */}
+          {/* 6 Navigation Tabs */}
           <nav
-            aria-label="Thanh điều hướng 4 chế độ ôn thi"
-            className="flex flex-wrap items-center gap-1.5"
+            aria-label="Thanh điều hướng chính"
+            className="flex flex-wrap items-center gap-1"
           >
             {NAV_TABS.map((tab) => {
               const Icon = TAB_ICONS[tab.id];
@@ -72,7 +76,7 @@ export default function Navbar({ activeTab, onSelectTab }) {
                   type="button"
                   onClick={() => onSelectTab(tab.id)}
                   aria-current={isActive ? 'page' : undefined}
-                  className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-all ${
+                  className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[13px] font-medium transition-all ${
                     isActive
                       ? 'bg-slate-900 text-white shadow-xs'
                       : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
@@ -80,7 +84,11 @@ export default function Navbar({ activeTab, onSelectTab }) {
                 >
                   <Icon
                     className={`h-3.5 w-3.5 shrink-0 ${
-                      isActive ? 'text-blue-300' : 'text-slate-400'
+                      isActive
+                        ? tab.id === 'traps'
+                          ? 'text-rose-300'
+                          : 'text-blue-300'
+                        : 'text-slate-400'
                     }`}
                     strokeWidth={1.9}
                   />

@@ -85,7 +85,12 @@ function FeedbackBox({ quiz, isCorrect, extraNotice }) {
   );
 }
 
-export default function QuizTab({ quizzes = [], onBackToOverview }) {
+export default function QuizTab({
+  quizzes = [],
+  initialModule = 'M1',
+  navigationNonce = 0,
+  onBackToOverview,
+}) {
   // Persisted wrong quiz IDs in localStorage
   const [wrongIds, setWrongIds] = useState(() => loadWrongQuizIds());
 
@@ -93,9 +98,18 @@ export default function QuizTab({ quizzes = [], onBackToOverview }) {
   const [mode, setMode] = useState('practice');
 
   // --- Mode 1: Practice by Module ---
-  const [selectedModule, setSelectedModule] = useState('M1');
+  const [selectedModule, setSelectedModule] = useState(initialModule);
   const [practiceIndex, setPracticeIndex] = useState(0);
   const [practiceAnswers, setPracticeAnswers] = useState({});
+
+  // Sync external navigation from "Luyện đề" button in 12 Chuyên đề
+  useEffect(() => {
+    if (navigationNonce > 0 && initialModule) {
+      setMode('practice');
+      setSelectedModule(initialModule);
+      setPracticeIndex(0);
+    }
+  }, [initialModule, navigationNonce]);
 
   // --- Mode 2: 90-min Weighted Mock Exam ---
   const [mockPreset, setMockPreset] = useState('full'); // 'full' (40q / 90m) | 'quick' (20q / 45m)

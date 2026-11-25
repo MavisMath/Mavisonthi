@@ -39,6 +39,14 @@ export const MODULES = [
 
 export const NAV_TABS = [
   {
+    id: 'topics',
+    label: '12 Chuyên đề',
+    shortLabel: '12 Chuyên đề',
+    plannedStep: 'Hoạt động',
+    description:
+      'Lộ trình 12 chuyên đề chuẩn khung AI20K VinUni với chế độ Học nhanh 4 bước và Mini-Quiz qua ải.',
+  },
+  {
     id: 'flashcards',
     label: 'Flashcard Phản xạ',
     shortLabel: 'Flashcard',
@@ -69,6 +77,14 @@ export const NAV_TABS = [
     plannedStep: 'Bước 4',
     description:
       'Phân tích tình huống AI thực chiến theo 5 trụ cột Root Cause, Architecture, Trade-offs, Safety & Ethics, Metrics & Rollout.',
+  },
+  {
+    id: 'traps',
+    label: 'Mẹo 15s & Gỡ Bẫy',
+    shortLabel: 'Mẹo 15s',
+    plannedStep: 'Hoạt động',
+    description:
+      'Phân tích bẫy tương tác (Broadcasting 3×3, SQL Window, Data Leakage, Logic De Morgan, Prompt Injection) kèm mẹo loại trừ 15 giây.',
   },
 ];
 

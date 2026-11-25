@@ -3,6 +3,7 @@ export const STORAGE_KEYS = {
   QUIZ_WRONG_IDS: 'vinuni_ai_quiz_wrong_ids_v1',
   PYTHON_PROGRESS: 'vinuni_ai_python_progress_v1',
   CASE_STUDY_DRAFTS: 'vinuni_ai_case_study_drafts_v1',
+  TOPICS_PROGRESS: 'vinuni_ai_topics_progress_v1',
 };
 
 const VALID_FLASHCARD_STATUSES = new Set(['unlearned', 'unsure', 'mastered']);
@@ -157,6 +158,42 @@ export function saveCaseStudyDrafts(drafts) {
     window.localStorage.setItem(
       STORAGE_KEYS.CASE_STUDY_DRAFTS,
       JSON.stringify(drafts)
+    );
+  } catch {
+    // Ignore storage quota or private mode errors gracefully
+  }
+}
+
+export function loadTopicsProgress() {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEYS.TOPICS_PROGRESS);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      return {};
+    }
+    const sanitized = {};
+    for (const [topicId, entry] of Object.entries(parsed)) {
+      if (!entry || typeof entry !== 'object' || Array.isArray(entry)) continue;
+      sanitized[topicId] = {
+        passed: Boolean(entry.passed),
+        bestScore: Number.isInteger(entry.bestScore) ? entry.bestScore : 0,
+        lastScore: Number.isInteger(entry.lastScore) ? entry.lastScore : 0,
+      };
+    }
+    return sanitized;
+  } catch {
+    return {};
+  }
+}
+
+export function saveTopicsProgress(progress) {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(
+      STORAGE_KEYS.TOPICS_PROGRESS,
+      JSON.stringify(progress)
     );
   } catch {
     // Ignore storage quota or private mode errors gracefully
